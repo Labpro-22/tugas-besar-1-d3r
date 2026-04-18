@@ -61,7 +61,7 @@ private:
     std::vector<int> rentCost;
 
 public:
-    Railroad(int, const std::string&, const std::string&, int, int, const std::vector<int>&);
+    Railroad(int index, const std::string& code, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& rentCost);
     void runTile(Player*) override;
     int getRentCost() const override;
 };
@@ -71,7 +71,7 @@ private:
     std::vector<int> costMultiplier;
 
 public:
-    Utility(int, const std::string&, const std::string&, int, int, const std::vector<int>&);
+    Utility(int index, const std::string& code, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& costMultiplier);
     void runTile(Player*) override;
     int getRentCost() const override;
 };
