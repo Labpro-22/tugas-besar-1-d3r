@@ -1,5 +1,6 @@
 #include "../../include/core/Tile.hpp"
 #include "../../include/core/Player.hpp"
+#include "../../include/core/GameManager.hpp"
 
 PPH::PPH(int index, const std::string& code, const std::string& color, int flatTax, int taxPercentage): Tax(index, code, color), flatTax(flatTax), taxPercentage(taxPercentage) {}
 void PPH::payTax(Player* player) {
@@ -26,7 +27,7 @@ int PPH::calculateFlatTax() const {
     return flatTax;
 }
 int PPH::calculatePercentageTax(const Player& player) const {
-    int total = player.getTotalWealth();
+    int total = player.getTotalWealth(&GameManager::getInstance().getBoard());
     int taxAmount = total * taxPercentage/100;
     return taxAmount;
 }

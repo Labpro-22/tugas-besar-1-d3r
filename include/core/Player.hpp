@@ -9,6 +9,8 @@
 
 using namespace std;
 
+class Board;
+
 enum PLAYER_STATUS { ACTIVE, BANKRUPT, JAILED };
 enum CARD_EFFECT { NOEFFECT, DISCOUNT, SHIELD };
 
@@ -56,5 +58,5 @@ class Player {
         void moveTo(Tile* destination, bool getPayment);
         void mortgageProperty(Tile* property); // ubah status Tile jadi mortgaged
         void setToJailed();
-        int getTotalWealth() const; // helper func to easily count tax
+        int getTotalWealth(const Board* board) const; // helper func to easily count tax
 };
