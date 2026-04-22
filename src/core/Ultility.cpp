@@ -38,7 +38,7 @@ int Utility::getRentCost() const {
     }
 
     // calculate the dice val
-    static vector<int> dice = GameManager::getDice();
+    vector<int> dice = GameManager::getDice();
     int totalValDice = 0;
     for (int val : dice){
         totalValDice += val;
