@@ -1,3 +1,4 @@
+#include "../../include/core/GameManager.hpp"
 #include "../../include/core/Tile.hpp"
 #include "../../include/core/Player.hpp"
 
@@ -89,7 +90,19 @@ void Prison::freeFromJailed(Player* player) {
 }
 
 void Prison::runTile(Player* player) {
-    if (player != nullptr && checkJailed(player)) {
+    if (player != nullptr && checkJailed(player) && player->getJailTurn() > 3) {
         payFee(player);
     }
 }
+
+Trap::Trap(int index, const std::string& code, const std::string& color)
+: Tile(index, code, color){}
+void Trap::runTile(Player* player){
+    Tile* prison = GameManager::getInstance().getBoard().getJailTile();
+    player->setToJailed();
+    player->moveTo(prison, false);
+}
+
+FreeParking::FreeParking(int index, const std::string& code, const std::string& color)
+: Tile(index, code, color){}
+void FreeParking::runTile(Player* player){}
