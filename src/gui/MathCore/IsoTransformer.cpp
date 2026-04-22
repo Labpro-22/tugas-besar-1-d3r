@@ -2,17 +2,24 @@
 
 Vector2 IsoTransformer::IndexToGrid(int index)
 {
-    // Papan Monopoli adalah grid 11x11 (0 sampai 10)
-    // Asumsi Index 0 (GO) ada di pojok bawah (grid x:10, y:10)
-    // Bagian dari kanan bawah ke kiri bawah
+    // Board 1-indexed: index 1-40 (GO=1, PEN=11, PBM=39)
+    // Grid 11x11 (0 sampai 10)
+    // Index 1 (GO) ada di pojok bawah (grid x:10, y:10)
+    
+    // Adjust untuk 1-indexed (konversi ke 0-based untuk kalkulasi)
+    if (index < 1 || index > 40) return {0.0f, 0.0f};
+    
+    index = index - 1; // Konversi ke 0-based (0-39)
+    
+    // Bagian dari kanan bawah ke kiri bawah (0-10)
     if (index >= 0 && index <= 10) return {10.0f - index, 10.0f};
-    // Bagian bawah kiri ke kiri atas
+    // Bagian bawah kiri ke kiri atas (11-20)
     else if (index > 10 && index <= 20) return {0.0f, 10.0f - (index - 10)};
-    // Bagian kiri atas ke kanan atas
+    // Bagian kiri atas ke kanan atas (21-30)
     else if (index > 20 && index <= 30) return {(float)(index - 20), 0.0f};
-    // bagian kanan atas ke kanan bawah
-    else if (index > 30 && index <= 40) return {10.0f, (float)(index - 30)};
-    else return {0.0f, 0.0f}; // TODO buat exception
+    // Bagian kanan atas ke kanan bawah (31-39)
+    else if (index > 30 && index < 40) return {10.0f, (float)(index - 30)};
+    else return {0.0f, 0.0f};
 }
 
 Vector2 IsoTransformer::GetScreenPosition(int index)

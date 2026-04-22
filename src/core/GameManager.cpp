@@ -5,7 +5,7 @@
 std::vector<int> GameManager::dice;
 
 GameManager::GameManager() 
-    : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), currentTurnPlayer(nullptr), board(40) {
+    : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), currentTurnPlayer(nullptr), board(41) {
     // Board initialized with 40 tiles (standard Monopoly)
 }
 

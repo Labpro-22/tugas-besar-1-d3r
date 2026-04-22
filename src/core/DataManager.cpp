@@ -127,8 +127,8 @@ vector<int> DataManager::loadUtilityConfig() {
 
     file >> goSalary >> jail_fine;    
 
-    Go* go = new Go(0, "GO", "DEFAULT", goSalary);
-    Prison* prison = new Prison(10, "PEN", "DEFAULT", jail_fine);
+    Go* go = new Go(1, "GO", "DEFAULT", goSalary);
+    Prison* prison = new Prison(11, "PEN", "DEFAULT", jail_fine);
 
     game.addTile(go);
     game.addTile(prison);
