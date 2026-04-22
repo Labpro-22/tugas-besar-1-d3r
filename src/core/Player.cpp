@@ -36,3 +36,7 @@ void Player::setToJailed() {
 void Player::buyBackMortgaged(Tile* mortgaged) {
     // TODO: Implement buy back mortgaged property logic
 }
+
+int Player::getTotalWealth() const {
+    
+}

@@ -56,4 +56,5 @@ class Player {
         void moveTo(Tile* destination, bool getPayment);
         void mortgageProperty(Tile* property); // ubah status Tile jadi mortgaged
         void setToJailed();
+        int getTotalWealth() const; // helper func to easily count tax
 };

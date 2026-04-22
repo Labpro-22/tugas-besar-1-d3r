@@ -20,6 +20,7 @@ public:
     std::string getCode() const { return code; }
     std::string getColor() const { return color; }
     virtual void runTile(Player*) = 0;
+    virtual int getAssetValue() const { return 0; }    
 };
 
 enum PROPERTY_STATUS {
@@ -54,6 +55,8 @@ public:
 
     void runTile(Player*) override;
     virtual int getRentCost() const = 0;
+    int getAssetValue() const override;
+
 };
 
 class Railroad : public Property {
@@ -82,6 +85,7 @@ private:
     int hotelCost;
     std::vector<int> rentCost;
     int currentLevel;
+    int getAssetValue() const override;    
 
 public:
     Street(int index, const std::string& code, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, int houseCost, int hotelCost, std::vector<int> rentCost, int currentLevel);
@@ -93,6 +97,17 @@ public:
 
     void runTile(Player*) override;
     int getRentCost() const override;
+    int getAssetValue() const override {
+        int buildingValue = 0;
+
+        if (currentLevel >= 1 && currentLevel <= 4) {
+            buildingValue = currentLevel * houseCost;
+        } else if (currentLevel == 5) {
+            buildingValue = 4 * houseCost + hotelCost;
+        }
+
+        return landCost + buildingValue;
+    }    
 };
 
 class CardTile : public Tile {
@@ -128,6 +143,10 @@ public:
     int getTaxPercentage() const { return taxPercentage; };
     void setFlatTax(int flatTax) { this->flatTax = flatTax; };
     void setTaxPercentage(int taxPercentage) { this->taxPercentage = taxPercentage; };
+
+    int calculateFlatTax() const;
+    int calculatePercentageTax(const Player& player) const;
+    int calculateTotalWealth(const Player& player) const;
     
 };
 

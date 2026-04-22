@@ -29,7 +29,9 @@ void Property::setPropertyStatus(PROPERTY_STATUS status) { this->propertyStatus 
 void Property::runTile(Player* player) {
     // TODO: Implement property tile behavior
 }
-
+int Property::getAssetValue() const {
+    return landCost;
+}
 
 // ============== Tax Class ==============
 Tax::Tax(int index, const std::string& code, const std::string& color)
