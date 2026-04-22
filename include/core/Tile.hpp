@@ -16,9 +16,9 @@ public:
     Tile(int index, const std::string& code, const std::string& color);
     virtual ~Tile() = default;
 
-    int getIndex() const;
-    std::string getCode() const;
-    std::string getColor() const;
+    int getIndex() const { return index; }
+    std::string getCode() const { return code; }
+    std::string getColor() const { return color; }
     virtual void runTile(Player*) = 0;
 };
 
@@ -117,9 +117,18 @@ public:
 };
 
 class PPH : public Tax {
+private:
+    int flatTax;
+    int taxPercentage;
 public:
-    PPH(int, const std::string&, const std::string&);
+    PPH(int, const std::string&, const std::string&, int flatTax, int taxPercentage);
     void payTax(Player*) override;
+
+    int getFlatTax() const { return flatTax; };
+    int getTaxPercentage() const { return taxPercentage; };
+    void setFlatTax(int flatTax) { this->flatTax = flatTax; };
+    void setTaxPercentage(int taxPercentage) { this->taxPercentage = taxPercentage; };
+    
 };
 
 class PBM : public Tax {
@@ -127,14 +136,18 @@ private:
     int fixedTax;
 
 public:
-    PBM(int, const std::string&, const std::string&, int);
+    PBM(int, const std::string&, const std::string&, int fixedTax);
     int getFixedTax() const;
+    void setFixedTax(int fixedTax) { this->fixedTax = fixedTax; };
+
     void payTax(Player*) override;
 };
 
 class Go : public Tile {
+private:
+    int payment;
 public:
-    Go(int, const std::string&, const std::string&);
+    Go(int, const std::string&, const std::string&, int payment);
     void givePayments(Player*);
     void runTile(Player*) override;
 };
