@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <random>
+#include <cstddef>
 
 #include "../../include/core/Card.hpp"
 
@@ -62,6 +63,32 @@ T* CardDeck<T>::getRandomCard() {
 	availableCards.erase(availableCards.begin() + static_cast<long long>(selectedIndex));
 	usedCard.push_back(selectedCard);
 	return selectedCard;
+}
+
+template <typename T>
+T* CardDeck<T>::removeAt(size_t index) {
+	if (index >= availableCards.size()) {
+		return nullptr;
+	}
+
+	T* selectedCard = availableCards[index];
+	availableCards.erase(availableCards.begin() + static_cast<long long>(index));
+	return selectedCard;
+}
+
+template <typename T>
+size_t CardDeck<T>::size() const {
+	return availableCards.size();
+}
+
+template <typename T>
+bool CardDeck<T>::empty() const {
+	return availableCards.empty();
+}
+
+template <typename T>
+const std::vector<T*>& CardDeck<T>::getCards() const {
+	return availableCards;
 }
 
 template class CardDeck<SkillCard>;

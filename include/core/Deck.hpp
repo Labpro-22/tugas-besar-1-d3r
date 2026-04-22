@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -23,6 +24,10 @@ public:
 	void printDeck() const;
 	T* topDeck();
 	T* getRandomCard();
+	T* removeAt(size_t index);
+	size_t size() const;
+	bool empty() const;
+	const std::vector<T*>& getCards() const;
 };
 
 extern template class CardDeck<SkillCard>;

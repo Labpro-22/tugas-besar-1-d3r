@@ -1,6 +1,9 @@
 #include "../../include/core/Card.hpp"
 
 #include <algorithm>
+#include <iostream>
+#include <limits>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -83,7 +86,40 @@ void CampaignCard::useCard(Player *currentPlayer, std::vector<Player *> players)
 NearestStationCard::NearestStationCard() : AutoUseCard("NEAREST_STATION", "Pergi ke stasiun terdekat") {}
 void NearestStationCard::useCard(Player *currentPlayer, std::vector<Player *>)
 {
-    // belum kepikiran
+    if (currentPlayer == nullptr || currentPlayer->getCurrentTile() == nullptr)
+    {
+        return;
+    }
+
+    Board &board = GameManager::getInstance().getBoard();
+    const int currentIndex = currentPlayer->getCurrentTile()->getIndex();
+    Tile *nearestStation = nullptr;
+    int nearestDistance = static_cast<int>(board.getTiles().size()) + 1;
+
+    for (Railroad *railroad : board.getAllRailroad())
+    {
+        if (railroad == nullptr)
+        {
+            continue;
+        }
+
+        int distance = railroad->getIndex() - currentIndex;
+        if (distance <= 0)
+        {
+            distance += static_cast<int>(board.getTiles().size());
+        }
+
+        if (distance < nearestDistance)
+        {
+            nearestDistance = distance;
+            nearestStation = railroad;
+        }
+    }
+
+    if (nearestStation != nullptr)
+    {
+        currentPlayer->moveTo(nearestStation, true);
+    }
 }
 
 MoveBackCard::MoveBackCard() : AutoUseCard("MOVE_BACK", "Mundur 3 petak") {}
@@ -127,7 +163,17 @@ CARD_TYPE SkillCard::getCardType() const
 }
 
 SkillCard::SkillCard(const std::string &cardName, const std::string &cardDescription) : Card(cardName, cardDescription) {}
-MoveCard::MoveCard(int moveTileMax) : SkillCard("MOVE_CARD", "Maju sejumlah" + to_string(moveTileMax) + "petak"), moveTileMax(moveTileMax) {}
+
+static int randomInt(int minValue, int maxValue)
+{
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> distribution(minValue, maxValue);
+    return distribution(gen);
+}
+
+MoveCard::MoveCard() : MoveCard(randomInt(1, 12)) {}
+MoveCard::MoveCard(int moveTileMax) : SkillCard("MOVE_CARD", "Maju sejumlah " + std::to_string(moveTileMax) + " petak"), moveTileMax(moveTileMax) {}
 int MoveCard::getMoveTileMax() const
 {
     return moveTileMax;
@@ -152,18 +198,24 @@ void MoveCard::useCard(Player *currentPlayer, std::vector<Player *>)
     }
 }
 
-DiscountCard::DiscountCard(float discount) : SkillCard("DISCOUNT_CARD", "Semua properti mendapatkan diskon sebesar" + to_string(discount / 100) + "persen"), discount(discount) {}
+DiscountCard::DiscountCard() : DiscountCard(static_cast<float>(randomInt(10, 50))) {}
+DiscountCard::DiscountCard(float discount) : SkillCard("DISCOUNT_CARD", "Semua properti mendapatkan diskon sebesar " + std::to_string(discount) + " persen"), discount(discount) {}
 
-void DiscountCard::useCard(Player *, std::vector<Player *>)
+void DiscountCard::useCard(Player *currentPlayer, std::vector<Player *>)
 {
-    // need finished player
+    if (currentPlayer != nullptr)
+    {
+        currentPlayer->activateDiscount(discount);
+    }
 }
 
-ShieldCard::ShieldCard() : SkillCard("SHIELD_CARD", "Melindungi dari efek kartu lawan") {}
-
-void ShieldCard::useCard(Player *, std::vector<Player *>)
+ShieldCard::ShieldCard() : SkillCard("SHIELD_CARD", "Melindungi dari tagihan sewa dan sanksi selama 1 giliran") {}
+void ShieldCard::useCard(Player *currentPlayer, std::vector<Player *>)
 {
-    // need finished player
+    if (currentPlayer != nullptr)
+    {
+        currentPlayer->activateShield();
+    }
 }
 
 TeleportCard::TeleportCard() : SkillCard("TELEPORT_CARD", "Berpindah ke petak tujuan") {}
@@ -175,10 +227,17 @@ void TeleportCard::useCard(Player *currentPlayer, std::vector<Player *>)
         return;
     }
 
-    Tile *destination = nullptr;
+    std::string targetTile;
+    std::cout << "Masukkan kode petak tujuan: ";
+    std::cin >> targetTile;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    Tile *destination = GameManager::getInstance().getBoard().getTile(targetTile);
     if (destination != nullptr)
     {
         currentPlayer->moveTo(destination, false);
+    } else {
+        std::cout << "Kode petak tidak valid." << std::endl;
     }
 }
 
@@ -191,8 +250,7 @@ void LassoCard::useCard(Player *currentPlayer, std::vector<Player *>)
         return;
     }
 
-    const int currentIndex = currentPlayer->getCurrentTile()->getIndex();
-    Player *target = GameManager::getInstance().getBoard().getNextPlayer(currentIndex);
+    Player *target = GameManager::getInstance().getBoard().getNextPlayer(currentPlayer);
     if (target != nullptr)
     {
         target->moveTo(currentPlayer->getCurrentTile(), false);
@@ -201,6 +259,24 @@ void LassoCard::useCard(Player *currentPlayer, std::vector<Player *>)
 
 DemolitionCard::DemolitionCard() : SkillCard("DEMOLITION_CARD", "Hancurkan properti lawan pada petak tujuan") {}
 
-void DemolitionCard::useCard(Player *, std::vector<Player *>)
+void DemolitionCard::useCard(Player *currentPlayer, std::vector<Player *>)
 {
+    if (currentPlayer == nullptr || currentPlayer->getCurrentTile() == nullptr)
+    {
+        return;
+    }
+
+    std::string targetCode;
+    std::cout << "Masukkan kode properti target: ";
+    std::cin >> targetCode;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    Street *street = dynamic_cast<Street *>(GameManager::getInstance().getBoard().getTile(targetCode));
+    if (street != nullptr && street->getOwner() != nullptr && street->getOwner() != currentPlayer && street->getCurrentLevel() > 0)
+    {
+        street->setCurrentLevel(street->getCurrentLevel() - 1);
+        std::cout << "Bangunan di " << street->getName() << " dihancurkan." << std::endl;
+    } else {
+        std::cout << "Target tidak valid atau tidak memiliki bangunan." << std::endl;
+    }
 }

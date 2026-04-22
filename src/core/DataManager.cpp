@@ -6,7 +6,7 @@ DataManager::DataManager(const std::string& configMisc, const std::string& confi
 
 DataManager::DataManager(const std::string& configMisc, const std::string& configProperty, const std::string& configTax, const std::string& configUtility, const std::string& configRailroad, const std::string& configSpecial, const std::string& configAction) : configMisc(configMisc), configProperty(configProperty), configTax(configTax), configUtility(configUtility), configRailroad(configRailroad), configSpecial(configSpecial), configAction(configAction){}
 
-void DataManager::loadMisc(GameManager& game) {
+void DataManager::loadMisc() {
     ifstream file(configMisc);
     if (!file.is_open()) {       
         return; 
@@ -18,12 +18,13 @@ void DataManager::loadMisc(GameManager& game) {
     file >> headerMaxturn >> headerSaldoAwal;
     file >> tokenMaxturn >> tokenSaldoAwal;  
     
+    GameManager& game = GameManager::getInstance();
     game.setMaxTurn(tokenMaxturn);
     game.setAllPlayersCurrency(tokenSaldoAwal);
     file.close();
 }
 
-void DataManager::loadProperties(GameManager& game, const vector<int>& utilityRent, const std::vector<int>& railroadRent) {
+void DataManager::loadProperties(const vector<int>& utilityRent, const std::vector<int>& railroadRent) {
     ifstream file(configProperty);
     if (!file.is_open()) {       
         return;
@@ -34,6 +35,7 @@ void DataManager::loadProperties(GameManager& game, const vector<int>& utilityRe
 
     int id, landCost, mortgageValue, houseCost, hotelCost;
     string code, name, type, color;
+    GameManager& game = GameManager::getInstance();
     while (file >> id >> code >> name >> type >> color >> landCost >> mortgageValue >> houseCost >> hotelCost) {
         vector<int> rentCost(6);
         for (int i = 0; i < 6; i++){
@@ -41,13 +43,13 @@ void DataManager::loadProperties(GameManager& game, const vector<int>& utilityRe
         }        
 
         if (type == "STREET") {
-            Street* streetTile = new Street(id - 1, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, houseCost, hotelCost, rentCost, 0);
+            Street* streetTile = new Street(id, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, houseCost, hotelCost, rentCost, 0);
             game.addTile(streetTile);
         } else if (type == "RAILROAD"){
-            Railroad* railroadTile = new Railroad(id - 1, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, railroadRent);
+            Railroad* railroadTile = new Railroad(id, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, railroadRent);
             game.addTile(railroadTile);
         } else if (type == "UTILITY"){
-            Utility* utilityTile = new Utility(id - 1, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, utilityRent);
+            Utility* utilityTile = new Utility(id, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, utilityRent);
             game.addTile(utilityTile);
         }
     }
@@ -126,7 +128,7 @@ vector<int> DataManager::loadSpecialConfig() {
     return {goSalary, jail_fine};
 }
 
-void DataManager::loadActions(GameManager& game, const vector<int>& taxConfig, const vector<int>& specialConfig) {
+void DataManager::loadActions(const vector<int>& taxConfig, const vector<int>& specialConfig) {
     ifstream file(configAction);
     if (!file.is_open()) {
         return;
@@ -140,28 +142,27 @@ void DataManager::loadActions(GameManager& game, const vector<int>& taxConfig, c
 
     int id;
     string code, name, type, color;
+    GameManager& game = GameManager::getInstance();
     while (file >> id >> code >> name >> type >> color) {
-        const int index = id - 1;
-
         if (type == "KARTU") {
-            game.addTile(new CardTile(index, code, name, color));
+            game.addTile(new CardTile(id, code, name, color));
         } else if (type == "FESTIVAL") {
-            game.addTile(new Festival(index, code, name, color));
+            game.addTile(new Festival(id, code, name, color));
         } else if (type == "PAJAK") {
             if (code == "PPH") {
-                game.addTile(new PPH(index, code, color, pphFlat, pphPercentage));
+                game.addTile(new PPH(id, code, color, pphFlat, pphPercentage));
             } else if (code == "PBM") {
-                game.addTile(new PBM(index, code, name, color, pbmFlat));
+                game.addTile(new PBM(id, code, name, color, pbmFlat));
             }
         } else if (type == "SPESIAL") {
             if (code == "GO") {
-                game.addTile(new Go(index, code, name, color, goSalary));
+                game.addTile(new Go(id, code, name, color, goSalary));
             } else if (code == "PEN") {
-                game.addTile(new Prison(index, code, name, color, jailFine));
+                game.addTile(new Prison(id, code, name, color, jailFine));
             } else if (code == "BBP") {
-                game.addTile(new FreeParking(index, code, name, color));
+                game.addTile(new FreeParking(id, code, name, color));
             } else if (code == "PPJ") {
-                game.addTile(new Trap(index, code, name, color));
+                game.addTile(new Trap(id, code, name, color));
             }
         }
     }
@@ -169,8 +170,6 @@ void DataManager::loadActions(GameManager& game, const vector<int>& taxConfig, c
 }
 
 void DataManager::loadDefaultTiles() {
-    // GameManager& game = GameManager::getInstance();
-
     // for (int id = 1; id <= 40; id++) {
     //     int index = id - 1;
     //     if (game.getBoard().getTile(index) == nullptr) {
@@ -179,19 +178,15 @@ void DataManager::loadDefaultTiles() {
     // }
 }
  
-void DataManager::load(GameManager& game) {
-    loadMisc(game);
+void DataManager::load() {
+    loadMisc();
 
     vector<int> utilityRent = loadUtilityConfig();
     vector<int> railroadRent = loadRailroadConfig();
     vector<int> taxConfig = loadTaxConfig();
     vector<int> specialConfig = loadSpecialConfig();
 
-    loadProperties(game, utilityRent, railroadRent);
-    loadActions(game, taxConfig, specialConfig);
+    loadProperties(utilityRent, railroadRent);
+    loadActions(taxConfig, specialConfig);
     loadDefaultTiles();
-}
-
-void DataManager::load() {
-    load(GameManager::getInstance());
 }

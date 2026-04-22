@@ -6,7 +6,10 @@
 
 static void runCli(GameManager& gm) {
     gm.getBoard().printBoard();
-    std::cout << "[INFO] Running CLI." << std::endl;
+    gm.runGame();
+    if (!gm.getPlayer().empty()) {
+        gm.getCommandHandler().commands();
+    }
 }
 
 static void runGui(GameManager& gm) {
