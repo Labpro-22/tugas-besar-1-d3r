@@ -41,13 +41,22 @@ void Player::buyBackMortgaged(Tile* mortgaged) {
     // TODO: Implement buy back mortgaged property logic
 }
 
-int Player::getTotalWealth() const {
+int Player::getTotalWealth(const Board* board) const {
     int total = currency;
-    
-    for (Tile* tile : ownedProperties) {
-        if (tile != nullptr){
-            total += tile->getAssetValue();
+
+    if (board == nullptr){
+        return total;
+    }
+
+    for(Tile* tile : board->getTiles()){
+        Property* prop = dynamic_cast<Property*>(tile);
+        if (prop == nullptr){
+            continue;
         }
+        if(prop->getOwner() != this){
+            continue;
+        }
+        total += prop->getAssetValue();
     }
     return total;
 }
