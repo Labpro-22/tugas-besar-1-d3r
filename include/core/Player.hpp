@@ -6,6 +6,8 @@
 #include "Tile.hpp"
 #include "Card.hpp"
 #include "Deck.hpp"
+#include "Board.hpp"
+#include "../utils/GameException.hpp"
 
 using namespace std;
 
@@ -19,7 +21,7 @@ class Player {
         PLAYER_STATUS currentStatus;
         CardDeck<SkillCard> deck;
         Tile* currentTile;
-        vector<Tile*> ownedProperties;
+        vector<Property*> ownedProperties;
         float discountValue;
         int jailTurnCount;
         bool canUseCard;
@@ -31,7 +33,7 @@ class Player {
         PLAYER_STATUS getStatus() const { return currentStatus; };
         const CardDeck<SkillCard>& getDeck() const { return deck; };
         Tile* getCurrentTile() const { return currentTile; }
-        vector<Tile*> getOwnedProperties() const { return ownedProperties; };
+        vector<Property*> getOwnedProperties() const { return ownedProperties; };
         float getDiscount() const { return discountValue; };
         int getJailTurn() const { return jailTurnCount; };
         bool getCanUseCard() const { return canUseCard; };
@@ -43,17 +45,17 @@ class Player {
         void setCurrentStatus(PLAYER_STATUS currentStatus) { this->currentStatus = currentStatus; };
         void setDeck(CardDeck<SkillCard> deck) { this->deck = std::move(deck); };
         void setCurrentTile(Tile* currentTile) { this->currentTile = currentTile; };
-        void setOwnedProperties(vector<Tile*> ownedProperties) { this->ownedProperties = ownedProperties; };
+        void setOwnedProperties(vector<Property*> ownedProperties) { this->ownedProperties = ownedProperties; };
         void setDiscountValue(float discountValue) { this->discountValue = discountValue; };
         void setJailTurnCount(int jailTurnCount) { this->jailTurnCount = jailTurnCount; };
         void setCanUseCard(bool canUseCard) { this->canUseCard = canUseCard; };
         
         // specific method
 
-        void buyBackMortgaged(Tile* mortgaged);
+        void buyBackMortgaged(Property* mortgaged, Board* board);
         Player* operator+=(int money); // untuk proses penambahan currency
         Player* operator-=(int money); // untuk proses pengurangan currency
         void moveTo(Tile* destination, bool getPayment);
-        void mortgageProperty(Tile* property); // ubah status Tile jadi mortgaged
+        void mortgageProperty(Property* property, Board* board); // ubah status Tile jadi mortgaged
         void setToJailed();
 };
