@@ -1,4 +1,5 @@
 #include "../../include/core/Player.hpp"
+#include "../../include/core/GameManager.hpp"
 #include "../../include/core/Tile.hpp"
 
 Player* Player::operator+=(int money) {
@@ -18,8 +19,11 @@ void Player::moveTo(Tile* destination, bool getPayment) {
     if (destination != nullptr) {
         this->currentTile = destination;
         if (getPayment) {
-            // TODO: Handle payment when landing on tile
-            destination->runTile(this);
+            // TODO: Handle payment when landing on tile GO or passing tile GO
+            if(destination->getIndex() < this->currentTile->getIndex()){
+                Tile* Go = GameManager::getInstance().getBoard().getTile("GO");
+                Go->runTile(this);
+            }
         }
     }
 }

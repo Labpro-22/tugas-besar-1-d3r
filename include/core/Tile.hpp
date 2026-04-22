@@ -182,12 +182,12 @@ public:
 class Trap : public Tile {
 public:
     Trap(int, const std::string&, const std::string&);
-    void runTile(Player*) override;
+    void runTile(Player* player) override;
 };
 
 class FreeParking : public Tile {
 public:
-    FreeParking(int, const std::string&, const std::string&);
-    void runTile(Player*) override;
+    FreeParking(int index, const std::string& code, const std::string& color);
+    void runTile(Player* player) override;
 };
 
