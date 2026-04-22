@@ -24,10 +24,14 @@ class Player {
         CardDeck<SkillCard> deck;
         Tile* currentTile;
         vector<Property*> ownedProperties;
+        CARD_EFFECT activeCardEffect;
         float discountValue;
+        int effectTurns;
         int jailTurnCount;
         bool canUseCard;
     public:
+        Player();
+
         // getter
 
         string getUsername() const { return username; };
@@ -36,7 +40,11 @@ class Player {
         const CardDeck<SkillCard>& getDeck() const { return deck; };
         Tile* getCurrentTile() const { return currentTile; }
         vector<Property*> getOwnedProperties() const { return ownedProperties; };
-        float getDiscount() const { return discountValue; };
+        CARD_EFFECT getActiveCardEffect() const { return activeCardEffect; };
+        float getDiscount() const { return activeCardEffect == DISCOUNT ? discountValue : 0.0f; };
+        int getDiscountTurns() const { return activeCardEffect == DISCOUNT ? effectTurns : 0; };
+        int getShieldTurns() const { return activeCardEffect == SHIELD ? effectTurns : 0; };
+        bool hasShield() const { return activeCardEffect == SHIELD && effectTurns > 0; };
         int getJailTurn() const { return jailTurnCount; };
         bool getCanUseCard() const { return canUseCard; };
 
@@ -48,7 +56,10 @@ class Player {
         void setDeck(CardDeck<SkillCard> deck) { this->deck = std::move(deck); };
         void setCurrentTile(Tile* currentTile) { this->currentTile = currentTile; };
         void setOwnedProperties(vector<Property*> ownedProperties) { this->ownedProperties = ownedProperties; };
-        void setDiscountValue(float discountValue) { this->discountValue = discountValue; };
+        void setActiveCardEffect(CARD_EFFECT activeCardEffect) { this->activeCardEffect = activeCardEffect; };
+        void setDiscountValue(float discountValue) { this->discountValue = discountValue; if (discountValue > 0.0f) this->activeCardEffect = DISCOUNT; };
+        void setDiscountTurns(int discountTurns) { this->effectTurns = discountTurns; this->activeCardEffect = discountTurns > 0 ? DISCOUNT : NOEFFECT; };
+        void setShieldTurns(int shieldTurns) { this->effectTurns = shieldTurns; this->activeCardEffect = shieldTurns > 0 ? SHIELD : NOEFFECT; };
         void setJailTurnCount(int jailTurnCount) { this->jailTurnCount = jailTurnCount; };
         void setCanUseCard(bool canUseCard) { this->canUseCard = canUseCard; };
         
@@ -57,6 +68,13 @@ class Player {
         void buyBackMortgaged(Property* mortgaged, Board* board);
         Player* operator+=(int money); // untuk proses penambahan currency
         Player* operator-=(int money); // untuk proses pengurangan currency
+        void activateDiscount(float discount, int turns = 1);
+        void activateShield(int turns = 1);
+        void resetCardUse();
+        void endTurnEffects();
+        bool addSkillCard(SkillCard* card);
+        SkillCard* removeSkillCard(int index);
+        void printSkillCards() const;
         void moveTo(Tile* destination, bool getPayment);
         void mortgageProperty(Property* property, Board* board); // ubah status Tile jadi mortgaged
         void setToJailed();

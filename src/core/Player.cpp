@@ -2,6 +2,12 @@
 #include "../../include/core/GameManager.hpp"
 #include "../../include/core/Tile.hpp"
 #include <algorithm>
+#include <iostream>
+
+Player::Player()
+    : username(""), currency(0), currentStatus(ACTIVE), currentTile(nullptr),
+    activeCardEffect(NOEFFECT), discountValue(0.0f), effectTurns(0), jailTurnCount(0),
+      canUseCard(true) {}
 
 Player* Player::operator+=(int money) {
     this->currency += money;
@@ -16,16 +22,90 @@ Player* Player::operator-=(int money) {
     return this;
 }
 
+void Player::activateDiscount(float discount, int turns) {
+    this->activeCardEffect = DISCOUNT;
+    this->discountValue = discount;
+    this->effectTurns = turns;
+}
+
+void Player::activateShield(int turns) {
+    this->activeCardEffect = SHIELD;
+    this->discountValue = 0.0f;
+    this->effectTurns = turns;
+}
+
+void Player::resetCardUse() {
+    this->canUseCard = true;
+}
+
+void Player::endTurnEffects() {
+    if (effectTurns > 0) {
+        effectTurns--;
+        if (effectTurns == 0) {
+            activeCardEffect = NOEFFECT;
+            discountValue = 0.0f;
+        }
+    }
+}
+
+bool Player::addSkillCard(SkillCard* card) {
+    if (card == nullptr) {
+        return false;
+    }
+
+    deck.addCard(card);
+
+    if (deck.size() > 3) {
+        printSkillCards();
+
+        std::cout << username << " mendapat kartu kemampuan: " << card->getCardName() << std::endl;
+        std::cout << "Deck penuh, buang kartu!" << std::endl;
+        int cardNumber = GameManager::getInstance().getCommandHandler().askInt("Buang Kartu (1-" + std::to_string(deck.size()) + "): ", 1, deck.size());
+
+        SkillCard* discardedCard = deck.removeAt(cardNumber - 1);
+        if (discardedCard != nullptr) {
+            delete discardedCard;
+        }
+        return true;
+    }
+    else std::cout << username << " mendapat kartu kemampuan: " << card->getCardName() << std::endl;
+    return true;
+}
+
+SkillCard* Player::removeSkillCard(int index) {
+    if (index < 0) {
+        return nullptr;
+    }
+
+    return deck.removeAt(index);
+}
+
+void Player::printSkillCards() const {
+    const std::vector<SkillCard*>& cards = deck.getCards();
+    if (cards.empty()) {
+        std::cout << "Tidak ada kartu kemampuan." << std::endl;
+        return;
+    }
+
+    for (size_t i = 0; i < cards.size(); i++) {
+        if (cards[i] != nullptr) {
+            std::cout << i + 1 << ". " << cards[i]->getCardName() << " - " << cards[i]->getCardDescription() << std::endl;
+        }
+    }
+}
+
 void Player::moveTo(Tile* destination, bool getPayment) {
     if (destination != nullptr) {
+        Tile* previousTile = this->currentTile;
         this->currentTile = destination;
-        if (getPayment) {
-            // TODO: Handle payment when landing on tile GO or passing tile GO
-            if(destination->getIndex() < this->currentTile->getIndex()){
-                Tile* Go = GameManager::getInstance().getBoard().getTile("GO");
-                Go->runTile(this);
+        if (getPayment && previousTile != nullptr && destination->getIndex() < previousTile->getIndex()) {
+            Tile* go = GameManager::getInstance().getBoard().getTile("GO");
+            if (go != nullptr && go != destination) {
+                go->runTile(this);
             }
         }
+
+        destination->runTile(this);
     }
 }
 
@@ -39,7 +119,9 @@ void Player::mortgageProperty(Property* property, Board* board) {
 
     // Check if there are buildings exist in the property's color group
     vector<Tile*> colorGroupProperties = board->getColorGroup(property->getColor()); 
-    for_each(colorGroupProperties.begin(), colorGroupProperties.end(), [&property, this] (Property* owned) {
+    for_each(colorGroupProperties.begin(), colorGroupProperties.end(), [&property, this] (Tile* ownedTile) {
+        Property* owned = dynamic_cast<Property*>(ownedTile);
+        if(owned == nullptr) return;
         if(owned->getOwner() != this) return;
         Street* streetOwned = dynamic_cast<Street*>(owned);
         if(streetOwned != nullptr) {

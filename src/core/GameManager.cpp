@@ -142,19 +142,13 @@ void GameManager::drawSkillCard(Player* player) {
         return;
     }
 
-    if (player->getDeck().size() >= 3) {
-        std::cout << "Kartu kemampuan penuh. Gunakan DROP_KARTU <nomor> untuk membuang kartu." << std::endl;
-        return;
-    }
-
     SkillCard* card = deckSkill.getRandomCard();
     if (card == nullptr) {
         return;
     }
 
-    if (player->addSkillCard(card)) {
-        std::cout << player->getUsername() << " mendapat kartu kemampuan: "
-                  << card->getCardName() << std::endl;
+    if (!player->addSkillCard(card)) {
+        delete card;
     }
 }
 
@@ -181,6 +175,10 @@ void GameManager::nextTurn() {
     if (currentTurnPlayer != nullptr) {
         currentTurnPlayer->resetCardUse();
         drawSkillCard(currentTurnPlayer);
+        // drawSkillCard(currentTurnPlayer);
+        // drawSkillCard(currentTurnPlayer);
+        // drawSkillCard(currentTurnPlayer);
+
     }
 }
 
