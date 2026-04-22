@@ -44,11 +44,43 @@ Tile* Board::goToTile(Tile& current, int moveAmount) const {
     }
 }
 
+Tile* Board::goToTile(const std::string& code, int moveAmount) {
+    Tile* currentTile = getTile(code);
+    if (currentTile != nullptr) {
+        return goToTile(*currentTile, moveAmount);
+    }
+    return nullptr;
+}
+
 std::vector<Tile*> Board::getColorGroup(const std::string& color) const {
     std::vector<Tile*> result;
     std::copy_if(tiles.begin(), tiles.end(), std::back_inserter(result), [&color](const Tile* tile){
         return tile != nullptr && tile->getColor().compare(color) == 0;
     });
+
+    return result;
+}
+
+std::vector<Railroad*> Board::getAllRailroad() const {
+    std::vector<Railroad*> result;
+    for(auto& tile: tiles){
+        if(tile != nullptr){
+            Railroad* rail = dynamic_cast<Railroad*>(tile);
+            if(rail != nullptr) result.push_back(rail);
+        }
+    }
+
+    return result;
+}
+
+std::vector<Utility*> Board::getAllUtility() const {
+    std::vector<Utility*> result;
+    for(auto& tile: tiles){
+        if(tile != nullptr){
+            Utility* util = dynamic_cast<Utility*>(tile);
+            if(util != nullptr) result.push_back(util);
+        }
+    }
 
     return result;
 }
@@ -59,35 +91,58 @@ void Board::addTile(Tile* newTile){
     }
 }
 
-bool Board::canBuildHouse(Player player, Tile* tile) {
+bool Board::canBuildHouse(Player &player, Tile* tile) {
     // TODO: Implement check for building house
-    return false;
+    if(tile == nullptr) return false;
+    if(tile->getColor() == "Default") return false; // asumsi namanya "Default"
+    std::vector<Tile*> colorGroup = getColorGroup(tile->getColor());
+    auto it = std::find_if(colorGroup.begin(), colorGroup.end(), [&player](Tile* tile){
+        if(tile == nullptr) return false; // ???
+        Street* prop = dynamic_cast<Street*>(tile);
+        if(prop == nullptr) return true;
+        if(prop->getOwner() != &player) return true;
+        return false;
+    });
+    return it == colorGroup.end();
 }
 
 int Board::getRailroadLevel(Tile* tile) {
     // TODO: Implement get railroad level
-    return 0;
+    if(tile == nullptr) return -1;
+    Railroad* prop = dynamic_cast<Railroad*>(tile);
+    if(prop == nullptr) return -1; // tile invalid
+    std::vector<Railroad*> railroads = getAllRailroad();
+    return std::count_if(railroads.begin(), railroads.end(), [prop](Railroad* rail){
+        return rail != nullptr && rail->getOwner() == prop->getOwner();
+    });
 }
 
 int Board::getUtilityLevel(Tile* tile) {
     // TODO: Implement get utility level
-    return 0;
+    if(tile == nullptr) return -1;
+    Utility* prop = dynamic_cast<Utility*>(tile);
+    if(prop == nullptr) return -1; // tile invalid
+    std::vector<Utility*> utils = getAllUtility();
+    return std::count_if(utils.begin(), utils.end(), [prop](Utility* util){
+        return util != nullptr && util->getOwner() == prop->getOwner();
+    });
 }
 
-Player* Board::getNextPlayer(int currentIndex) {
+Player* Board::getNextPlayer(Player* player) {
+    std::vector<Player*> players = GameManager::getInstance().getPlayer();
+    auto closest = std::min_element(players.begin(), players.end(), [&](const Player* a, const Player* b){
+        if(a == player) return false;
+        if(b == player) return false;
+        int posA = a->getCurrentTile()->getIndex();
+        int posB = b->getCurrentTile()->getIndex();
+        int posX = player->getCurrentTile()->getIndex();
+        return ((posA - posX + tiles.size()) % tiles.size()) < ((posB - posX + tiles.size()) % tiles.size());
+    });
     // TODO: Implement get next player logic
-    return nullptr;
+    return *closest;
 }
 
 int Board::stringToIndex(const std::string& str) {
     // TODO: Implement string to index conversion
     return 0;
-}
-
-Tile* Board::goToTile(const std::string& code, int moveAmount) {
-    Tile* currentTile = getTile(code);
-    if (currentTile != nullptr) {
-        return goToTile(*currentTile, moveAmount);
-    }
-    return nullptr;
 }
