@@ -38,5 +38,12 @@ void Player::buyBackMortgaged(Tile* mortgaged) {
 }
 
 int Player::getTotalWealth() const {
+    int total = currency;
     
+    for (Tile* tile : ownedProperties) {
+        if (tile != nullptr){
+            total += tile->getAssetValue();
+        }
+    }
+    return total;
 }
