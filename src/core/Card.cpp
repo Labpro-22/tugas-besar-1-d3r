@@ -192,7 +192,7 @@ void LassoCard::useCard(Player *currentPlayer, std::vector<Player *>)
     }
 
     const int currentIndex = currentPlayer->getCurrentTile()->getIndex();
-    Player *target = GameManager::getInstance().getBoard().getNextPlayer(currentIndex);
+    Player *target = GameManager::getInstance().getBoard().getNextPlayer(currentPlayer);
     if (target != nullptr)
     {
         target->moveTo(currentPlayer->getCurrentTile(), false);

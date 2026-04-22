@@ -6,6 +6,8 @@
 
 class Player;
 class Tile;
+class Railroad;
+class Utility;
 
 class Board {
 private:
