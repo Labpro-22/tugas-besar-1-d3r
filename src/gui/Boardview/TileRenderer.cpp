@@ -16,21 +16,85 @@ void TileRenderer::DrawIsometricTile(Vector2 centerPos, Color tileColor)
     DrawTriangle(bottom, lowerBottom, lowerRight, BOARD_LINE);
     DrawTriangle(bottom, lowerRight, right, BOARD_LINE);
 
-    DrawTriangle(top, left, bottom, tileColor);
-    DrawTriangle(top, bottom, right, tileColor);
+    DrawTriangle(top, left, bottom, BOARD_LINE);
+    DrawTriangle(top, bottom, right, BOARD_LINE);
 
-    // 6. Outline (Hanya pada bagian yang terlihat/tajam)
     DrawLineEx(top, right, 1.5f, BOARD_COKLAT);
     DrawLineEx(right, bottom, 1.5f, BOARD_COKLAT);
     DrawLineEx(bottom, left, 1.5f, BOARD_COKLAT);
     DrawLineEx(left, top, 1.5f, BOARD_COKLAT);
 
-    // Outline tambahan untuk mempertegas sudut bawah
     DrawLineEx(left, lowerLeft, 1.5f, BOARD_COKLAT);
     DrawLineEx(bottom, lowerBottom, 1.5f, BOARD_COKLAT);
     DrawLineEx(right, lowerRight, 1.5f, BOARD_COKLAT);
     DrawLineEx(lowerLeft, lowerBottom, 1.5f, BOARD_COKLAT);
     DrawLineEx(lowerBottom, lowerRight, 1.5f, BOARD_COKLAT);
+}
+
+void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
+{
+    Vector2 top = {tilePos.x, tilePos.y - (RenderConfig::TILE_HEIGHT / 2.0f)};
+    Vector2 bottom = {tilePos.x, tilePos.y + (RenderConfig::TILE_HEIGHT / 2.0f)};
+    Vector2 left = {tilePos.x - (RenderConfig::TILE_WIDTH / 2.0f), tilePos.y};
+    Vector2 right = {tilePos.x + (RenderConfig::TILE_WIDTH / 2.0f), tilePos.y};
+
+    Vector2 midLeftTop = (top + left) / 2.0f;
+    Vector2 midRightTop = (top + right) / 2.0f;
+    Vector2 midLeftBottom = (left + bottom) / 2.0f;
+    Vector2 midRightBottom = (right + bottom) / 2.0f;
+    Vector2 mid = (top + bottom) / 2.0f;
+
+    Vector2 lowerLeft = {left.x, left.y + RenderConfig::TILE_HEIGHT / 2.0f};
+    Vector2 lowerRight = {right.x, right.y + RenderConfig::TILE_HEIGHT / 2.0f};
+    Vector2 lowerBottom = {bottom.x, bottom.y + RenderConfig::TILE_HEIGHT / 2.0f};
+
+    index = index - 1;
+    if (index % 10 == 0) {
+        DrawTriangle(top, left, bottom, tileColor);
+        DrawTriangle(top, bottom, right, tileColor);
+    }
+    else if (index > 0 && index < 10) {
+        // Kasus untuk render 0 - 11
+        DrawTriangle(midRightBottom, right, mid, tileColor);
+        DrawTriangle(right, midRightTop, mid, tileColor);
+
+        DrawTriangle(top, midLeftTop, mid, tileColor);
+        DrawTriangle(top, mid, midRightTop, tileColor);
+    }
+    else if (index > 10 && index < 20) {
+        DrawTriangle(midRightBottom, right, mid, tileColor);
+        DrawTriangle(right, midRightTop, mid, tileColor);
+        DrawTriangle(mid, midLeftBottom, midRightBottom, tileColor);
+        DrawTriangle(midLeftBottom, bottom, midRightBottom, tileColor);
+
+        DrawTriangle(bottom, lowerBottom, lowerRight, tileColor);
+        DrawTriangle(bottom, lowerRight, right, tileColor);
+
+        DrawLineEx(bottom, right, 1.5f, BOARD_COKLAT);
+    }
+    else if (index > 20 && index <= 30) {
+        DrawTriangle(mid, midLeftBottom, midRightBottom, tileColor);
+        DrawTriangle(midLeftBottom, bottom, midRightBottom, tileColor);
+
+        DrawTriangle(left, midLeftBottom, mid, tileColor);
+        DrawTriangle(left, mid, midLeftTop, tileColor);
+
+        DrawTriangle(left, lowerLeft, lowerBottom, tileColor);
+        DrawTriangle(left, lowerBottom, bottom, tileColor);
+        DrawLineEx( left, bottom, 1.5f, BOARD_COKLAT);
+    }
+    else if (index > 30 && index <= 40) {
+        DrawTriangle(left, midLeftBottom, mid, tileColor);
+        DrawTriangle(left, mid, midLeftTop, tileColor);
+
+        DrawTriangle(midLeftTop, midRightTop, top, tileColor);
+        DrawTriangle(midLeftTop, mid, midRightTop, tileColor);
+
+    }
+    else if (index == 0 || index == 10 || index == 20 || index == 30) {
+        DrawTriangle(top, left, bottom, tileColor);
+        DrawTriangle(top, bottom, right, tileColor);
+    }
 }
 
 std::pair<Color, Color> TileRenderer::ParseColor(Tile *tile)
@@ -64,9 +128,9 @@ std::pair<Color, Color> TileRenderer::ParseColor(Tile *tile)
         return {ABU, ABU_SHADE};
     }
     else if (!tile->getCode().compare("GO")) {
-        return {GOLD,GOLD};
+        return {GOLD, GOLD};
     }
-    else{
+    else {
         return {BOARD_BASE, BOARD_BASE};
     }
 }

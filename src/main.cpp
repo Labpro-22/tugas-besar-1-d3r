@@ -28,11 +28,15 @@ int main()
         std::cout << "[SUCCESS] Game data loaded successfully!" << std::endl;
 
         Board b = gm.getBoard();
-        for (Tile *t : b.getTiles()) {
-            if (t != nullptr) {
-                cout << t->getCode() << "\n";
+        std::vector<Tile*> tiles = b.getTiles();
+        cout << "Board tiles (1-indexed):\n"; 
+        for (size_t i = 1 ; i < tiles.size(); i++)
+        {
+            if (tiles.at(i) != nullptr) {
+                cout << i << ": " << tiles.at(i)->getCode() << "\n";
             }
         }
+        
 
         const int screenWidth = 1280;
         const int screenHeight = 800;
