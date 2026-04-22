@@ -44,6 +44,28 @@ void Tax::runTile(Player* player) {
     }
 }
 
+CardTile::CardTile(int index, const std::string& code, const std::string& name, const std::string& color)
+    : Tile(index, code, name, color) {}
+
+void CardTile::runTile(Player* player) {
+    if (player == nullptr) {
+        return;
+    }
+
+    GameManager& game = GameManager::getInstance();
+    AutoUseCard* card = nullptr;
+
+    // seems like its save to be hardcoded...
+    if (getCode() == "KSP") {
+        card = game.getChanceDeck().getRandomCard();
+    } else if (getCode() == "DNU") {
+        card = game.getCurrencyDeck().getRandomCard();
+    }
+
+    if (card != nullptr) {
+        card->useCard(player, game.getPlayers());
+    }
+}
 
 // ============== Go Class ==============
 Go::Go(int index, const std::string& code, const std::string& name, const std::string& color, int payment)
@@ -94,17 +116,24 @@ void Prison::freeFromJailed(Player* player) {
 void Prison::runTile(Player* player) {
     if (player != nullptr && checkJailed(player) && player->getJailTurn() > 3) {
         payFee(player);
+        freeFromJailed(player);
     }
 }
 
-Trap::Trap(int index, const std::string& code, const std::string& color)
-: Tile(index, code, color){}
+Trap::Trap(int index, const std::string& code, const std::string& name, const std::string& color)
+: Tile(index, code, name, color){}
 void Trap::runTile(Player* player){
+    if (player == nullptr) {
+        return;
+    }
     Tile* prison = GameManager::getInstance().getBoard().getJailTile();
+    if (prison == nullptr) {
+        return;
+    }
     player->setToJailed();
     player->moveTo(prison, false);
 }
 
-FreeParking::FreeParking(int index, const std::string& code, const std::string& color)
-: Tile(index, code, color){}
-void FreeParking::runTile(Player* player){}
+FreeParking::FreeParking(int index, const std::string& code, const std::string& name, const std::string& color)
+: Tile(index, code, name, color){}
+void FreeParking::runTile(Player*){}

@@ -2,7 +2,9 @@
 #include "../../include/core/Player.hpp"
 #include "../../include/core/GameManager.hpp"
 
-Railroad::Railroad(int index, const std::string& code, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& rentCost) : Property(index, code, color, landCost, mortgageValue, festivalMultiplier, festivalDuration, owner, propertyStatus), rentCost(rentCost) {}
+#include <algorithm>
+
+Railroad::Railroad(int index, const std::string& code, const std::string& name, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& rentCost) : Property(index, code, name, color, landCost, mortgageValue, festivalMultiplier, festivalDuration, owner, propertyStatus), rentCost(rentCost) {}
 
 void Railroad::runTile(Player* player) {
     if (player == nullptr) {
@@ -10,9 +12,16 @@ void Railroad::runTile(Player* player) {
     }
 
     if (propertyStatus == BANK) {
-    
-        owner = player;
-        propertyStatus = OWNED;
+        if (player->getCurrency() >= landCost) {
+            *player -= landCost;
+            owner = player;
+            propertyStatus = OWNED;
+            std::vector<Property*> properties = player->getOwnedProperties();
+            if (std::find(properties.begin(), properties.end(), this) == properties.end()) {
+                properties.push_back(this);
+                player->setOwnedProperties(properties);
+            }
+        }
         return;
     }
 
