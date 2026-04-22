@@ -9,7 +9,7 @@ DataManager::DataManager(const std::string& configMisc, const std::string& confi
 void DataManager::loadMisc(GameManager& game) {
     ifstream file(configMisc);
     if (!file.is_open()) {       
-        return;
+        return; 
     }
 
     string headerMaxturn, headerSaldoAwal;

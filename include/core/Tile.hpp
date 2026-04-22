@@ -20,6 +20,7 @@ public:
     std::string getCode() const { return code; }
     std::string getColor() const { return color; }
     virtual void runTile(Player*) = 0;
+    virtual int getAssetValue() const { return 0; }    
 };
 
 enum PROPERTY_STATUS {
@@ -54,6 +55,8 @@ public:
 
     void runTile(Player*) override;
     virtual int getRentCost() const = 0;
+    int getAssetValue() const override;
+
 };
 
 class Railroad : public Property {
@@ -93,6 +96,7 @@ public:
 
     void runTile(Player*) override;
     int getRentCost() const override;
+    int getAssetValue() const override;    
 };
 
 class CardTile : public Tile {
@@ -113,21 +117,29 @@ public:
     Tax(int, const std::string&, const std::string&);
 
     void runTile(Player*) override;
-    virtual void payTax(Player*) = 0;
+    virtual void payTax(Player* player) = 0;
 };
 
+enum PPH_OPTION {
+    FLAT,
+    PERCENTAGE
+};
 class PPH : public Tax {
 private:
     int flatTax;
     int taxPercentage;
 public:
     PPH(int, const std::string&, const std::string&, int flatTax, int taxPercentage);
-    void payTax(Player*) override;
+    void payTax(Player* player) override;
+    void payPphTax(Player* player, PPH_OPTION option);
 
     int getFlatTax() const { return flatTax; };
     int getTaxPercentage() const { return taxPercentage; };
     void setFlatTax(int flatTax) { this->flatTax = flatTax; };
     void setTaxPercentage(int taxPercentage) { this->taxPercentage = taxPercentage; };
+
+    int calculateFlatTax() const;
+    int calculatePercentageTax(const Player& player) const;
     
 };
 
@@ -140,7 +152,7 @@ public:
     int getFixedTax() const;
     void setFixedTax(int fixedTax) { this->fixedTax = fixedTax; };
 
-    void payTax(Player*) override;
+    void payTax(Player* player) override;
 };
 
 class Go : public Tile {

@@ -40,3 +40,15 @@ void Player::setToJailed() {
 void Player::buyBackMortgaged(Tile* mortgaged) {
     // TODO: Implement buy back mortgaged property logic
 }
+
+int Player::getTotalWealth() const {
+    int total = currency;
+    
+    for (Tile* tile : ownedProperties) {
+        if (tile != nullptr){
+            total += tile->getAssetValue();
+        }
+    }
+    return total;
+}
+
