@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <iostream>
-#include <limits>
 #include <random>
 #include <string>
 #include <vector>
@@ -227,10 +226,8 @@ void TeleportCard::useCard(Player *currentPlayer, std::vector<Player *>)
         return;
     }
 
-    std::string targetTile;
-    std::cout << "Masukkan kode petak tujuan: ";
-    std::cin >> targetTile;
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    CommandHandler &handler = GameManager::getInstance().getCommandHandler();
+    std::string targetTile = handler.askInput("Masukkan kode petak tujuan: ");
 
     Tile *destination = GameManager::getInstance().getBoard().getTile(targetTile);
     if (destination != nullptr)
@@ -266,10 +263,8 @@ void DemolitionCard::useCard(Player *currentPlayer, std::vector<Player *>)
         return;
     }
 
-    std::string targetCode;
-    std::cout << "Masukkan kode properti target: ";
-    std::cin >> targetCode;
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    CommandHandler &handler = GameManager::getInstance().getCommandHandler();
+    std::string targetCode = handler.askInput("Masukkan kode properti target: ");
 
     Street *street = dynamic_cast<Street *>(GameManager::getInstance().getBoard().getTile(targetCode));
     if (street != nullptr && street->getOwner() != nullptr && street->getOwner() != currentPlayer && street->getCurrentLevel() > 0)

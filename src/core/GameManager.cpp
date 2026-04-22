@@ -2,14 +2,13 @@
 
 #include <algorithm>
 #include <iostream>
+#include <string>
 
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
 
-std::vector<int> GameManager::dice;
-
 GameManager::GameManager() 
-    : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), board(40), currentTurnPlayer(nullptr) {
+    : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), initialCurrency(0), board(40), currentTurnPlayer(nullptr) {
     // Board initialized with 40 tiles (standard Monopoly)
 }
 
@@ -32,23 +31,42 @@ bool GameManager::isGameValid() {
 }
 
 void GameManager::runGame() {
-    // TODO: Implement full game loop
+    if (players.empty()) {
+        CommandHandler& handler = getCommandHandler();
+        const int count = handler.askInt("Jumlah pemain (2-4): ", 2, 4);
+
+        std::vector<Player*> newPlayers;
+        for (int i = 0; i < count; i++) {
+            const std::string username = handler.askInput("Username pemain " + std::to_string(i + 1) + ": ");
+
+            Player* player = new Player();
+            player->setUsername(username);
+            player->setCurrency(initialCurrency);
+            newPlayers.push_back(player);
+        }
+
+        setPlayers(newPlayers);
+        initPlayers();
+        initSkillDeck();
+        initAutoUseDecks();
+        drawSkillCard(currentTurnPlayer);
+    }
+
     if (!isGameValid()) {
         std::cout << "[WARN] Game state is not valid yet." << std::endl;
         return;
     }
 
-    std::cout << "[INFO] Game ready. Turn " << turn << " / " << maxTurn << std::endl;
+    std::cout << "[INFO] Game ready." << std::endl;
 }
 
 void GameManager::auction(Tile* tile) {
-    // TODO: Implement auction logic
     Property* property = dynamic_cast<Property*>(tile);
-    if (property == nullptr || property->getPropertyStatus() != BANK) {
+    if (property == nullptr) {
         return;
     }
 
-    std::cout << "[INFO] Auction requested for " << property->getCode() << std::endl;
+    auctionManager.runAuction(property);
 }
 
 void GameManager::initBoard() {
@@ -71,6 +89,129 @@ void GameManager::initPlayers() {
     }
 
     currentTurnPlayer = players.empty() ? nullptr : players.front();
+}
+
+void GameManager::rollDice() {
+    dice.roll();
+    rollDice(dice.getFirst(), dice.getSecond());
+}
+
+void GameManager::rollDice(int dice1, int dice2) {
+    if (currentTurnPlayer == nullptr || currentTurnPlayer->getCurrentTile() == nullptr) {
+        return;
+    }
+
+    if (!dice.setValues(dice1, dice2)) {
+        std::cout << "Nilai dadu harus 1 sampai 6." << std::endl;
+        return;
+    }
+
+    int total = dice.getTotal();
+    Tile* destination = board.goToTile(*currentTurnPlayer->getCurrentTile(), total);
+
+    std::cout << "Hasil: " << dice.getFirst() << " + " << dice.getSecond() << " = " << total << std::endl;
+    if (destination == nullptr) {
+        std::cout << "Tujuan tidak valid." << std::endl;
+        return;
+    }
+
+    currentTurnPlayer->moveTo(destination, true);
+    std::cout << "Mendarat di: " << destination->getName() << " (" << destination->getCode() << ")" << std::endl;
+
+    if (!dice.isDouble()) {
+        nextTurn();
+    } else {
+        std::cout << "Double. Pemain mendapat giliran tambahan." << std::endl;
+    }
+}
+
+void GameManager::initAutoUseDecks() {
+    deckChance.addCard(new NearestStationCard());
+    deckChance.addCard(new MoveBackCard());
+    deckChance.addCard(new ToJailCard());
+    deckChance.shuffleDeck();
+
+    deckCurrency.addCard(new BirthDayCard());
+    deckCurrency.addCard(new DoctorCard());
+    deckCurrency.addCard(new CampaignCard());
+    deckCurrency.shuffleDeck();
+}
+
+void GameManager::drawSkillCard(Player* player) {
+    if (player == nullptr) {
+        return;
+    }
+
+    if (player->getDeck().size() >= 3) {
+        std::cout << "Kartu kemampuan penuh. Gunakan DROP_KARTU <nomor> untuk membuang kartu." << std::endl;
+        return;
+    }
+
+    SkillCard* card = deckSkill.getRandomCard();
+    if (card == nullptr) {
+        return;
+    }
+
+    if (player->addSkillCard(card)) {
+        std::cout << player->getUsername() << " mendapat kartu kemampuan: "
+                  << card->getCardName() << std::endl;
+    }
+}
+
+void GameManager::nextTurn() {
+    if (players.empty()) {
+        currentTurnPlayer = nullptr;
+        return;
+    }
+
+    if (currentTurnPlayer != nullptr) {
+        currentTurnPlayer->endTurnEffects();
+    }
+
+    auto it = std::find(players.begin(), players.end(), currentTurnPlayer);
+    size_t nextIndex = 0;
+    if (it != players.end()) {
+        nextIndex = (static_cast<size_t>(std::distance(players.begin(), it)) + 1) % players.size();
+        if (nextIndex == 0) {
+            turn++;
+        }
+    }
+
+    currentTurnPlayer = players[nextIndex];
+    if (currentTurnPlayer != nullptr) {
+        currentTurnPlayer->resetCardUse();
+        drawSkillCard(currentTurnPlayer);
+    }
+}
+
+bool GameManager::isGameFinished() const {
+    int activeCount = 0;
+    for (Player* player : players) {
+        if (player != nullptr && player->getStatus() != BANKRUPT) {
+            activeCount++;
+        }
+    }
+
+    if (!players.empty() && activeCount <= 1) {
+        return true;
+    }
+
+    return maxTurn > 0 && turn >= maxTurn;
+}
+
+Player* GameManager::getWinner() const {
+    Player* winner = nullptr;
+    for (Player* player : players) {
+        if (player == nullptr || player->getStatus() == BANKRUPT) {
+            continue;
+        }
+
+        if (winner == nullptr || player->getCurrency() > winner->getCurrency()) {
+            winner = player;
+        }
+    }
+
+    return winner;
 }
 
 void GameManager::initStateLogs() {

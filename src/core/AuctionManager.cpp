@@ -83,8 +83,8 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
         Player* currentPlayer = order[currentIndex];
         std::cout << "BID Turn: " << currentPlayer->getUsername() << std::endl;
 
-        std::string line;
-        if (!std::getline(std::cin, line)) {
+        const std::string line = game.getCommandHandler().askInput("Masukkan PASS atau BID <angka>: ");
+        if (line.empty()) {
             return false;
         }
 

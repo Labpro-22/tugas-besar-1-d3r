@@ -1,11 +1,45 @@
 #include "../../include/core/CommandHandler.hpp"
 
 #include <iostream>
+#include <limits>
 #include <sstream>
 
 #include "../../include/core/GameManager.hpp"
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
+
+std::string CommandHandler::askInput(const std::string& prompt) const {
+    std::cout << prompt;
+
+    std::string line;
+    if (!std::getline(std::cin, line)) {
+        return "";
+    }
+
+    return line;
+}
+
+int CommandHandler::askInt(const std::string& prompt, int minValue, int maxValue) const {
+    while (true) {
+        const std::string line = askInput(prompt);
+        if (line.empty()) {
+            return minValue;
+        }
+
+        std::istringstream iss(line);
+        int value = 0;
+        char tail = '\0';
+        if ((iss >> value) && !(iss >> tail)) {
+            if (value < minValue || value > maxValue) {
+                std::cout << "Masukkan angka antara " << minValue << " dan " << maxValue << "." << std::endl;
+                continue;
+            }
+            return value;
+        }
+
+        std::cout << "Input tidak valid. Masukkan angka." << std::endl;
+    }
+}
 
 void CommandHandler::commands() {
     GameManager& game = GameManager::getInstance();
