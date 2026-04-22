@@ -37,4 +37,5 @@ public:
 	Player* getNextPlayer(Player* player);
 	int stringToIndex(const std::string&);
 	void addTile(Tile* newTile); // done
+	void printBoard() const;
 };

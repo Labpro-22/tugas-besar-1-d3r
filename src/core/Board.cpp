@@ -1,6 +1,7 @@
 #include "../../include/core/Board.hpp"
 
 #include <algorithm>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -8,7 +9,7 @@
 #include "../../include/core/Tile.hpp"
 using namespace std;
 
-Board::Board(int size): tiles(size, nullptr) {
+Board::Board(int size): tiles(size, nullptr), tileCount(size), goIndex(0), jailIndex(-1) {
 }
 
 Tile* Board::getTile(string code) const {
@@ -24,7 +25,10 @@ Tile* Board::getTile(string code) const {
 }
 
 Tile* Board::getTile(int index) const{
-    return tiles.at(index);
+    if (index < 0 || static_cast<size_t>(index) >= tiles.size()) {
+        return nullptr;
+    }
+    return tiles[index];
 }
 
 Tile* Board::getJailTile() const {
@@ -143,6 +147,22 @@ Player* Board::getNextPlayer(Player* player) {
 }
 
 int Board::stringToIndex(const std::string& str) {
-    // TODO: Implement string to index conversion
-    return 0;
+    auto it = std::find_if(tiles.begin(), tiles.end(), [&str](const Tile* tile){
+        return tile != nullptr && tile->getCode() == str;
+    });
+
+    if (it == tiles.end()) {
+        return -1;
+    }
+
+    return static_cast<int>(std::distance(tiles.begin(), it));
+}
+
+void Board::printBoard() const {
+    std::cout << "Board tiles (1-indexed):\n";
+    for (size_t i = 0; i < tiles.size(); i++) {
+        if (tiles[i] != nullptr) {
+            std::cout << i + 1 << ": " << tiles[i]->getCode() << " - " << tiles[i]->getName() << "\n";
+        }
+    }
 }

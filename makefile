@@ -17,7 +17,10 @@ TARGET := $(BIN_DIR)/game
 
 # 1. Recursive Source Finding
 # Secara otomatis mencari semua file .cpp di dalam src/ dan semua sub-foldernya
-SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
+CORE_SRCS := $(shell find $(SRC_DIR)/core -name '*.cpp')
+CLI_SRCS := $(SRC_DIR)/main.cpp
+GUI_SRCS := $(shell find $(SRC_DIR)/gui -name '*.cpp')
+SRCS := $(CORE_SRCS) $(CLI_SRCS)
 
 # 2. Dynamic Object Mapping
 # Mengubah path src/xxx/yyy.cpp menjadi build/xxx/yyy.o
@@ -43,6 +46,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 # Run the game
 run: all
 	./$(TARGET)
+
+gui: SRCS := $(CORE_SRCS) $(CLI_SRCS) $(GUI_SRCS)
+gui: CXXFLAGS += -DNIMONSPOLI_ENABLE_GUI
+gui: all
 
 # Clean up generated files
 clean:

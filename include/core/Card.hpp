@@ -85,6 +85,7 @@ private:
     int moveTileMax;
 
 public:
+    MoveCard();
     MoveCard(int);
     int getMoveTileMax() const;
     void setMoveTileMax(int);
@@ -95,6 +96,7 @@ class DiscountCard : public SkillCard {
 private:
     float discount;
 public:
+    DiscountCard();
     DiscountCard(float);
     void useCard(Player*, std::vector<Player*>) override;
 };
