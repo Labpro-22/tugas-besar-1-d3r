@@ -34,6 +34,7 @@ public:
 		return instance;
 	}
 
+	
 	void setTurn(int turn) { this->turn = turn; };
 	void setMaxTurn(int maxTurn) { this->maxTurn = maxTurn; };
 	void setActivePlayerCount(int activePlayerCount) { this->activePlayerCount = activePlayerCount; };
@@ -70,5 +71,6 @@ public:
 	const Board& getBoard() const {
 		return board;
 	}
+	std::vector<Player*> getPlayer() const { return players; }
     Logger& getLogger();
 };
