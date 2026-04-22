@@ -47,3 +47,4 @@ int Player::getTotalWealth() const {
     }
     return total;
 }
+
