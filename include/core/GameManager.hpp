@@ -73,4 +73,7 @@ public:
 	}
 	std::vector<Player*> getPlayer() const { return players; }
     Logger& getLogger();
+
+	static vector<int> getDice() { return dice; }
+
 };
