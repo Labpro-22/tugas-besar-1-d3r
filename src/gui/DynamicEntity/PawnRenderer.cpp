@@ -1,5 +1,7 @@
 #include "../include/gui/DynamicEntity/PawnRenderer.hpp"
 #include "../include/gui/MathCore/IsoTransformer.hpp"
+#include "../include/gui/Boardview/TileRenderer.hpp"
+#include "../include/core/GameManager.hpp"
 
 PawnRenderer::PawnRenderer(const std::string path)
 {
@@ -15,7 +17,7 @@ PawnRenderer::~PawnRenderer()
 
 void PawnRenderer::DrawPawn(int tileIndex, int playerIndex)
 {
-    Vector2 tilepos = IsoTransformer::IndexToGrid(tileIndex);
+    Vector2 tilepos = IsoTransformer::GetScreenPosition(tileIndex);
     int column = playerIndex % 2;
     int row = playerIndex / 2;
 
@@ -62,5 +64,8 @@ void PawnRenderer::DrawPawn(int tileIndex, int playerIndex)
     DrawEllipse(shadow.x, shadow.y, 15, 7, ColorAlpha(ABU_SHADE, 0.3f));
 
     DrawTexturePro(spriteSheets, sourceRect, destRect,origin, 0.0f,WHITE);
+    GameManager& gm = GameManager::getInstance();
+    Player* current_player = gm.getPlayers().at(playerIndex);
+    TileRenderer::DrawTextIsometric(current_player->getUsername(), {0,67},tilepos, 0);
 
 }

@@ -6,7 +6,7 @@
 
 void renderSingleTile(int index, Board& board) {
     Vector2 pos = IsoTransformer::GetScreenPosition(index);
-    Tile *logicTile = board.getTile(index - 1);
+    Tile *logicTile = board.getTile(index);
 
     // Kasus tile kosong
     if (logicTile == nullptr) {
@@ -21,7 +21,20 @@ void renderSingleTile(int index, Board& board) {
     
     // Ambil rotasi teks (asumsi index untuk rotasi sama dengan index posisi)
     float rotation = TileRenderer::GetTextRotation(index);
-    TileRenderer::DrawTextIsometric(logicTile->getCode(), pos, rotation);
+    TileRenderer::DrawTextIsometric(logicTile->getCode(),{0,0}, pos, rotation);
+
+
+    BuildingRenderer br;
+    br.setContext(index );
+    Tile *tile = board.getTile(index );
+    Property* prop = dynamic_cast<Property*>(tile);
+    if (prop)
+    {   
+
+        prop->callViewer(br);
+    }
+    
+    
 }
 
 void BoardRenderer::RenderBoard(Board board)
@@ -39,3 +52,4 @@ void BoardRenderer::RenderBoard(Board board)
     }
 
 }
+
