@@ -79,4 +79,5 @@ class Player {
         void mortgageProperty(Property* property, Board* board); // ubah status Tile jadi mortgaged
         void setToJailed();
         int getTotalWealth(const Board* board) const; // helper func to easily count tax
+        int getMaxLiquidatableValue(const Board* board) const ;
 };
