@@ -1,7 +1,7 @@
 #include "../../include/core/Tile.hpp"
 #include "../../include/core/Player.hpp"
 
-PPH::PPH(int index, const std::string& code, const std::string& color, int flatTax, int taxPercentage): Tax(index, code, color), flatTax(flatTax), taxPercentage(taxPercentage) {}
+PPH::PPH(int index, const std::string& code, const std::string& color,const std::string& name, int flatTax, int taxPercentage): Tax(index, code, color,name), flatTax(flatTax), taxPercentage(taxPercentage) {}
 void PPH::payTax(Player* player) {
     if (player != nullptr) {
         int taxAmount = flatTax + (player->getCurrency() * taxPercentage / 100);
@@ -9,7 +9,7 @@ void PPH::payTax(Player* player) {
     }
 }
 
-PBM::PBM(int index, const std::string& code, const std::string& color, int fixedTax): Tax(index, code, color), fixedTax(fixedTax) {}
+PBM::PBM(int index, const std::string& code, const std::string& color,const std::string& name, int fixedTax): Tax(index, code, color, name), fixedTax(fixedTax) {}
 
 int PBM::getFixedTax() const {
     return fixedTax;

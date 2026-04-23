@@ -4,9 +4,6 @@ Vector2 IsoTransformer::IndexToGrid(int index)
 {
     // Board 1-indexed: index 1-40 (GO=1, PEN=11, PBM=39)
     // Grid 11x11 (0 sampai 10)
-    // Index 1 (GO) ada di pojok bawah (grid x:10, y:10)
-    
-    // Adjust untuk 1-indexed (konversi ke 0-based untuk kalkulasi)
     if (index < 1 || index > 40) return {0.0f, 0.0f};
     
     index = index - 1; // Konversi ke 0-based (0-39)
@@ -30,6 +27,5 @@ Vector2 IsoTransformer::GetScreenPosition(int index)
     float screenX = (grid.x - grid.y) * (RenderConfig::TILE_WIDTH / 2.0f);
     float screenY = (grid.x + grid.y) * (RenderConfig::TILE_HEIGHT / 2.0f);
 
-    // Tambahkan offset agar tidak terpotong di pojok kiri atas monitor
     return {screenX + RenderConfig::OFFSET_X, screenY + RenderConfig::OFFSET_Y};
 }

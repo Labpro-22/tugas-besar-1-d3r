@@ -1,7 +1,6 @@
-#pragma once
-
 #include "../../include/core/DataManager.hpp"
 #include "../../include/core/GameManager.hpp"
+#include "../../include/core/Tile.hpp"
 
 
 DataManager::DataManager(const std::string& configMisc, const std::string& configProperty, const std::string& configTax, const std::string& configUtility, const std::string& configRailroad, const std::string& configSpecial) : configMisc(configMisc), configProperty(configProperty), configTax(configTax), configUtility(configUtility), configRailroad(configRailroad), configSpecial(configSpecial){}
@@ -41,13 +40,13 @@ void DataManager::loadProperties(GameManager& game, const vector<int>& utilityRe
         }        
 
         if (type == "STREET") {
-            Street* streetTile = new Street(id,code,color,landCost,mortgageValue,1,0,nullptr,BANK,houseCost,hotelCost,rentCost,0);
+            Street* streetTile = new Street(id,code,name,color,landCost,mortgageValue,1,0,nullptr,BANK,houseCost,hotelCost,rentCost,0);
             game.addTile(streetTile);
         } else if (type == "RAILROAD"){
-            Railroad* railroadTile = new Railroad(id,code,color,landCost,mortgageValue,1,0,nullptr,BANK,railroadRent);
+            Railroad* railroadTile = new Railroad(id,code,name,color,landCost,mortgageValue,1,0,nullptr,BANK,railroadRent);
             game.addTile(railroadTile);
         } else if (type == "UTILITY"){
-            Utility* utilityTile = new Utility(id,code,color,landCost,mortgageValue,1,0,nullptr,BANK,utilityRent);
+            Utility* utilityTile = new Utility(id,code,name,color,landCost,mortgageValue,1,0,nullptr,BANK,utilityRent);
             game.addTile(utilityTile);
         }
     }
@@ -86,8 +85,8 @@ void DataManager::loadTax(GameManager& game) {
         
     file >> pphFlat >> pphPercentage >> pbmFlat;
 
-    PPH* pph = new PPH(5, "PPH", "DEFAULT", pphFlat, pphPercentage);
-    PBM* pbm = new PBM(39, "PBM", "DEFAULT", pbmFlat);    
+    PPH* pph = new PPH(5, "PPH", "Pajak Penghasilan", "DEFAULT", pphFlat, pphPercentage);
+    PBM* pbm = new PBM(39, "PBM", "Pajak Barang Mewah", "DEFAULT", pbmFlat);    
 
     game.addTile(pph);
     game.addTile(pbm);
@@ -127,8 +126,8 @@ vector<int> DataManager::loadUtilityConfig() {
 
     file >> goSalary >> jail_fine;    
 
-    Go* go = new Go(1, "GO", "DEFAULT", goSalary);
-    Prison* prison = new Prison(11, "PEN", "DEFAULT", jail_fine);
+    Go* go = new Go(1, "GO", "GO", "DEFAULT", goSalary);
+    Prison* prison = new Prison(11, "PEN", "PEN", "DEFAULT", jail_fine);
 
     game.addTile(go);
     game.addTile(prison);

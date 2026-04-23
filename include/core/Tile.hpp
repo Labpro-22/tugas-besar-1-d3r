@@ -10,14 +10,16 @@ class Tile {
 protected:
     int index;
     std::string code;
+    std::string name;
     std::string color;
 
 public:
-    Tile(int index, const std::string& code, const std::string& color);
+    Tile(int index, const std::string& code, const std::string& name, const std::string& color);
     virtual ~Tile() = default;
 
     int getIndex() const { return index; }
     std::string getCode() const { return code; }
+    std::string getName() const { return name; }
     std::string getColor() const { return color; }
     virtual void runTile(Player*) = 0;
 };
@@ -38,7 +40,7 @@ protected:
     PROPERTY_STATUS propertyStatus;
 
 public:
-    Property(int index, const std::string& code, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus);
+    Property(int index, const std::string& code, const std::string& name, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus);
 
     int getLandCost() const;
     int getMortgageValue() const;
@@ -61,7 +63,11 @@ private:
     std::vector<int> rentCost;
 
 public:
-    Railroad(int index, const std::string& code, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& rentCost);
+    Railroad(int index, const std::string& code, 
+        const std::string& name, const std::string& color, 
+        int landCost, int mortgageValue, int festivalMultiplier, 
+        int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus,
+        const std::vector<int>& rentCost);
     void runTile(Player*) override;
     int getRentCost() const override;
 };
@@ -71,7 +77,7 @@ private:
     std::vector<int> costMultiplier;
 
 public:
-    Utility(int index, const std::string& code, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& costMultiplier);
+    Utility(int index, const std::string& code, const std::string& name, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& costMultiplier);
     void runTile(Player*) override;
     int getRentCost() const override;
 };
@@ -84,7 +90,7 @@ private:
     int currentLevel;
 
 public:
-    Street(int index, const std::string& code, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, int houseCost, int hotelCost, std::vector<int> rentCost, int currentLevel);
+    Street(int index, const std::string& code, const std::string& name, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, int houseCost, int hotelCost, std::vector<int> rentCost, int currentLevel);
 
     int getHouseCost() const;
     int getHotelCost() const;
@@ -97,20 +103,20 @@ public:
 
 class CardTile : public Tile {
 public:
-    CardTile(int, const std::string&, const std::string&);
+    CardTile(int, const std::string&, const std::string& name, const std::string&);
     void runTile(Player*) override;
 };
 
 class Festival : public Tile {
 public:
-    Festival(int, const std::string&, const std::string&);
+    Festival(int index, const std::string& code, const std::string& color);
     void addMultiplier(const std::string&);
     void runTile(Player*) override;
 };
 
 class Tax : public Tile {
 public:
-    Tax(int, const std::string&, const std::string&);
+    Tax(int, const std::string&, const std::string& name, const std::string&);
 
     void runTile(Player*) override;
     virtual void payTax(Player*) = 0;
@@ -121,7 +127,7 @@ private:
     int flatTax;
     int taxPercentage;
 public:
-    PPH(int, const std::string&, const std::string&, int flatTax, int taxPercentage);
+    PPH(int, const std::string&, const std::string& name, const std::string&, int flatTax, int taxPercentage);
     void payTax(Player*) override;
 
     int getFlatTax() const { return flatTax; };
@@ -136,7 +142,7 @@ private:
     int fixedTax;
 
 public:
-    PBM(int, const std::string&, const std::string&, int fixedTax);
+    PBM(int, const std::string&, const std::string& name, const std::string&, int fixedTax);
     int getFixedTax() const;
     void setFixedTax(int fixedTax) { this->fixedTax = fixedTax; };
 
@@ -147,7 +153,7 @@ class Go : public Tile {
 private:
     int payment;
 public:
-    Go(int, const std::string&, const std::string&, int payment);
+    Go(int, const std::string&, const std::string& name, const std::string&, int payment);
     void givePayments(Player*);
     void runTile(Player*) override;
 };
@@ -157,7 +163,7 @@ private:
     int fee;
 
 public:
-    Prison(int, const std::string&, const std::string&, int);
+    Prison(int, const std::string&, const std::string& name, const std::string&, int);
 
     int getFee() const;
     bool checkJailed(Player*) const;
@@ -169,13 +175,13 @@ public:
 
 class Trap : public Tile {
 public:
-    Trap(int, const std::string&, const std::string&);
+    Trap(int, const std::string&, const std::string& name, const std::string&);
     void runTile(Player* player) override;
 };
 
 class FreeParking : public Tile {
 public:
-    FreeParking(int index, const std::string& code, const std::string& color);
+    FreeParking(int index, const std::string& code, const std::string& name, const std::string& color);
     void runTile(Player* player) override;
 };
 

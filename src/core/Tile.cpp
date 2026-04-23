@@ -3,15 +3,15 @@
 #include "../../include/core/Player.hpp"
 
 // ============== Tile Base Class ==============
-Tile::Tile(int index, const std::string& code, const std::string& color)
-    : index(index), code(code), color(color) {}
+Tile::Tile(int index, const std::string& code, const std::string& name, const std::string& color)
+    : index(index), code(code), name(name), color(color) {}
 
 
 // ============== Property Class ==============
-Property::Property(int index, const std::string& code, const std::string& color, 
+Property::Property(int index, const std::string& code, const std::string& name, const std::string& color, 
                    int landCost, int mortgageValue, int festivalMultiplier, 
                    int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus)
-    : Tile(index, code, color), landCost(landCost), mortgageValue(mortgageValue),
+    : Tile(index, code, name, color), landCost(landCost), mortgageValue(mortgageValue),
       festivalMultiplier(festivalMultiplier), festivalDuration(festivalDuration),
       owner(owner), propertyStatus(propertyStatus) {}
 
@@ -33,8 +33,8 @@ void Property::runTile(Player* player) {
 
 
 // ============== Tax Class ==============
-Tax::Tax(int index, const std::string& code, const std::string& color)
-    : Tile(index, code, color) {}
+Tax::Tax(int index, const std::string& code, const std::string& name, const std::string& color)
+    : Tile(index, code, name, color) {}
 
 void Tax::runTile(Player* player) {
     if (player != nullptr) {
@@ -44,8 +44,8 @@ void Tax::runTile(Player* player) {
 
 
 // ============== Go Class ==============
-Go::Go(int index, const std::string& code, const std::string& color, int payment)
-    : Tile(index, code, color), payment(payment) {}
+Go::Go(int index, const std::string& code, const std::string& name, const std::string& color, int payment)
+    : Tile(index, code, name, color), payment(payment) {}
 
 void Go::givePayments(Player* player) {
     if (player != nullptr) {
@@ -59,8 +59,8 @@ void Go::runTile(Player* player) {
 
 
 // ============== Prison Class ==============
-Prison::Prison(int index, const std::string& code, const std::string& color, int fee)
-    : Tile(index, code, color), fee(fee) {}
+Prison::Prison(int index, const std::string& code, const std::string& name, const std::string& color, int fee)
+    : Tile(index, code, name, color), fee(fee) {}
 
 int Prison::getFee() const { return fee; }
 
@@ -95,14 +95,14 @@ void Prison::runTile(Player* player) {
     }
 }
 
-Trap::Trap(int index, const std::string& code, const std::string& color)
-: Tile(index, code, color){}
+Trap::Trap(int index, const std::string& code, const std::string& color, const std::string& name)
+: Tile(index, code, color, name){}
 void Trap::runTile(Player* player){
     Tile* prison = GameManager::getInstance().getBoard().getJailTile();
     player->setToJailed();
     player->moveTo(prison, false);
 }
 
-FreeParking::FreeParking(int index, const std::string& code, const std::string& color)
-: Tile(index, code, color){}
+FreeParking::FreeParking(int index, const std::string& code, const std::string& color, const std::string& name)
+: Tile(index, code, color, name){}
 void FreeParking::runTile(Player* player){}

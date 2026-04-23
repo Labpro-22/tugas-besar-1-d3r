@@ -1,10 +1,10 @@
 #include "../../include/core/Tile.hpp"
 
-Festival::Festival(int index, const std::string& code, const std::string& color) : Tile(index, code, color) {}
+Festival::Festival(int index, const std::string& code, const std::string& color) : Tile(index, code, "Festival",color){}
 void Festival::addMultiplier(const std::string&) {
 
 }
-void Festival::runTile(Player*) {
+void Festival::runTile(Player*)  {
 
 }
 
