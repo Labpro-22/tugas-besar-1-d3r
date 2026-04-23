@@ -6,7 +6,6 @@ Vector2 IsoTransformer::IndexToGrid(int index)
     GameManager& game = GameManager::getInstance();
     int BoardSize = game.getBoard().getTiles().size();
     // Board 1-indexed: index 1-40 (GO=1, PEN=11, PBM=39)
-    // Grid 11x11 (0 sampai 10)
     if (index < 1 || index > BoardSize) return {0.0f, 0.0f};
     
     index = index - 1; // Konversi ke 0-based (0-39)
