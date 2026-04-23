@@ -1,6 +1,5 @@
 #include "../include/core/DataManager.hpp"
 #include "../include/core/GameManager.hpp"
-#include "../include/gui/NimonspoliGUI.hpp"
 
 #include <exception>
 #include <iostream>
@@ -110,7 +109,7 @@ int main() {
             //     } else{
             //         console.WriteLine("tidak ada function");
             //     }
-                    const bool useGui = true;
+                
                 
             // });
 
@@ -129,7 +128,6 @@ int main() {
         return 0;
     }
     catch (const std::exception& e) {
-                    runGui(gm);
         std::cerr << "[ERROR] " << e.what() << std::endl;
         return 1;
     }

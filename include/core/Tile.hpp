@@ -113,7 +113,7 @@ public:
 
 class Festival : public Tile {
 public:
-    Festival(int index, const std::string& code, const std::string& name, const std::string& color);
+    Festival(int index, const std::string& code, const std::string& color);
     void addMultiplier(const std::string&);
     void runTile(Player*) override;
 };
