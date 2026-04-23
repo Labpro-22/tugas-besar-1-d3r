@@ -1,5 +1,7 @@
 #include "../include/gui/Boardview/TileRenderer.hpp"
 
+#include <cmath>
+
 void TileRenderer::DrawIsometricTile(Vector2 centerPos, Color tileColor)
 {
     Vector2 top = {centerPos.x, centerPos.y - (RenderConfig::TILE_HEIGHT / 2.0f)};
