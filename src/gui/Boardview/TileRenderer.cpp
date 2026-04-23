@@ -50,12 +50,14 @@ void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
     Vector2 lowerRight = {right.x, right.y + RenderConfig::TILE_HEIGHT / 2.0f};
     Vector2 lowerBottom = {bottom.x, bottom.y + RenderConfig::TILE_HEIGHT / 2.0f};
 
+    
+    int base = TileRenderer::getBoardSize() / 4;
     index = index - 1;
-    if (index % 10 == 0) {
+    if (index % base == 0) {
         DrawTriangle(top, left, bottom, tileColor);
         DrawTriangle(top, bottom, right, tileColor);
     }
-    else if (index > 0 && index < 10) {
+    else if (index > 0 && index < base) {
         // Kasus untuk render 0 - 11
         DrawTriangle(midRightBottom, right, mid, tileColor);
         DrawTriangle(right, midRightTop, mid, tileColor);
@@ -63,7 +65,7 @@ void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
         DrawTriangle(top, midLeftTop, mid, tileColor);
         DrawTriangle(top, mid, midRightTop, tileColor);
     }
-    else if (index > 10 && index < 20) {
+    else if (index > base && index < base*2) {
         DrawTriangle(midRightBottom, right, mid, tileColor);
         DrawTriangle(right, midRightTop, mid, tileColor);
         DrawTriangle(mid, midLeftBottom, midRightBottom, tileColor);
@@ -74,7 +76,7 @@ void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
 
         DrawLineEx(bottom, right, 1.5f, BOARD_COKLAT);
     }
-    else if (index > 20 && index <= 30) {
+    else if (index > base*2 && index <= base*3) {
         DrawTriangle(mid, midLeftBottom, midRightBottom, tileColor);
         DrawTriangle(midLeftBottom, bottom, midRightBottom, tileColor);
 
@@ -85,14 +87,14 @@ void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
         DrawTriangle(left, lowerBottom, bottom, tileColor);
         DrawLineEx(left, bottom, 1.5f, BOARD_COKLAT);
     }
-    else if (index > 30 && index <= 40) {
+    else if (index > base*3 && index <= base*4) {
         DrawTriangle(left, midLeftBottom, mid, tileColor);
         DrawTriangle(left, mid, midLeftTop, tileColor);
 
         DrawTriangle(midLeftTop, midRightTop, top, tileColor);
         DrawTriangle(midLeftTop, mid, midRightTop, tileColor);
     }
-    else if (index == 0 || index == 10 || index == 20 || index == 30) {
+    else if (index == 0 || index == base || index == base*2 || index == base*3) {
         DrawTriangle(top, left, bottom, tileColor);
         DrawTriangle(top, bottom, right, tileColor);
     }
@@ -159,16 +161,18 @@ void TileRenderer::DrawTextIsometric(const std::string text, Vector2 tilePos, fl
 }
 
 float TileRenderer::GetTextRotation(int index) {
-    int adjustedIndex = index % 40;
+
+    int base = TileRenderer::getBoardSize() / 4;
+    int adjustedIndex = index % TileRenderer::getBoardSize();
     float sudutDasar = atan2f(RenderConfig::TILE_HEIGHT, RenderConfig::TILE_WIDTH) * (180.0f / PI);
 
-    if (adjustedIndex >= 1 && adjustedIndex <= 11) {
+    if (adjustedIndex >= 1 && adjustedIndex <= base + 1) {
         return sudutDasar; // 0 - 10 bagian bawah ke kiri
     } 
-    else if (adjustedIndex > 11 && adjustedIndex <= 21) {
+    else if (adjustedIndex > base + 1 && adjustedIndex <= base*2 + 1) {
         return sudutDasar + 130; // bagian bawah kiri ke kiri atas
     } 
-    else if (adjustedIndex > 21 && adjustedIndex <= 31) {
+    else if (adjustedIndex > base*2 + 1 && adjustedIndex <= base* + 1) {
         return -sudutDasar - 130; // bagian kiri atas ke kanan atas
     } 
     else {

@@ -70,7 +70,7 @@ void GameManager::auction(Tile* tile) {
 }
 
 void GameManager::initBoard() {
-    board = Board(40);
+    board = Board(45);
 }
 
 void GameManager::initPlayers() {

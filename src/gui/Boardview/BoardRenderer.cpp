@@ -7,10 +7,10 @@ void BoardRenderer::RenderBoard(Board board)
     int boardsize = board.getTiles().size();
 
     // Cetak dari bagian ke bagian titik n + 1,n - 1 dari kanan
-    for (int i = boardsize / 2 + 1; i < boardsize; i++) {
+    for (int i = boardsize / 2 + 1; i < boardsize + 1; i++) {
         Vector2 pos = IsoTransformer::GetScreenPosition(i);
 
-        Tile *logicTile = board.getTile(i);
+        Tile *logicTile = board.getTile(i-1);
         if (logicTile == nullptr) {
             TileRenderer::DrawIsometricTile(pos, LIGHTGRAY);
             continue;
@@ -25,7 +25,7 @@ void BoardRenderer::RenderBoard(Board board)
     for (int i = boardsize / 2; i >= 1; i--) {
         Vector2 pos = IsoTransformer::GetScreenPosition(i);
 
-        Tile *logicTile = board.getTile(i);
+        Tile *logicTile = board.getTile(i-1);
         if (logicTile == nullptr) {
             TileRenderer::DrawIsometricTile(pos, LIGHTGRAY);
             continue;
@@ -40,7 +40,7 @@ void BoardRenderer::RenderBoard(Board board)
     // Update TILE bagian awal agar tidak tertumpuk
     Vector2 pos = IsoTransformer::GetScreenPosition(1);
 
-    Tile *logicTile = board.getTile(1);
+    Tile *logicTile = board.getTile(0);
     if (logicTile == nullptr) {
         TileRenderer::DrawIsometricTile(pos, LIGHTGRAY);
     }

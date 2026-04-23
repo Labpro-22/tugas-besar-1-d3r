@@ -4,6 +4,7 @@
 #include "../../core/Tile.hpp"
 #include "raylib.h"
 #include "../include/gui/MathCore/IsoTransformer.hpp"
+#include "../include/core/GameManager.hpp"
 #include <string>
 class TileRenderer {
 public:
@@ -13,4 +14,5 @@ public:
     static float GetTextRotation(int index);
     // Melakukan parsing tile dan menghasilkan warna utama dan shadenya
     static std::pair<Color, Color> ParseColor(Tile *tile);
+    static int getBoardSize() { return GameManager::getInstance().getBoard().getTiles().size(); }
 };
