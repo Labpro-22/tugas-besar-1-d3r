@@ -66,11 +66,7 @@ private:
     std::vector<int> rentCost;
 
 public:
-    Railroad(int index, const std::string& code, 
-        const std::string& name, const std::string& color, 
-        int landCost, int mortgageValue, int festivalMultiplier, 
-        int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus,
-        const std::vector<int>& rentCost);
+    Railroad(int index, const std::string& code, const std::string& name, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& rentCost);
     void runTile(Player*) override;
     int getRentCost() const override;
 };
@@ -113,7 +109,7 @@ public:
 
 class Festival : public Tile {
 public:
-    Festival(int index, const std::string& code, const std::string& color);
+    Festival(int, const std::string&, const std::string& name, const std::string&);
     void addMultiplier(const std::string&);
     void runTile(Player*) override;
 };
@@ -188,12 +184,12 @@ public:
 class Trap : public Tile {
 public:
     Trap(int, const std::string&, const std::string& name, const std::string&);
-    void runTile(Player* player) override;
+    void runTile(Player*) override;
 };
 
 class FreeParking : public Tile {
 public:
-    FreeParking(int index, const std::string& code, const std::string& name, const std::string& color);
-    void runTile(Player* player) override;
+    FreeParking(int, const std::string&, const std::string& name, const std::string&);
+    void runTile(Player*) override;
 };
 

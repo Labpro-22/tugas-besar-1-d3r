@@ -1,6 +1,5 @@
 #include "../../include/core/DataManager.hpp"
 #include "../../include/core/GameManager.hpp"
-#include "../../include/core/Tile.hpp"
 
 
 DataManager::DataManager(const std::string& configMisc, const std::string& configProperty, const std::string& configTax, const std::string& configUtility, const std::string& configRailroad, const std::string& configSpecial) : configMisc(configMisc), configProperty(configProperty), configTax(configTax), configUtility(configUtility), configRailroad(configRailroad), configSpecial(configSpecial), configAction("config/aksi.txt"){}

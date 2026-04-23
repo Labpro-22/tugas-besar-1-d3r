@@ -5,6 +5,7 @@ void BoardRenderer::RenderBoard(Board board)
 {
     // Cetak dari Bagian board atas ke bagian titik n,n dari kiri
     int boardsize = board.getTiles().size();
+    
 
     // Cetak dari bagian ke bagian titik n + 1,n - 1 dari kanan
     for (int i = boardsize / 2 + 1; i < boardsize; i++) {
@@ -19,7 +20,6 @@ void BoardRenderer::RenderBoard(Board board)
         std::pair<Color, Color> c = TileRenderer::ParseColor(logicTile);
         TileRenderer::DrawIsometricTile(pos, c.first);
         TileRenderer::FillTileTypes(pos, i, c.first);
-        TileRenderer::DrawTextIsometric(logicTile->getCode(), pos, TileRenderer::GetTextRotation(i));
     }
 
     for (int i = boardsize / 2; i >= 1; i--) {
@@ -34,7 +34,6 @@ void BoardRenderer::RenderBoard(Board board)
         std::pair<Color, Color> c = TileRenderer::ParseColor(logicTile);
         TileRenderer::DrawIsometricTile(pos, c.first);
         TileRenderer::FillTileTypes(pos, i, c.first);
-        TileRenderer::DrawTextIsometric(logicTile->getCode(), pos, TileRenderer::GetTextRotation(i));
     }
 
     // Update TILE bagian awal agar tidak tertumpuk
@@ -48,5 +47,4 @@ void BoardRenderer::RenderBoard(Board board)
     std::pair<Color, Color> c = TileRenderer::ParseColor(logicTile);
     TileRenderer::DrawIsometricTile(pos, c.first);
     TileRenderer::FillTileTypes(pos, 1, c.first);
-    TileRenderer::DrawTextIsometric(logicTile->getCode(), pos, TileRenderer::GetTextRotation(0));
 }
