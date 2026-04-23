@@ -1,25 +1,66 @@
-#pragma once
+#include "../include/gui/DynamicEntity/PawnRenderer.hpp"
+#include "../include/gui/MathCore/IsoTransformer.hpp"
 
-#include <vector>
-#include <utility>
+PawnRenderer::PawnRenderer(const std::string path)
+{
+    spriteSheets = LoadTexture(path.c_str());
+    frameWidth = spriteSheets.width / 2;
+    frameHeight = spriteSheets.height / 2;
+}
 
-class Player;
-struct RenderConfig;
+PawnRenderer::~PawnRenderer()
+{
+    UnloadTexture(spriteSheets);
+}
 
-class PawnRenderer {
-private:
-    std::vector<Player*> players;
-    RenderConfig* renderConfig;
-    
-public:
-    PawnRenderer(RenderConfig* config);
-    
-    void addPlayer(Player* player);
-    void render();
-    void renderPawn(const Player* player);
-    void animateMovement(Player* player, int targetTileIndex, float duration);
-    
-    std::pair<int, int> calculatePawnPosition(const Player* player) const;
-    
-    ~PawnRenderer();
-};
+void PawnRenderer::DrawPawn(int tileIndex, int playerIndex)
+{
+    Vector2 tilepos = IsoTransformer::IndexToGrid(tileIndex);
+    int column = playerIndex % 2;
+    int row = playerIndex / 2;
+
+    /**
+     *  [  ][  ]
+     *  [  ][  ]
+     *  Sprite berbentuk seperti ini misalnya index 4 akan menghasilkan 0, 1
+     *  bagian bawah kaanan
+     */
+
+    Rectangle sourceRect = {
+        (float)(column * frameWidth),
+        (float)(row * frameHeight),
+        (float)(frameWidth),
+        (float)(frameHeight)};
+
+    Vector2 playerOffset = {0, 0};
+    // agar tidak saling bertumpukan
+    switch (playerIndex)
+    {
+    case 0: playerOffset = {-10, -5}; break;
+    case 1: playerOffset = {10, -5}; break;
+    case 2: playerOffset = {-10, 5}; break;
+    case 3: playerOffset = {10,5}; break;
+    default:
+        // TODO throw exceprion
+        break;
+    }
+
+    // Posisi akhir
+    float displayWidth =40.0f;
+    float displayHeight =40.0f;
+
+    Rectangle destRect ={
+        tilepos.x + playerOffset.x,
+        tilepos.y + playerOffset.y,
+        displayWidth,
+        displayHeight
+    };
+
+    Vector2 origin = {displayWidth / 2.0f, displayHeight - 5.0f};
+
+    Vector2 shadow = tilepos + playerOffset;
+    DrawEllipse(shadow.x, shadow.y, 15, 7, ColorAlpha(ABU_SHADE, 0.3f));
+
+    DrawTexturePro(spriteSheets, sourceRect, destRect,origin, 0.0f,WHITE);
+
+}
