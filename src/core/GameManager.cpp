@@ -279,73 +279,138 @@ void GameManager::sellPropertyToBank(Player* player, Property* property) {
 }
 
 void GameManager::handleBankruptcy(Player *debtor, int amount, Player* creditor) {
+    cout << "\nKamu tidak dapat membayar " << (creditor ? "sewa " : "tagihan ") 
+              << "M" << amount << " kepada " << (creditor ? creditor->getUsername() : "Bank") << "!" << endl << endl;
+
+    cout << "Uang kamu       : M" << debtor->getCurrency() << endl;
+    cout << "Total kewajiban : M" << amount << endl;
+    cout << "Kekurangan      : M" << (amount - debtor->getCurrency()) << endl << endl;
+
     int maxLiq = debtor->getMaxLiquidatableValue(&board);
+    
+    cout << "Estimasi dana maksimum dari likuidasi:" << endl;
+    
+    int totalPotensiDisplay = 0;
+    vector<Property*> debtorProps;
+
+    for (Tile* t : board.getTiles()) {
+        Property* p = dynamic_cast<Property*>(t);
+        if (p != nullptr && p->getOwner() == debtor) {
+            debtorProps.push_back(p);
+            
+            if (p->getPropertyStatus() == OWNED) {
+                int propSellVal = p->getLandCost();
+                string actionStr = "Jual "; 
+                
+                Street* street = dynamic_cast<Street*>(p);
+                if (street) {
+                    int bVal = street->getBuildingValue();
+                    propSellVal += (bVal / 2);
+                }
+                
+                cout << "  " << actionStr << p->getName() << " (" << p->getCode() << ")   [" << p->getColor() << "]   -> M" << propSellVal << endl;
+                totalPotensiDisplay += propSellVal;
+            } else if (p->getPropertyStatus() == MORTGAGED) {
+                cout << "  (Tergadai) " << p->getName() << " (" << p->getCode() << ")   [" << p->getColor() << "]   -> M0\n";
+            }
+        }
+    }
+    
+    cout << "  Total potensi        -> M" << totalPotensiDisplay << endl << endl;
+
     if (maxLiq < amount) {
+        cout << "Dana likuidasi TIDAK dapat menutup kewajiban." << endl;
+        cout << "Kamu dinyatakan BANGKRUT." << endl;
+        
         debtor->setCurrentStatus(BANKRUPT);
-        // this->handleBankruptTransfer(debtor, creditor); 
+        // this->handleBankruptTransfer(debtor, creditor);
         return;
     }
 
-    cout << "Kamu tidak dapat membayar " << amount << " kepada " << (creditor ? creditor->getUsername() : "Bank") << "!" << endl;
-    cout << endl;
-    cout << "Uang kamu       : " << debtor->getCurrency() << endl;
-    cout << "Total kewajiban : " << amount << endl;
-    cout << "Kekurangan      : " << (amount - debtor->getCurrency()) << endl << endl;
-
-    cout << "Estimasi dana maksimum dari likuidasi:" << endl;
-
-    vector<Property*> ownedList;
-    int totalPotensiDisplay = 0;
-    
-    for(Tile* t : board.getTiles()){
-        Property* p = dynamic_cast<Property*>(t);
-        if(p != nullptr && p->getOwner() == debtor && p->getPropertyStatus() == OWNED) {
-            ownedList.push_back(p);
-            
-            int propSellVal = p->getLandCost();
-            Street* street = dynamic_cast<Street*>(p);
-            if(street) {
-            }
-            cout << "  Jual/Gadai " << p->getName() << " (" << p->getCode() << ") [" << p->getColor() << "] \n"; // Format
-            totalPotensiDisplay += propSellVal; 
-        }
-    }
-    cout << "  Total potensi        -> " << totalPotensiDisplay << endl << endl;
     cout << "Dana likuidasi dapat menutup kewajiban." << endl;
     cout << "Kamu wajib melikuidasi aset untuk membayar." << endl;
 
     while (debtor->getCurrency() < amount) {
         cout << "\n=== Panel Likuidasi ===" << endl;
-        cout << "Uang kamu saat ini: " << debtor->getCurrency() << "  |  Kewajiban: " << amount << endl;
-        cout << endl;
+        cout << "Uang kamu saat ini: M" << debtor->getCurrency() << "  |  Kewajiban: M" << amount << endl << endl;
 
-        cout << "[Jual ke Bank / Gadaikan]" << endl;
-        int aksiSelesai = 0;
-        
-        ownedList.clear(); 
-        for(Tile* t : board.getTiles()){
-            Property* p = dynamic_cast<Property*>(t);
-            if(p != nullptr && p->getOwner() == debtor && p->getPropertyStatus() == OWNED) { // Belum dipisah Jual/Gadai for simplicity
-                ownedList.push_back(p);
-                int indexList = ownedList.size();
-                cout << indexList << ". [" << p->getColor() << "] " << p->getName() << " (" << p->getCode() << ") | Harga Jual / Gadai ..." << endl;
+        vector<Property*> listJual;
+        vector<Property*> listGadai;
+        for (Property* p : debtorProps) {
+            if (p->getPropertyStatus() == OWNED) {
+                listJual.push_back(p);
+                
+                listGadai.push_back(p); 
             }
         }
+
+        int itemIndex = 1;
         
-        int totalAset = ownedList.size();
-        int pilihan = commandHandler.askInt("\nPilih aksi (1 - " + to_string(totalAset) + " / ketik 0 batal): ", 0, totalAset);
+        cout << "[Jual ke Bank]" << endl;
+        if (listJual.empty()) cout << "- (Tidak ada)\n";
+        for (Property* p : listJual) {
+            int sellPrice = p->getLandCost();
+            string extraInfo = "";
 
-        if (pilihan == 0) continue; 
+            Street* street = dynamic_cast<Street*>(p);
+            if (street) {
+                int level = street->getCurrentLevel();
+                if (level > 0) {
+                    int bVal = (level >= 1 && level <= 4) ? (level * street->getHouseCost()) : 
+                               ((4 * street->getHouseCost()) + street->getHotelCost());
+                    int addedValue = bVal / 2;
+                    sellPrice += addedValue;
+                    
+                    string buildStr = (level == 5) ? "1 hotel" : (to_string(level) + " rumah");
+                    extraInfo = " (termasuk " + buildStr + ": M" + to_string(addedValue) + ")";
+                }
+            }
+            cout << itemIndex++ << ". " << p->getName() << " (" << p->getCode() << ")  [" << p->getColor() << "]  Harga Jual: M" << sellPrice << extraInfo << endl;
+        }
 
-        Property* propTujuan = ownedList[pilihan - 1];
+        cout << "\n[Gadaikan]" << endl;
+        if (listGadai.empty()) cout << "- (Tidak ada)\n";
+        for (Property* p : listGadai) {
+            cout << itemIndex++ << ". " << p->getName() << " (" << p->getCode() << ")   [" << p->getColor() << "]   Nilai Gadai: M" << p->getMortgageValue() << endl;
+        }
 
-        cout << propTujuan->getName() << " terjual ke Bank / Digadaikan. Kamu menerima XXXX." << endl;
-        cout << "Uang kamu sekarang: " << debtor->getCurrency() << endl;
-    }    
-    
-    cout << "\nKewajiban " << amount << " terpenuhi. Membayar ke " << (creditor ? creditor->getUsername() : "Bank") << "..." << endl;
-    cout << "Uang kamu : " << debtor->getCurrency() << " -> " << (debtor->getCurrency() - amount) << endl;
-    
-    *debtor -= amount;
-    *creditor += amount;    
+        int maxPilihan = itemIndex - 1;
+        int pilihan = getCommandHandler().askInt("\nPilih aksi (0 jika sudah cukup): ", 0, maxPilihan);
+
+        if (pilihan == 0) {
+            if (debtor->getCurrency() < amount) {
+                cout << "Uang kamu masih belum cukup untuk membayar tagihan. Kamu harus menjual/menggadai properti!" << endl;
+                continue;
+            } else {
+                break; 
+            }
+        }
+
+        if (pilihan <= listJual.size()) {
+            Property* pTarget = listJual[pilihan - 1];
+            
+            int prevMoney = debtor->getCurrency();
+            sellPropertyToBank(debtor, pTarget);
+            int earned = debtor->getCurrency() - prevMoney;
+            
+            cout << "\n" << pTarget->getName() << " terjual ke Bank. Kamu menerima M" << earned << "." << endl;
+            cout << "Uang kamu sekarang: M" << debtor->getCurrency() << endl;
+            
+        } else {
+            Property* pTarget = listGadai[pilihan - listJual.size() - 1];
+            
+            try {
+                int prevMoney = debtor->getCurrency();
+                
+                debtor->mortgageProperty(pTarget, &board); 
+                
+                int earned = debtor->getCurrency() - prevMoney;
+                cout << "\n" << pTarget->getName() << " berhasil digadaikan. Kamu menerima M" << earned << "." << endl;
+                cout << "Uang kamu sekarang: M" << debtor->getCurrency() << endl;
+
+            } catch (const exception& e) {
+                cout << "\nGagal menggadai: " << e.what() << endl;
+            }
+        }
+    }  
 }
