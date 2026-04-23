@@ -81,7 +81,7 @@ void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
 
         DrawTriangle(left, lowerLeft, lowerBottom, tileColor);
         DrawTriangle(left, lowerBottom, bottom, tileColor);
-        DrawLineEx( left, bottom, 1.5f, BOARD_COKLAT);
+        DrawLineEx(left, bottom, 1.5f, BOARD_COKLAT);
     }
     else if (index > 30 && index <= 40) {
         DrawTriangle(left, midLeftBottom, mid, tileColor);
@@ -89,7 +89,6 @@ void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
 
         DrawTriangle(midLeftTop, midRightTop, top, tileColor);
         DrawTriangle(midLeftTop, mid, midRightTop, tileColor);
-
     }
     else if (index == 0 || index == 10 || index == 20 || index == 30) {
         DrawTriangle(top, left, bottom, tileColor);
@@ -118,7 +117,7 @@ std::pair<Color, Color> TileRenderer::ParseColor(Tile *tile)
     else if (!tile->getCode().compare("PLB") || !tile->getCode().compare("PKB") || !tile->getCode().compare("MED")) {
         return {KUNING, KUNING_SHADE};
     }
-    else if (!tile->getCode().compare("BDG") || !tile->getCode().compare("DEN") || !tile->getCode().compare("MAT")) {
+    else if (!tile->getCode().compare("BDG") || !tile->getCode().compare("DEN") || !tile->getCode().compare("MTR")) {
         return {HIJAU, HIJAU_SHADE};
     }
     else if (!tile->getCode().compare("JKT") || !tile->getCode().compare("IKN")) {
@@ -132,5 +131,45 @@ std::pair<Color, Color> TileRenderer::ParseColor(Tile *tile)
     }
     else {
         return {BOARD_BASE, BOARD_BASE};
+    }
+}
+
+void TileRenderer::DrawTextIsometric(const std::string text, Vector2 tilePos, float rotation)
+{
+    float fontSize = 12.0f;
+    
+    Vector2 textSize = MeasureTextEx(GetFontDefault(), text.c_str(), fontSize, 1.0f);
+    
+    // Origin di tengah teks agar rotasi simetris
+    Vector2 origin = { textSize.x / 2.0f, textSize.y / 2.0f - 20 };
+
+    // Gambar teks
+    DrawTextPro(
+        GetFontDefault(), 
+        text.c_str(), 
+        tilePos, // Posisi pusat petak
+        origin, 
+        rotation, 
+        fontSize, 
+        1.0f, 
+        BLACK
+    );
+}
+
+float TileRenderer::GetTextRotation(int index) {
+    int adjustedIndex = index % 40;
+    float sudutDasar = atan2f(RenderConfig::TILE_HEIGHT, RenderConfig::TILE_WIDTH) * (180.0f / PI);
+
+    if (adjustedIndex >= 1 && adjustedIndex <= 11) {
+        return sudutDasar; // 0 - 10 bagian bawah ke kiri
+    } 
+    else if (adjustedIndex > 11 && adjustedIndex <= 21) {
+        return sudutDasar + 130; // bagian bawah kiri ke kiri atas
+    } 
+    else if (adjustedIndex > 21 && adjustedIndex <= 31) {
+        return -sudutDasar - 130; // bagian kiri atas ke kanan atas
+    } 
+    else {
+        return sudutDasar - 57;  // bagian kanan atas ke kiri bawah
     }
 }

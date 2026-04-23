@@ -119,10 +119,9 @@ void Player::mortgageProperty(Property* property, Board* board) {
 
     // Check if there are buildings exist in the property's color group
     vector<Tile*> colorGroupProperties = board->getColorGroup(property->getColor()); 
-    for_each(colorGroupProperties.begin(), colorGroupProperties.end(), [&property, this] (Tile* ownedTile) {
-        Property* owned = dynamic_cast<Property*>(ownedTile);
-        if(owned == nullptr) return;
-        if(owned->getOwner() != this) return;
+    for_each(colorGroupProperties.begin(), colorGroupProperties.end(), [&property, this] (Tile* tile) {
+        Property* owned = dynamic_cast<Property*>(tile);
+        if(owned == nullptr || owned->getOwner() != this) return;
         Street* streetOwned = dynamic_cast<Street*>(owned);
         if(streetOwned != nullptr) {
             if(property->getColor() == streetOwned->getColor() && streetOwned->getCurrentLevel() > 0) {

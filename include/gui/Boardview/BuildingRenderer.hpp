@@ -1,14 +1,10 @@
 #pragma once
 
 #include <vector>
-
-class Tile;
-struct RenderConfig;
+#include "../../core/Tile.hpp"
+#include "../RenderConfig.hpp"
 
 class BuildingRenderer {
-private:
-    RenderConfig* renderConfig;
-    
 public:
     BuildingRenderer(RenderConfig* config);
     

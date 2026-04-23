@@ -12,10 +12,6 @@
 
 #include "MathCore/IsoTransformer.hpp"
 
-#include "UIOverlay/ActionPanel.hpp"
-#include "UIOverlay/PlayerHUD.hpp"
-#include "UIOverlay/PopupDialog.hpp"
-#include "UIOverlay/UIManager.hpp"
+#include "UIOverlay/GameConsole.hpp"
 
-#include "AssetManager.hpp"
 #include "RenderConfig.hpp"
