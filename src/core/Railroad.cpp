@@ -12,32 +12,54 @@ Railroad::Railroad(int index, const std::string &code, const std::string &name,
                                                                 festivalDuration, owner, propertyStatus),
                                                        rentCost(rentCost) {}
 
-void Railroad::runTile(Player *player)
-{
+void Railroad::runTile(Player *player){
     Logger &logger = Logger::getInstance();
+    GameManager& gm = GameManager::getInstance();
     if (player == nullptr) {
         return;
     }
 
+    // buy mechanism
     if (propertyStatus == BANK) {
+        gm.writeLine("Kamu mendarat di " + name + " (" + code + ")!");
         if (player->getCurrency() >= landCost) {
             *player -= landCost;
             this->setOwner(player);
             this->setPropertyStatus(OWNED);
             logger.log(player->getUsername(), StateLog::RAILROAD, code + " kini milik " + player->getUsername() + " (otomatis)");
+            gm.writeLine("Belum ada yang menginjaknya duluan, stasiun ini kini menjadi milikmu!");
+        } else {
+            gm.writeLine("Kamu tidak memiliki cukup uang untuk mengamankan stasiun ini.");
+            gm.writeLine("Properti ini akan masuk ke sistem lelang...");
+            gm.auction(this);
         }
         return;
     }
 
+    if (propertyStatus == MORTGAGED && owner != nullptr && owner != player) {
+        gm.writeLine("Kamu mendarat di " + name + " (" + code + "), milik " + owner->getUsername() + ".");
+        gm.writeLine("Properti ini sedang digadaikan [M]. Tidak ada sewa yang dikenakan.");
+        return;
+    }
+
+    // rent mechanism
     if (propertyStatus == OWNED && owner != nullptr && owner != player) {
         int rent = getRentCost();
+        
+        gm.writeLine("Kamu mendarat di " + name + " (" + code + "), milik " + owner->getUsername() + "!");
+        gm.writeLine("");
+        
+        int level = gm.getBoard().getRailroadLevel(const_cast<Railroad *>(this));
+        gm.writeLine("Kondisi      : " + to_string(level) + " stasiun dimiliki");
+        gm.writeLine("Sewa         : M" + to_string(rent));
+        gm.writeLine("");
+        
         std::string mulLog;
         if(festivalMultiplier != 1) mulLog = ", festival aktif x" + to_string(festivalMultiplier);
-        int level = GameManager::getInstance().getBoard().getRailroadLevel(const_cast<Railroad *>(this));
         std::string rentLog = "Bayar " + to_string(rent) + " ke " + owner->getUsername() + " (" + code + ", level" + to_string(level) + mulLog + ")";
         logger.log(player->getUsername(), StateLog::PAY_RENT, rentLog);
-        *player -= rent;
-        *owner += rent;
+        
+        gm.pay(player, rent, owner);
     }
 }
 
