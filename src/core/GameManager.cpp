@@ -189,8 +189,8 @@ void GameManager::rollDice(int dice1, int dice2) {
     logger.log(currentTurnPlayer->getUsername(), StateLog::DICE, diceResult + " → " + moveResult);
 
     if (!dice.isDouble()) {
-        nextTurn();
         doubleCount = 0;
+        nextTurn();
     } else {
         doubleCount++;
         writeLine("Double. Pemain mendapat giliran tambahan.");
@@ -385,7 +385,7 @@ void GameManager::handleBankruptcy(Player *debtor, int amount, Player* creditor)
 
         GameManager::getInstance().writeLine(debtor->getUsername() + " dinyatakan BANGKRUT!");
         assetAcquisition(debtor, creditor);
-        logger.log(debtor->getUsername(), StateLog::BANKRUPT, "Pemain dinyatakan bangkrut dan keluar dari permainan");
+        logger.log(debtor->getUsername(), StateLog::BANKRUPT, "Bangkrut dan keluar dari permainan");
         return;
     }
 

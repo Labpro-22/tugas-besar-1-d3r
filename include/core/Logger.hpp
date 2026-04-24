@@ -8,14 +8,14 @@ class StateLog {
 	enum ACTION_TYPE {
 		AUCTION,
 		BANKRUPT, // done
-		BUILD_HOTEL,
-		BUILD_HOUSE,
-		BUY_TILE,
-		CHANCE_CARD,
+		BUILD_HOTEL, // BELUM IMPLEMENT
+		BUILD_HOUSE, // BELUM IMPLEMENT
+		BUY_TILE, // BELUM IMPLEMENT
+		CHANCE_CARD, // done
 		DICE, // done
 		DOUBLE, // done
 		FESTIVAL,
-		FUND_CARD,
+		FUND_CARD, // done
 		GET_CARD,
 		GO_JAIL, // done
 		LOAD,
@@ -25,7 +25,7 @@ class StateLog {
 		RAILROAD,
 		SAVE,
 		UTILITY,
-		USE_CARD,
+		SKILL_CARD, // done
 		WIN
 	};
 

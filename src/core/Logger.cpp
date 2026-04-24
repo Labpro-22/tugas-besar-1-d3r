@@ -25,7 +25,7 @@ const std::string StateLog::actionName[] = {
 	"RAILROAD",
 	"SAVE",
 	"UTILITY",
-	"USE_CARD",
+	"SKILL_CARD",
 	"WIN"
 };
 
@@ -43,7 +43,7 @@ void Logger::log(int turn, const std::string& username, StateLog::ACTION_TYPE ac
     StateLog newLog = StateLog(turn, username, action, detail);
     logs.push_back(newLog);
 }
-void Logger::printLog(int amount = -1){
+void Logger::printLog(int amount){
     int startIdx;
 	GameManager& game = GameManager::getInstance();
     if(amount < 0 || amount > logs.size()){ // nanti pake exception

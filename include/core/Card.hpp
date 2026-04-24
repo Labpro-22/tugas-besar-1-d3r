@@ -82,13 +82,13 @@ public:
 
 class MoveCard : public SkillCard {
 private:
-    int moveTileMax;
+    int tileCount;
 
 public:
     MoveCard();
     MoveCard(int);
-    int getMoveTileMax() const;
-    void setMoveTileMax(int);
+    int getTileCount() const;
+    void setTileCount(int);
     void useCard(Player*, std::vector<Player*>) override;
 };
 

@@ -1,6 +1,7 @@
 #include "../../include/core/Tile.hpp"
 #include "../../include/core/Player.hpp"
 #include "../../include/core/GameManager.hpp"
+#include "../../include/core/Logger.hpp"
 
 PPH::PPH(int index, const std::string& code, const std::string& color, int flatTax, int taxPercentage): Tax(index, code, "Pajak Penghasilan", color), flatTax(flatTax), taxPercentage(taxPercentage) {}
 void PPH::payTax(Player* player) {
@@ -20,11 +21,16 @@ void PPH::payTax(Player* player) {
 }
 
 void PPH::payPphTax(Player* player, PPH_OPTION option) {
+    Logger logger = Logger::getInstance();
     int taxAmount = 0;
     if (option == FLAT){
         taxAmount = calculateFlatTax();
+        logger.log(player->getUsername(), StateLog::PAY_TAX, 
+                    "Pemain membayar pajak PPH tipe FLAT sebesar " + to_string(taxAmount));
     } else {
         taxAmount = calculatePercentageTax(*player);
+        logger.log(player->getUsername(), StateLog::PAY_TAX, 
+                    "Pemain membayar pajak PPH tipe PERSENTASE sebesar " + to_string(taxAmount));
     }
     *player -= taxAmount;
 }
@@ -43,7 +49,10 @@ int PBM::getFixedTax() const {
     return fixedTax;
 }
 void PBM::payTax(Player* player) {
+    Logger logger = Logger::getInstance();
     if (player != nullptr) {
+        logger.log(player->getUsername(), StateLog::PAY_TAX, 
+            "Pemain membayar pajak PBM sebesar " + to_string(fixedTax));
         *player -= fixedTax;
     }
 }

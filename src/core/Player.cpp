@@ -46,6 +46,7 @@ void Player::endTurnEffects() {
 }
 
 bool Player::addSkillCard(SkillCard* card) {
+    Logger logger = Logger::getInstance();
     if (card == nullptr) {
         return false;
     }
@@ -60,12 +61,14 @@ bool Player::addSkillCard(SkillCard* card) {
         int cardNumber = GameManager::getInstance().getCommandHandler().askInt("Buang Kartu (1-" + std::to_string(deck.size()) + "): ", 1, deck.size());
 
         SkillCard* discardedCard = deck.removeAt(cardNumber - 1);
+        logger.log(username, StateLog::GET_CARD, "Mendapatkan kartu " + card->getCardName() + " dan membuang kartu " + discardedCard->getCardName());
         if (discardedCard != nullptr) {
             delete discardedCard;
         }
         return true;
     }
     else GameManager::getInstance().writeLine(username + " mendapat kartu kemampuan: " + card->getCardName());
+    logger.log(username, StateLog::GET_CARD, "Mendapatkan kartu " + card->getCardName());
     return true;
 }
 
@@ -133,7 +136,7 @@ void Player::mortgageProperty(Property* property, Board* board) {
 
 void Player::setToJailed() {
     Logger& logger = Logger::getInstance();
-    logger.log(username, StateLog::GO_JAIL, "Pemain dimasukkan ke penjara");
+    logger.log(username, StateLog::GO_JAIL, "Masuk ke penjara");
     this->currentStatus = JAILED;
     this->jailTurnCount = 3;  // Default 3 turns in jail
 }
