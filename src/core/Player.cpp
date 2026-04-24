@@ -3,6 +3,7 @@
 #include "../../include/core/Logger.hpp"
 #include "../../include/core/Tile.hpp"
 #include <algorithm>
+#include <map>
 
 Player::Player()
     : username(""), currency(0), currentStatus(ACTIVE), currentTile(nullptr),
@@ -92,6 +93,78 @@ void Player::printSkillCards() const {
             GameManager::getInstance().writeLine(std::to_string(i + 1) + ". " + cards[i]->getCardName() + " - " + cards[i]->getCardDescription());
         }
     }
+}
+
+void Player::printProperties() const {
+    GameManager& game = GameManager::getInstance();
+
+    std::vector<Property*> owned;
+    for (Tile* tile : game.getBoard().getTiles()) {
+        Property* property = dynamic_cast<Property*>(tile);
+        if (property != nullptr && property->getOwner() == this) {
+            owned.push_back(property);
+        }
+    }
+
+    if (owned.empty()) {
+        game.writeLine("Kamu belum memiliki properti apapun.");
+        return;
+    }
+
+    auto formatColorLabel = [](std::string raw) {
+        std::replace(raw.begin(), raw.end(), '_', ' ');
+        return raw;
+    };
+
+    auto groupNameFor = [&formatColorLabel](Property* property) {
+        if (dynamic_cast<Railroad*>(property) != nullptr) {
+            return std::string("STASIUN");
+        }
+        if (dynamic_cast<Utility*>(property) != nullptr) {
+            return std::string("UTILITAS");
+        }
+        return formatColorLabel(property->getColor());
+    };
+
+    std::map<std::string, std::vector<Property*>> grouped;
+    for (Property* property : owned) {
+        grouped[groupNameFor(property)].push_back(property);
+    }
+
+    game.writeLine("=== Properti Milik: " + username + " ===");
+    game.writeLine("");
+
+    int totalAsset = 0;
+    for (const auto& section : grouped) {
+        game.writeLine("[" + section.first + "]");
+
+        for (Property* property : section.second) {
+            std::string row = "  - " + property->getName() + " (" + property->getCode() + ")";
+
+            Street* street = dynamic_cast<Street*>(property);
+            if (street != nullptr) {
+                if (street->getCurrentLevel() >= 1 && street->getCurrentLevel() <= 4) {
+                    row += "\t" + std::to_string(street->getCurrentLevel()) + " rumah";
+                } else if (street->getCurrentLevel() == 5) {
+                    row += "\tHotel";
+                }
+            }
+
+            row += "\tM" + std::to_string(property->getLandCost());
+            if (property->getPropertyStatus() == MORTGAGED) {
+                row += "\tMORTGAGED [M]";
+            } else {
+                row += "\tOWNED";
+            }
+
+            game.writeLine(row);
+            totalAsset += property->getAssetValue();
+        }
+
+        game.writeLine("");
+    }
+
+    game.writeLine("Total kekayaan properti: M" + std::to_string(totalAsset));
 }
 
 void Player::moveTo(Tile* destination, bool getPayment) {

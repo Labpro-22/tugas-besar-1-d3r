@@ -3,6 +3,7 @@
 #include <iostream>
 #include <limits>
 #include <sstream>
+#include <vector>
 
 #include "../../include/core/GameManager.hpp"
 #include "../../include/core/Player.hpp"
@@ -76,6 +77,76 @@ bool CommandHandler::execute(const std::string& line) {
 
     if (command == "CETAK_PAPAN") {
         game.getBoard().printBoard();
+    } else if (command == "CETAK_PROPERTI") {
+        Player* currentPlayer = game.getCurrentTurnPlayer();
+        if (currentPlayer == nullptr) {
+            game.writeLine("Game belum diinisialisasi. Current player belum ada.");
+            return true;
+        }
+        currentPlayer->printProperties();
+    } else if (command == "BANGUN") {
+        Player* currentPlayer = game.getCurrentTurnPlayer();
+        if (currentPlayer == nullptr) {
+            game.writeLine("Game belum diinisialisasi. Current player belum ada.");
+            return true;
+        }
+
+        std::vector<Street*> buildable;
+        for (Tile* tile : game.getBoard().getTiles()) {
+            Street* street = dynamic_cast<Street*>(tile);
+            if (street != nullptr && street->canBuild(*currentPlayer)) {
+                buildable.push_back(street);
+            }
+        }
+
+        if (buildable.empty()) {
+            game.writeLine("Tidak ada properti yang memenuhi syarat untuk dibangun.");
+            return true;
+        }
+
+        game.writeLine("=== Properti yang Bisa Dibangun ===");
+        for (size_t i = 0; i < buildable.size(); i++) {
+            Street* s = buildable[i];
+            std::string state = "Level " + std::to_string(s->getCurrentLevel());
+            if (s->getCurrentLevel() == 4) {
+                state = "4 rumah -> Hotel";
+            }
+            game.writeLine(std::to_string(i + 1) + ". " + s->getName() + " (" + s->getCode() + ") [" + s->getColor() + "] | " + state + " | Biaya: M" + std::to_string(s->getBuildCost()));
+        }
+
+        int pick = 0;
+        if (!(iss >> pick)) {
+            pick = askInt("Pilih nomor properti (0 untuk batal): ", 0, static_cast<int>(buildable.size()));
+        }
+
+        if (pick == 0) {
+            return true;
+        }
+        if (pick < 0 || pick > static_cast<int>(buildable.size())) {
+            game.writeLine("Pilihan tidak valid.");
+            return true;
+        }
+
+        Street* selected = buildable[static_cast<size_t>(pick - 1)];
+        const int beforeLevel = selected->getCurrentLevel();
+        const int cost = selected->getBuildCost();
+
+        if (!selected->build(*currentPlayer)) {
+            if (currentPlayer->getCurrency() < cost) {
+                game.writeLine("Uang kamu tidak cukup untuk membangun.");
+            } else {
+                game.writeLine("Properti tidak bisa dibangun saat ini.");
+            }
+            return true;
+        }
+
+        if (beforeLevel == 4) {
+            game.writeLine(selected->getName() + " di-upgrade ke Hotel!");
+        } else {
+            game.writeLine("Berhasil membangun 1 rumah di " + selected->getName() + ".");
+        }
+        game.writeLine("Biaya: M" + std::to_string(cost));
+        game.writeLine("Uang tersisa: M" + std::to_string(currentPlayer->getCurrency()));
     } else if (command == "LEMPAR_DADU") {
         game.getDice().roll();
         game.rollDice(game.getDice().getFirst(), game.getDice().getSecond());
@@ -158,7 +229,7 @@ bool CommandHandler::execute(const std::string& line) {
     //     // not yet
     // } 
     else if (command == "BANTUAN") {
-        game.writeLine("Commands: CETAK_PAPAN,\nLEMPAR_DADU,\nATUR_DADU X Y,\nSTATUS,\nCETAK_KARTU,\nGUNAKAN_KEMAMPUAN,\nKELUAR");
+        game.writeLine("Commands: CETAK_PAPAN,\nCETAK_PROPERTI,\nBANGUN,\nLEMPAR_DADU,\nATUR_DADU X Y,\nSTATUS,\nCETAK_KARTU,\nGUNAKAN_KEMAMPUAN,\nKELUAR");
     } else if (command == "KELUAR") {
         return false;
     } else if (!command.empty()) {

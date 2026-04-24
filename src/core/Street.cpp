@@ -1,4 +1,5 @@
 #include "../../include/core/Tile.hpp"
+#include "../../include/core/GameManager.hpp"
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Logger.hpp"
 
@@ -21,6 +22,51 @@ int Street::getCurrentLevel() const {
 }
 void Street::setCurrentLevel(int currentLevel) {
     this->currentLevel = currentLevel;
+}
+
+int Street::getBuildCost() const {
+    if (currentLevel >= 4) {
+        return hotelCost;
+    }
+    return houseCost;
+}
+
+bool Street::canBuild(Player& player) const {
+    if (this->getOwner() != &player) {
+        return false;
+    }
+    if (this->getPropertyStatus() != OWNED) {
+        return false;
+    }
+    if (currentLevel >= 5) {
+        return false;
+    }
+
+    return GameManager::getInstance().getBoard().canUpgradeProperty(player, const_cast<Street*>(this));
+}
+
+bool Street::build(Player& player) {
+    if (!canBuild(player)) {
+        return false;
+    }
+
+    const int cost = getBuildCost();
+    if (player.getCurrency() < cost) {
+        return false;
+    }
+
+    const bool toHotel = (currentLevel == 4);
+    player -= cost;
+    currentLevel++;
+
+    Logger& logger = Logger::getInstance();
+    if (toHotel) {
+        logger.log(player.getUsername(), StateLog::BUILD_HOTEL, "Upgrade hotel di " + name + " (" + code + ")");
+    } else {
+        logger.log(player.getUsername(), StateLog::BUILD_HOUSE, "Bangun rumah di " + name + " (" + code + ") jadi level " + std::to_string(currentLevel));
+    }
+
+    return true;
 }
 
 void Street::runTile(Player* player) {

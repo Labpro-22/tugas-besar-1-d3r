@@ -72,6 +72,7 @@ class Player {
         bool addSkillCard(SkillCard* card);
         SkillCard* removeSkillCard(int index);
         void printSkillCards() const;
+        void printProperties() const;
         void moveTo(Tile* destination, bool getPayment);
         void mortgageProperty(Property* property, Board* board); // ubah status Tile jadi mortgaged
         void setToJailed();

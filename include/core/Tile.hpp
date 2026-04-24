@@ -107,6 +107,9 @@ public:
     int getHotelCost() const;
     int getCurrentLevel() const;
     void setCurrentLevel(int currentLevel);
+    int getBuildCost() const;
+    bool canBuild(Player& player) const;
+    bool build(Player& player);
 
     void runTile(Player*) override;
     int getRentCost() const override;
