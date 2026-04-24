@@ -64,15 +64,7 @@ void Festival::runTile(Player* player) {
     gm.writeLine("Kamu mendarat di petak Festival!");
     gm.writeLine("");
 
-    vector<Tile*> tiles = gm.getBoard().getTiles();
-    vector<Property*> props;
-    for(Tile* tile : tiles){
-        Property* propTiles = dynamic_cast<Property*>(tile);
-        if (propTiles && propTiles->getOwner() == player){
-            props.push_back(propTiles);
-        }
-    }
-
+    vector<Property*> props = player->getOwnedProperties();
     if (props.empty()){
         gm.writeLine("Kamu belum memiliki properti.");
         return;

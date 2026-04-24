@@ -196,3 +196,15 @@ int Player::getMaxLiquidatableValue(const Board* board) const  {
     return maxCash;
 }
 
+vector<Property*> Player::getOwnedProperties() const {
+    GameManager& gm = GameManager::getInstance();
+    vector<Tile*> tiles = gm.getBoard().getTiles();
+    vector<Property*> props;
+    for(Tile* tile : tiles){
+        Property* propTiles = dynamic_cast<Property*>(tile);
+        if (propTiles && propTiles->getOwner() == this){
+            props.push_back(propTiles);
+        }
+    }
+    return props;
+}

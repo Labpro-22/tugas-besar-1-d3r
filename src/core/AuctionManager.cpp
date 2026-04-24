@@ -8,6 +8,8 @@
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
 
+using namespace std;
+
 std::vector<Player*> AuctionManager::getAuctionOrder(const std::vector<Player*>& players, Player* triggerPlayer, Player* excludedPlayer) const {
     std::vector<Player*> order;
     if (players.empty()) {
@@ -30,28 +32,15 @@ std::vector<Player*> AuctionManager::getAuctionOrder(const std::vector<Player*>&
     return order;
 }
 
-void AuctionManager::transferProperty(Property* property, Player* winner, int price) const {
-    if (property == nullptr || winner == nullptr) {
-        return;
-    }
+    void AuctionManager::transferProperty(Property* property, Player* winner, int price) const {
+        if (property == nullptr || winner == nullptr) {
+            return;
+        }
 
-    Player* previousOwner = property->getOwner();
-    if (previousOwner != nullptr && previousOwner != winner) {
-        std::vector<Property*> previousProperties = previousOwner->getOwnedProperties();
-        previousProperties.erase(std::remove(previousProperties.begin(), previousProperties.end(), property), previousProperties.end());
-        previousOwner->setOwnedProperties(previousProperties);
+        *winner -= price;
+        property->setOwner(winner);
+        property->setPropertyStatus(OWNED);
     }
-
-    std::vector<Property*> winnerProperties = winner->getOwnedProperties();
-    if (std::find(winnerProperties.begin(), winnerProperties.end(), property) == winnerProperties.end()) {
-        winnerProperties.push_back(property);
-        winner->setOwnedProperties(winnerProperties);
-    }
-
-    *winner -= price;
-    property->setOwner(winner);
-    property->setPropertyStatus(OWNED);
-}
 
 bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) const {
     if (property == nullptr || property->getPropertyStatus() != BANK) {

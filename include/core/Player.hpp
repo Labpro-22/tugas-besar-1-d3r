@@ -23,7 +23,6 @@ class Player {
         PLAYER_STATUS currentStatus;
         CardDeck<SkillCard> deck;
         Tile* currentTile;
-        vector<Property*> ownedProperties;
         CARD_EFFECT activeCardEffect;
         float discountValue;
         int effectTurns;
@@ -39,7 +38,6 @@ class Player {
         PLAYER_STATUS getStatus() const { return currentStatus; };
         const CardDeck<SkillCard>& getDeck() const { return deck; };
         Tile* getCurrentTile() const { return currentTile; }
-        vector<Property*> getOwnedProperties() const { return ownedProperties; };
         CARD_EFFECT getActiveCardEffect() const { return activeCardEffect; };
         float getDiscount() const { return activeCardEffect == DISCOUNT ? discountValue : 0.0f; };
         int getDiscountTurns() const { return activeCardEffect == DISCOUNT ? effectTurns : 0; };
@@ -55,7 +53,6 @@ class Player {
         void setCurrentStatus(PLAYER_STATUS currentStatus) { this->currentStatus = currentStatus; };
         void setDeck(CardDeck<SkillCard> deck) { this->deck = std::move(deck); };
         void setCurrentTile(Tile* currentTile) { this->currentTile = currentTile; };
-        void setOwnedProperties(vector<Property*> ownedProperties) { this->ownedProperties = ownedProperties; };
         void setActiveCardEffect(CARD_EFFECT activeCardEffect) { this->activeCardEffect = activeCardEffect; };
         void setDiscountValue(float discountValue) { this->discountValue = discountValue; if (discountValue > 0.0f) this->activeCardEffect = DISCOUNT; };
         void setDiscountTurns(int discountTurns) { this->effectTurns = discountTurns; this->activeCardEffect = discountTurns > 0 ? DISCOUNT : NOEFFECT; };
@@ -80,4 +77,6 @@ class Player {
         void setToJailed();
         int getTotalWealth(const Board* board) const; // helper func to easily count tax
         int getMaxLiquidatableValue(const Board* board) const ;
+        vector<Property*> getOwnedProperties() const;
+
 };

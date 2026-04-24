@@ -2,8 +2,6 @@
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
 
-#include <algorithm>
-
 Railroad::Railroad(int index, const std::string &code, const std::string &name,
                    const std::string &color, int landCost,
                    int mortgageValue, int festivalMultiplier,
@@ -24,13 +22,8 @@ void Railroad::runTile(Player *player)
     if (propertyStatus == BANK) {
         if (player->getCurrency() >= landCost) {
             *player -= landCost;
-            owner = player;
-            propertyStatus = OWNED;
-            std::vector<Property *> properties = player->getOwnedProperties();
-            if (std::find(properties.begin(), properties.end(), this) == properties.end()) {
-                properties.push_back(this);
-                player->setOwnedProperties(properties);
-            }
+            this->setOwner(player);
+            this->setPropertyStatus(OWNED);
             logger.log(player->getUsername(), StateLog::RAILROAD, code + " kini milik " + player->getUsername() + " (otomatis)");
         }
         return;

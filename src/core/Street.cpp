@@ -2,8 +2,6 @@
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Logger.hpp"
 
-#include <algorithm>
-
 Street::Street(int index, const std::string& code, const std::string& color,
     const std::string& name, int landCost, int mortgageValue, 
     int festivalMultiplier, int festivalDuration, 
@@ -40,13 +38,8 @@ void Street::runTile(Player* player) {
 
         if (player->getCurrency() >= price) {
             *player -= price;
-            owner = player;
-            propertyStatus = OWNED;
-            std::vector<Property*> properties = player->getOwnedProperties();
-            if (std::find(properties.begin(), properties.end(), this) == properties.end()) {
-                properties.push_back(this);
-                player->setOwnedProperties(properties);
-            }
+            setOwner(player);
+            setPropertyStatus(OWNED);
             logger.log(player->getUsername(), StateLog::BUY_TILE, "Beli " + name + " (" + code + ") seharga " + to_string(price));
         }
         return;
