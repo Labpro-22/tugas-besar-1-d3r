@@ -9,8 +9,7 @@ static void runCli(GameManager &gm)
 {
     gm.getBoard().printBoard();
     gm.runGame();
-    if (!gm.getPlayer().empty())
-    {
+    if (!gm.getPlayer().empty()) {
         gm.getCommandHandler().commands();
     }
 }
@@ -30,33 +29,70 @@ static void runGui(GameManager &gm)
     camera.offset = {(float)screenWidth / 2, (float)screenHeight / 2};
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
-
+    
     SetTargetFPS(60);
     PawnRenderer pr("data/assets/players.png");
     GameConsole console({900, 450, 350, 300});
     console.WriteLine("=== NIMONPOLI SYSTEM READY ===");
     console.WriteLine("1. Ketik 'roll' untuk jalan");
     console.WriteLine("2. Ketik 'clear' untuk hapus log");
+    
+    // Add players for testing
+    Player *player1 = new Player();
+    player1->setUsername("Player 1");
+    player1->setCurrency(2000000);
+    
+    Player *player2 = new Player();
+    player2->setUsername("Player 2");
+    player2->setCurrency(2000000);
+    
+    std::vector<Player *> testPlayers = {player1, player2};
+    gm.setPlayers(testPlayers);
+    gm.initPlayers();
+    
+    // Add house to a Street tile for rendering demo
+    
+    /* code */
+    for (size_t i = 1; i < 10; i++) {
+        Tile *testTile = gm.getBoard().getTile(i % 41); // Get tile at index 6
+        if (testTile != nullptr) {
+            Street *street = dynamic_cast<Street *>(testTile);
+            if (street != nullptr) {
+                street->setOwner(player1);
+                street->setPropertyStatus(OWNED);
+                street->setCurrentLevel(3); // Add 2 houses for visualization
+            }
+        }
+    }
+    for (size_t i = 11; i < 40; i++) {
+        Tile *testTile = gm.getBoard().getTile(i % 41); // Get tile at index 6
+        if (testTile != nullptr) {
+            Street *street = dynamic_cast<Street *>(testTile);
+            if (street != nullptr) {
+                street->setOwner(player2);
+                street->setPropertyStatus(OWNED);
+                street->setCurrentLevel(3); // Add 2 houses for visualization
+            }
+        }
+    }
+    cout << "AMANN\n\n\n\n";
+    PawnRenderer pawnRenderer("data/assets/players.png");
 
+    //
     // Main Game Loop
-    while (!WindowShouldClose())
-    {
+    while (!WindowShouldClose()) {
 
         // Fitur Zoom sederhana dengan Scroll Mouse
         float wheel = GetMouseWheelMove();
         Vector2 mousePos = GetMousePosition();
 
-        if (CheckCollisionPointRec(mousePos, console.getBounds()))
-        {
-            if (wheel != 0)
-            {
+        if (CheckCollisionPointRec(mousePos, console.getBounds())) {
+            if (wheel != 0) {
                 console.HandleScroll(wheel);
             }
         }
-        else
-        {
-            if (wheel != 0)
-            {
+        else {
+            if (wheel != 0) {
                 float zoomSpeed = 0.05f;
                 camera.zoom += (wheel * zoomSpeed);
                 camera.zoom += wheel * 0.05f;
@@ -77,6 +113,8 @@ static void runGui(GameManager &gm)
 
         // Memanggil fungsi render
         br.RenderBoard(gm.getBoard());
+        pawnRenderer.DrawPawn(23, 0);
+        pawnRenderer.DrawPawn(40, 1);
 
         // console.SetCommandCallback([&](std::string cmd){
         //     if (cmd == "roll")
@@ -94,7 +132,7 @@ static void runGui(GameManager &gm)
         EndMode2D();
 
         // Overlay UI Statis (Tidak terpengaruh kamera)
-        DrawText("MONOPOLY ISO-ENGINE v0.1", 20, 20, 20, RAYWHITE);
+        DrawText("MONOPOLY ISO-ENGINE v0.1", 20, 20, 20, BLACK);
         DrawText("Scroll to Zoom | Right Click to Pan (if implemented)", 20, 50, 10, LIGHTGRAY);
         DrawFPS(screenWidth - 100, 20);
         console.Render();
@@ -106,8 +144,7 @@ static void runGui(GameManager &gm)
 
 int main()
 {
-    try
-    {
+    try {
         const bool useGui = true;
 
         GameManager &gm = GameManager::getInstance();
@@ -129,22 +166,18 @@ int main()
         Board b = gm.getBoard();
         gm.initPlayers();
 
-        if (useGui)
-        {
+        if (useGui) {
             runGui(gm);
         }
-        else
-        {
+        else {
             runCli(gm);
         }
     }
-    catch (const std::exception &e)
-    {
+    catch (const std::exception &e) {
         std::cerr << "[ERROR] " << e.what() << std::endl;
         return 1;
     }
-    catch (...)
-    {
+    catch (...) {
         std::cerr << "[ERROR] Unknown exception occurred!" << std::endl;
         return 1;
     }

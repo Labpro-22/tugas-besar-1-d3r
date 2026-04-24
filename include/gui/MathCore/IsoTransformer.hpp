@@ -26,3 +26,4 @@ inline Vector2 operator/(Vector2 v1, float scalar)
 {
     return Vector2 { v1.x / scalar, v1.y / scalar };
 }
+

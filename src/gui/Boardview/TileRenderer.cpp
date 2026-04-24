@@ -1,6 +1,7 @@
 #include "../include/gui/Boardview/TileRenderer.hpp"
 
 #include <cmath>
+#include <iostream>
 
 void TileRenderer::DrawIsometricTile(Vector2 centerPos, Color tileColor)
 {
@@ -101,33 +102,33 @@ void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
 }
 
 std::pair<Color, Color> TileRenderer::ParseColor(Tile *tile)
-{
+{  
     // return dari compare adalah 0 jadi biar 1 di-negasi
-    if (!tile->getCode().compare("BKS") || !tile->getCode().compare("DPK") || !tile->getCode().compare("BGR")) {
+    if (!tile->getColor().compare("BIRU_MUDA")) {
         return {BIRU_MUDA, BIRU_MUDA_SHADE};
     }
-    else if (!tile->getCode().compare("TSK") || !tile->getCode().compare("GRT")) {
+    else if (!tile->getColor().compare("COKLAT")) {
         return {COKLAT, COKLAT_SHADE};
     }
-    else if (!tile->getCode().compare("MGL") || !tile->getCode().compare("SOL") || !tile->getCode().compare("YOG")) {
+    else if (!tile->getColor().compare("MERAH_MUDA")) {
         return {PINK, PINK_SHADE};
     }
-    else if (!tile->getCode().compare("MAL") || !tile->getCode().compare("SMG") || !tile->getCode().compare("SBY")) {
+    else if (!tile->getColor().compare("ORANGE")) {
         return {ORANGE, ORANGE_SHADE};
     }
-    else if (!tile->getCode().compare("MKS") || !tile->getCode().compare("BLP") || !tile->getCode().compare("MND")) {
+    else if (!tile->getColor().compare("MERAH")) {
         return {MERAH, MERAH_SHADE};
     }
-    else if (!tile->getCode().compare("PLB") || !tile->getCode().compare("PKB") || !tile->getCode().compare("MED")) {
+    else if (!tile->getColor().compare("KUNING")) {
         return {KUNING, KUNING_SHADE};
     }
-    else if (!tile->getCode().compare("BDG") || !tile->getCode().compare("DEN") || !tile->getCode().compare("MTR")) {
+    else if (!tile->getColor().compare("HIJAU")) {
         return {HIJAU, HIJAU_SHADE};
     }
-    else if (!tile->getCode().compare("JKT") || !tile->getCode().compare("IKN")) {
+    else if (!tile->getColor().compare("BIRU_TUA")) {
         return {BIRU_TUA, BIRU_TUA_SHADE};
     }
-    else if (!tile->getCode().compare("PLN") || !tile->getCode().compare("PAM")) {
+    else if (!tile->getColor().compare("ABU")) {
         return {ABU, ABU_SHADE};
     }
     else if (!tile->getCode().compare("GO")) {
@@ -138,14 +139,14 @@ std::pair<Color, Color> TileRenderer::ParseColor(Tile *tile)
     }
 }
 
-void TileRenderer::DrawTextIsometric(const std::string text, Vector2 tilePos, float rotation)
+void TileRenderer::DrawTextIsometric(const std::string text,Vector2 originOffset, Vector2 tilePos, float rotation)
 {
     float fontSize = 12.0f;
     
     Vector2 textSize = MeasureTextEx(GetFontDefault(), text.c_str(), fontSize, 1.0f);
     
     // Origin di tengah teks agar rotasi simetris
-    Vector2 origin = { textSize.x / 2.0f, textSize.y / 2.0f - 20 };
+    Vector2 origin = { textSize.x / 2.0f + originOffset.x , textSize.y / 2.0f - 20 + originOffset.y};
 
     // Gambar teks
     DrawTextPro(
@@ -170,7 +171,7 @@ float TileRenderer::GetTextRotation(int index) {
         return sudutDasar; // 0 - 10 bagian bawah ke kiri
     } 
     else if (adjustedIndex > base + 1 && adjustedIndex <= base*2 + 1) {
-        return sudutDasar + 130; // bagian bawah kiri ke kiri atas
+        return sudutDasar; // bagian bawah kiri ke kiri atas
     } 
     else if (adjustedIndex > base*2 + 1 && adjustedIndex <= base* + 1) {
         return -sudutDasar - 130; // bagian kiri atas ke kanan atas

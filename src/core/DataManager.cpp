@@ -44,13 +44,13 @@ void DataManager::loadProperties(const vector<int>& utilityRent, const std::vect
         }        
 
         if (type == "STREET") {
-            Street* streetTile = new Street(id-1, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, houseCost, hotelCost, rentCost, 0);
+            Street* streetTile = new Street(id, code, color,name, landCost, mortgageValue, 1, 0, nullptr, BANK, houseCost, hotelCost, rentCost, 0);
             game.addTile(streetTile);
         } else if (type == "RAILROAD"){
-            Railroad* railroadTile = new Railroad(id-1, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, railroadRent);
+            Railroad* railroadTile = new Railroad(id, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, railroadRent);
             game.addTile(railroadTile);
         } else if (type == "UTILITY"){
-            Utility* utilityTile = new Utility(id-1, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, utilityRent);
+            Utility* utilityTile = new Utility(id, code, name, color, landCost, mortgageValue, 1, 0, nullptr, BANK, utilityRent);
             game.addTile(utilityTile);
         }
     }
@@ -146,39 +146,30 @@ void DataManager::loadActions(const vector<int>& taxConfig, const vector<int>& s
     GameManager& game = GameManager::getInstance();
     while (file >> id >> code >> name >> type >> color) {
         if (type == "KARTU") {
-            game.addTile(new CardTile(id-1, code, name, color));
+            game.addTile(new CardTile(id, code, name, color));
         } else if (type == "FESTIVAL") {
-            game.addTile(new Festival(id-1, code, name, color));
+            game.addTile(new Festival(id, code, name, color));
         } else if (type == "PAJAK") {
             if (code == "PPH") {
-                game.addTile(new PPH(id-1, code, color, pphFlat, pphPercentage));
+                game.addTile(new PPH(id, code, color, pphFlat, pphPercentage));
             } else if (code == "PBM") {
-                game.addTile(new PBM(id-1, code, name, color, pbmFlat));
+                game.addTile(new PBM(id, code, name, color, pbmFlat));
             }
         } else if (type == "SPESIAL") {
             if (code == "GO") {
-                game.addTile(new Go(id-1, code, name, color, goSalary));
+                game.addTile(new Go(id, code, name, color, goSalary));
             } else if (code == "PEN") {
-                game.addTile(new Prison(id-1, code, name, color, jailFine));
+                game.addTile(new Prison(id, code, name, color, jailFine));
             } else if (code == "BBP") {
-                game.addTile(new FreeParking(id-1, code, name, color));
+                game.addTile(new FreeParking(id, code, name, color));
             } else if (code == "PPJ") {
-                game.addTile(new Trap(id-1, code, name, color));
+                game.addTile(new Trap(id, code, name, color));
             }
         }
     }
     file.close();
 }
 
-void DataManager::loadDefaultTiles() {
-    // for (int id = 1; id <= 40; id++) {
-    //     int index = id - 1;
-    //     if (game.getBoard().getTile(index) == nullptr) {
-    //         game.addTile(new CardTile(index, "ACT" + to_string(id), "Petak Aksi", "DEFAULT"));
-    //     }
-    // }
-}
- 
 void DataManager::load() {
     loadMisc();
 
@@ -189,5 +180,4 @@ void DataManager::load() {
 
     loadProperties(utilityRent, railroadRent);
     loadActions(taxConfig, specialConfig);
-    loadDefaultTiles();
 }

@@ -5,7 +5,6 @@
 
 class Player;
 class Card;
-
 class Tile {
 protected:
     int index;
@@ -31,6 +30,7 @@ enum PROPERTY_STATUS {
     MORTGAGED
 };
 
+class PropertyRenderCall;
 class Property : public Tile {
 protected:
     int landCost;
@@ -59,6 +59,9 @@ public:
     virtual int getRentCost() const = 0;
     int getAssetValue() const override;
 
+    // Untuk Memanggil GUI
+    virtual void callViewer(PropertyRenderCall& tile) = 0;
+
 };
 
 class Railroad : public Property {
@@ -73,6 +76,9 @@ public:
         const std::vector<int>& rentCost);
     void runTile(Player*) override;
     int getRentCost() const override;
+
+    // Untuk inferface GUI
+    void callViewer(PropertyRenderCall& tile) override;
 };
 
 class Utility : public Property {
@@ -83,6 +89,8 @@ public:
     Utility(int index, const std::string& code, const std::string& name, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& costMultiplier);
     void runTile(Player*) override;
     int getRentCost() const override;
+    // untuk interface GUI
+    void callViewer(PropertyRenderCall& tile) override;
 };
 
 class Street : public Property {
@@ -102,7 +110,10 @@ public:
 
     void runTile(Player*) override;
     int getRentCost() const override;
-    int getAssetValue() const override;    
+    int getAssetValue() const override;   
+    
+    // Untuk interface GUI
+    void callViewer(PropertyRenderCall& other) override;
     int getBuildingValue() const;
 };
 
@@ -198,3 +209,12 @@ public:
     void runTile(Player* player) override;
 };
 
+
+// Interface untuk GUI
+class PropertyRenderCall{
+    public:
+        ~PropertyRenderCall() = default;
+        virtual void render(Street* s) = 0;
+        virtual void render(Railroad* r) = 0;
+        virtual void render(Utility* u) = 0;
+};

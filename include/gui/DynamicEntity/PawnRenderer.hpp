@@ -1,7 +1,7 @@
 #include "raylib.h"
 #include "../include/core/Player.hpp"
 
-class PawnRenderer : public Player {
+class PawnRenderer {
 private:
     Texture2D spriteSheets;
     int frameWidth;

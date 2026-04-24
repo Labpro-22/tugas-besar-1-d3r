@@ -2,6 +2,17 @@
 #include "../../include/core/Tile.hpp"
 #include "../../include/core/Player.hpp"
 
+// ============== GUI Property Base Class ======
+void Street::callViewer(PropertyRenderCall& other) {
+    other.render(this);
+}
+void Utility::callViewer(PropertyRenderCall& other) {
+    other.render(this);
+}
+void Railroad::callViewer(PropertyRenderCall& other) {
+    other.render(this);
+}
+
 // ============== Tile Base Class ==============
 Tile::Tile(int index, const std::string& code, const std::string& name, const std::string& color)
     : index(index), code(code), name(name), color(color) {}
