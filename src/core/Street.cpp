@@ -3,6 +3,8 @@
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Logger.hpp"
 
+using namespace std;
+
 Street::Street(int index, const std::string& code, const std::string& color,
     const std::string& name, int landCost, int mortgageValue, 
     int festivalMultiplier, int festivalDuration, 
@@ -75,33 +77,78 @@ void Street::runTile(Player* player) {
     }
     
     Logger &logger = Logger::getInstance();
+    GameManager& gm = GameManager::getInstance();
 
+
+    // buy mechanism
     if (propertyStatus == BANK) {
         int price = landCost;
         if (player->getDiscount() > 0.0f) {
             price = landCost - static_cast<int>(landCost * player->getDiscount() / 100.0f);
         }
 
+        gm.writeLine("Kamu mendarat di " + name + " (" + code + ")!");
+        gm.writeLine("+================================+");
+        gm.writeLine("| [" + color + "] " + name + " (" + code + ")   ");
+        gm.writeLine("| Harga Beli    : M" + to_string(price));
+        int baseRent = (rentCost.size() > 0) ? rentCost[0] : 0;
+        gm.writeLine("| Sewa dasar    : M" + to_string(baseRent));
+        gm.writeLine("| ...                            |");
+        gm.writeLine("+================================+");
+        gm.writeLine("Uang kamu saat ini: M" + to_string(player->getCurrency()));
+        
+        bool wantBuy = false;
+        
+        //premature check currency because the spec says so
         if (player->getCurrency() >= price) {
+            string yN = gm.getCommandHandler().askInput("Apakah kamu ingin membeli properti ini seharga M" + to_string(price) + "? (y/n): ");
+            if (yN == "y" || yN == "Y") {
+                wantBuy = true;
+            }
+        }
+        
+        if (wantBuy) {
             *player -= price;
             setOwner(player);
             setPropertyStatus(OWNED);
+            gm.writeLine(name + " kini menjadi milikmu!");
+            gm.writeLine("Uang tersisa: M" + to_string(player->getCurrency()));
             logger.log(player->getUsername(), StateLog::BUY_TILE, "Beli " + name + " (" + code + ") seharga " + to_string(price));
+        } else {
+            gm.writeLine("Properti ini akan masuk ke sistem lelang...");
+            gm.auction(this);
         }
         return;
     }
 
+    if (propertyStatus == MORTGAGED && owner != nullptr && owner != player) {
+        gm.writeLine("Kamu mendarat di " + name + " (" + code + "), milik " + owner->getUsername() + ".");
+        gm.writeLine("Properti ini sedang digadaikan [M]. Tidak ada sewa yang dikenakan.");
+        return;
+    }
+
+    // rent mechanism
     if (propertyStatus == OWNED && owner != nullptr && owner != player) {
+        gm.writeLine("Kamu mendarat di " + name + " (" + code + "), milik " + owner->getUsername() + "!");
+        gm.writeLine("");
+        
         int rent = getRentCost();
-        std::string houseCount;
-        std::string mulLog;
-        if(currentLevel < 5 && currentLevel > 0) houseCount = ", " + to_string(currentLevel) + " rumah";
-        if(currentLevel == 5) houseCount = ", 4 rumah, 1 hotel";
+        string houseCount;
+        string mulLog;
+        if(currentLevel < 5 && currentLevel > 0) houseCount = to_string(currentLevel) + " rumah";
+        else if(currentLevel == 5) houseCount = "Hotel";
+        else houseCount = "Tanah kosong";
+        
         if(festivalMultiplier != 1) mulLog = ", festival aktif x" + to_string(festivalMultiplier);
-        std::string rentLog = "Bayar " + to_string(rent) + " ke " + owner->getUsername() + " (" + code + houseCount + mulLog + ")";
+        
+        gm.writeLine("Kondisi      : " + houseCount + mulLog);
+        gm.writeLine("Sewa         : M" + to_string(rent));
+        gm.writeLine("");
+
+        string rentLog = "Bayar " + to_string(rent) + " ke " + owner->getUsername() + " (" + code + ", " + houseCount + mulLog + ")";
         logger.log(player->getUsername(), StateLog::PAY_RENT, rentLog);
-        *player -= rent;
-        *owner += rent;
+        
+        gm.pay(player, rent, owner);
     }
 }
 

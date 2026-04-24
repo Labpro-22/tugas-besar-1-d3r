@@ -6,11 +6,12 @@
 
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
-#include "../../include/core/Logger.hpp"
+
+using namespace std;
 
 GameManager::GameManager() 
     : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), initialCurrency(0),
-      board(41), currentTurnPlayer(nullptr), useGuiStream(false), doubleCount(0) {
+      board(45), currentTurnPlayer(nullptr), useGuiStream(false) {
     // Board initialized with 40 tiles (standard Monopoly)
 }
 
@@ -67,33 +68,6 @@ bool GameManager::isGameValid() {
     });
 }
 
-void GameManager::printTurnInfo() {
-    if (currentTurnPlayer == nullptr) {
-        return;
-    }
-
-    std::string turnInfo = "\n[Turn " + std::to_string(getTurn() + 1);
-    if (getMaxTurn() > 0) {
-        turnInfo += "/" + std::to_string(getMaxTurn());
-    }
-    turnInfo += "] " + currentTurnPlayer->getUsername() + " > ";
-    write(turnInfo);
-}
-
-void GameManager::promptForCommand() {
-    if (currentTurnPlayer == nullptr || isGameFinished()) {
-        return;
-    }
-
-    std::string prompt = "\n[Turn " + std::to_string(getTurn() + 1);
-    if (getMaxTurn() > 0) {
-        prompt += "/" + std::to_string(getMaxTurn());
-    }
-    prompt += "] " + currentTurnPlayer->getUsername() + " > ";
-
-    readLine(prompt);
-}
-
 void GameManager::runGame() {
     if (players.empty()) {
         CommandHandler& handler = getCommandHandler();
@@ -113,7 +87,6 @@ void GameManager::runGame() {
         initPlayers();
         initSkillDeck();
         initAutoUseDecks();
-        currentTurnPlayer = players[0];
         drawSkillCard(currentTurnPlayer);
     }
 
@@ -123,7 +96,6 @@ void GameManager::runGame() {
     }
 
     writeLine("[INFO] Game ready.");
-    printTurnInfo();
 }
 
 void GameManager::auction(Tile* tile) {
@@ -176,29 +148,19 @@ void GameManager::rollDice(int dice1, int dice2) {
     int total = dice.getTotal();
     Tile* destination = board.goToTile(*currentTurnPlayer->getCurrentTile(), total);
 
-    std::string diceResult = "Lempar: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + " = " + std::to_string(total);
-    writeLine(diceResult);
+    writeLine("Hasil: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + " = " + std::to_string(total));
     if (destination == nullptr) {
         writeLine("Tujuan tidak valid.");
         return;
     }
 
     currentTurnPlayer->moveTo(destination, true);
-    std::string moveResult = "Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")";
-    writeLine(moveResult);
-    logger.log(currentTurnPlayer->getUsername(), StateLog::DICE, diceResult + " → " + moveResult);
+    writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
 
     if (!dice.isDouble()) {
-        doubleCount = 0;
         nextTurn();
     } else {
-        doubleCount++;
         writeLine("Double. Pemain mendapat giliran tambahan.");
-        logger.log(currentTurnPlayer->getUsername(), StateLog::DOUBLE, "Giliran tambahan ke-" + to_string(doubleCount));
-        if(doubleCount == 3){
-            currentTurnPlayer->setToJailed();
-            currentTurnPlayer->moveTo(board.getJailTile(), false);
-        }
     }
 }
 
@@ -252,16 +214,10 @@ void GameManager::nextTurn() {
     if (currentTurnPlayer != nullptr) {
         currentTurnPlayer->resetCardUse();
         drawSkillCard(currentTurnPlayer);
-    }
+        // drawSkillCard(currentTurnPlayer);
+        // drawSkillCard(currentTurnPlayer);
+        // drawSkillCard(currentTurnPlayer);
 
-    // Print turn info for GUI and CLI
-    if (currentTurnPlayer != nullptr) {
-        std::string turnInfo = "\n[Turn " + std::to_string(getTurn() + 1);
-        if (getMaxTurn() > 0) {
-            turnInfo += "/" + std::to_string(getMaxTurn());
-        }
-        turnInfo += "> " + currentTurnPlayer->getUsername() + " turn";
-        writeLine(turnInfo);
     }
 }
 
@@ -322,18 +278,33 @@ Logger& GameManager::getLogger() {
     return logger;
 }
 
-void GameManager::forcePay(Player *debtor, int amount, Player* creditor) {
+void GameManager::pay(Player *debtor, int amount, Player* creditor) {
     if (debtor == nullptr || amount <= 0) {
         return;
     }
 
-    if (debtor->getCurrency() >= amount) {
+    try{
+        if (debtor->getCurrency() < amount) {
+            string errorMsg;
+            if (creditor){
+                errorMsg = "Tidak bisa membayar sewa kepada" + creditor->getUsername();
+            } else {
+                errorMsg = "Tidak bisa membayar sewa kepada Bank";                
+            }
+            GameManager::getInstance().writeLine("Kamu tidak mampu membayar pajak!");
+            GameManager::getInstance().writeLine("Uang kamu saat ini: M" + to_string(debtor->getCurrency()));            
+            
+            throw NotEnoughMoneyException(errorMsg, amount, debtor->getCurrency());
+        }
+
         *debtor -= amount;
-        *creditor += amount;
-        return;
-    } else {
-        handleBankruptcy(debtor, amount, creditor);
+        if (creditor){
+            *creditor += amount;
+        }
     }
+    catch(const NotEnoughMoneyException& e) {
+        handleBankruptcy(debtor, amount, creditor);
+    }    
 }
 
 void GameManager::sellPropertyToBank(Player* player, Property* property) {
@@ -385,7 +356,6 @@ void GameManager::handleBankruptcy(Player *debtor, int amount, Player* creditor)
 
         GameManager::getInstance().writeLine(debtor->getUsername() + " dinyatakan BANGKRUT!");
         assetAcquisition(debtor, creditor);
-        logger.log(debtor->getUsername(), StateLog::BANKRUPT, "Bangkrut dan keluar dari permainan");
         return;
     }
 
@@ -499,7 +469,6 @@ void GameManager::assetAcquisition(Player* debtor, Player* creditor) {
                 p->setOwner(nullptr);
                 p->setPropertyStatus(BANK);
                 
-                // Eksekusi fungsi lelang
                 auction(p); 
             }
         }
