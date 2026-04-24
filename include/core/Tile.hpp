@@ -103,7 +103,7 @@ public:
     void runTile(Player*) override;
     int getRentCost() const override;
     int getAssetValue() const override;    
-    int Street::getBuildingValue() const;
+    int getBuildingValue() const;
 };
 
 class CardTile : public Tile {

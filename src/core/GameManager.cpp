@@ -414,3 +414,64 @@ void GameManager::handleBankruptcy(Player *debtor, int amount, Player* creditor)
         }
     }  
 }
+
+void GameManager::assetAcquisition(Player* debtor, Player* creditor) {
+    if (debtor == nullptr){
+        return;
+    }
+    vector<Property*> debtorProps;
+    for (Tile* tile : board.getTiles()){
+        Property* prop = dynamic_cast<Property*>(tile);
+        if (prop != nullptr && prop->getOwner() == debtor){
+            debtorProps.push_back(prop);
+        }
+    }
+
+    if (creditor != nullptr) {
+        // acquisition by other player
+        cout << "\n[INFO] " << debtor->getUsername() << " bangkrut kepada " << creditor->getUsername() << "!" << endl;
+        
+
+        if (debtor->getCurrency() > 0) {
+            *creditor += debtor->getCurrency();
+            debtor->setCurrency(0);
+        }
+
+        for (Property* p : debtorProps) {
+            p->setOwner(creditor);
+
+        }
+        cout << "Seluruh sisa uang dan properti milik " << debtor->getUsername() << " diserahkan kepada " << creditor->getUsername() << "." << endl;
+
+    } else {
+        // acquisition by bank
+        cout << "\n[INFO] " << debtor->getUsername() << " bangkrut ke Bank!" << endl;
+        
+
+        debtor->setCurrency(0);
+
+        if (!debtorProps.empty()) {
+            cout << "Seluruh properti " << debtor->getUsername() << " akan dilelang:" << endl;
+            for (Property* prop : debtorProps) {
+                Street* street = dynamic_cast<Street*>(prop);
+                if (street != nullptr){
+                    street->setCurrentLevel(0);
+                }
+
+                prop->setOwner(nullptr);
+                prop->setPropertyStatus(BANK);
+                
+                auction(prop); 
+            }
+        }
+    }
+
+    // Set status debtor menjadi BANGKRUT
+    debtor->setCurrentStatus(BANKRUPT);
+    activePlayerCount--;
+
+    // Kondisi permainan hanya tersisa 1 pemain (menang)
+    if (isGameFinished()) {
+        Player* winner = getWinner();
+    }
+}
