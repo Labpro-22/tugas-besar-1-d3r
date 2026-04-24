@@ -6,10 +6,11 @@
 
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
+#include "../../include/core/Logger.hpp"
 
 GameManager::GameManager() 
     : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), initialCurrency(0),
-      board(45), currentTurnPlayer(nullptr), useGuiStream(false) {
+      board(45), currentTurnPlayer(nullptr), useGuiStream(false), doubleCount(0) {
     // Board initialized with 40 tiles (standard Monopoly)
 }
 
@@ -175,19 +176,29 @@ void GameManager::rollDice(int dice1, int dice2) {
     int total = dice.getTotal();
     Tile* destination = board.goToTile(*currentTurnPlayer->getCurrentTile(), total);
 
-    writeLine("Hasil: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + " = " + std::to_string(total));
+    std::string diceResult = "Lempar: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + " = " + std::to_string(total);
+    writeLine(diceResult);
     if (destination == nullptr) {
         writeLine("Tujuan tidak valid.");
         return;
     }
 
     currentTurnPlayer->moveTo(destination, true);
-    writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
+    std::string moveResult = "Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")";
+    writeLine(moveResult);
+    logger.log(currentTurnPlayer->getUsername(), StateLog::DICE, diceResult + " → " + moveResult);
 
     if (!dice.isDouble()) {
         nextTurn();
+        doubleCount = 0;
     } else {
+        doubleCount++;
         writeLine("Double. Pemain mendapat giliran tambahan.");
+        logger.log(currentTurnPlayer->getUsername(), StateLog::DOUBLE, "Giliran tambahan ke-" + to_string(doubleCount));
+        if(doubleCount == 3){
+            currentTurnPlayer->setToJailed();
+            currentTurnPlayer->moveTo(board.getJailTile(), false);
+        }
     }
 }
 
@@ -374,6 +385,7 @@ void GameManager::handleBankruptcy(Player *debtor, int amount, Player* creditor)
 
         GameManager::getInstance().writeLine(debtor->getUsername() + " dinyatakan BANGKRUT!");
         assetAcquisition(debtor, creditor);
+        logger.log(debtor->getUsername(), StateLog::BANKRUPT, "Pemain dinyatakan bangkrut dan keluar dari permainan");
         return;
     }
 

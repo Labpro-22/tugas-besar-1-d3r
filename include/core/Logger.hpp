@@ -4,36 +4,59 @@
 #include <vector>
 
 class StateLog {
-public:
+	public:
 	enum ACTION_TYPE {
-		BUY,
-		DICE,
-		USECARD,
-		GETCARD,
-		PAYRENT,
-		PAYTAX
+		AUCTION,
+		BANKRUPT, // done
+		BUILD_HOTEL,
+		BUILD_HOUSE,
+		BUY_TILE,
+		CHANCE_CARD,
+		DICE, // done
+		DOUBLE, // done
+		FESTIVAL,
+		FUND_CARD,
+		GET_CARD,
+		GO_JAIL, // done
+		LOAD,
+		PAY_MORTGAGE,
+		PAY_RENT,
+		PAY_TAX,
+		RAILROAD,
+		SAVE,
+		UTILITY,
+		USE_CARD,
+		WIN
 	};
 
 private:
+	static const std::string actionName[];
 	int turn;
 	std::string username;
 	ACTION_TYPE action;
 	std::string detail;
 
 public:
-	StateLog(int, const std::string&, ACTION_TYPE, const std::string&);
+	StateLog(int turn, const std::string& username, ACTION_TYPE action, const std::string& detail)
+	: turn(turn), username(username), action(action), detail(detail) {}
 
-	int getTurn() const;
-	std::string getUsername() const;
-	ACTION_TYPE getAction() const;
-	std::string getDetail() const;
+	int getTurn() const { return turn; }
+	std::string getUsername() const { return username; }
+	ACTION_TYPE getAction() const { return action; }
+	std::string getDetail() const { return detail; }
+	static std::string actionToString(ACTION_TYPE action);
 };
 
 class Logger {
 private:
-	static std::vector<StateLog> logs;
+	std::vector<StateLog> logs;
 
 public:
-	static void log(int, const std::string&, StateLog::ACTION_TYPE, const std::string&);
-	static void printLog();
+	static Logger& getInstance() {
+		static Logger instance;
+		return instance;
+	}
+	void log(const std::string& username, StateLog::ACTION_TYPE action, const std::string& detail);
+	void log(int turn, const std::string& username, StateLog::ACTION_TYPE action, const std::string& detail);
+	void printLog(int amount = -1);
 };

@@ -1,5 +1,6 @@
 #include "../../include/core/Player.hpp"
 #include "../../include/core/GameManager.hpp"
+#include "../../include/core/Logger.hpp"
 #include "../../include/core/Tile.hpp"
 #include <algorithm>
 
@@ -131,6 +132,8 @@ void Player::mortgageProperty(Property* property, Board* board) {
 }
 
 void Player::setToJailed() {
+    Logger& logger = Logger::getInstance();
+    logger.log(username, StateLog::GO_JAIL, "Pemain dimasukkan ke penjara");
     this->currentStatus = JAILED;
     this->jailTurnCount = 3;  // Default 3 turns in jail
 }

@@ -24,6 +24,7 @@ private:
 	int activePlayerCount;
 	int playerCount;
 	int initialCurrency;
+	int doubleCount;
 	std::vector<Player*> players;
 	Board board;
 	CommandHandler commandHandler;
