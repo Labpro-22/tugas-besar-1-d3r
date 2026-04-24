@@ -30,7 +30,6 @@ static void runGui(GameManager &gm)
     camera.zoom = 1.0f;
     
     SetTargetFPS(60);
-    PawnRenderer pr("data/assets/players.png");
     GameConsole console({900, 450, 350, 300});
 
     gm.setUseGuiStream(true);
@@ -84,7 +83,7 @@ static void runGui(GameManager &gm)
         BeginMode2D(camera);
         br.RenderBoard(gm.getBoard());
         EndMode2D();
-        DrawText("MONOPOLY ISO-ENGINE v0.1", 20, 20, 20, RAYWHITE);
+        DrawText("Permainan NIMONSPOLI v0.1", 20, 20, 20, BLACK);
         DrawText("Scroll to Zoom | Right Click to Pan (if implemented)", 20, 50, 10, LIGHTGRAY);
         DrawFPS(screenWidth - 100, 20);
         console.Render();

@@ -10,7 +10,7 @@
 
 GameManager::GameManager() 
     : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), initialCurrency(0),
-      board(45), currentTurnPlayer(nullptr), useGuiStream(false), doubleCount(0) {
+      board(41), currentTurnPlayer(nullptr), useGuiStream(false), doubleCount(0) {
     // Board initialized with 40 tiles (standard Monopoly)
 }
 
