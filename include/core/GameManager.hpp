@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -33,6 +34,9 @@ private:
 	Logger logger;
 	Player* currentTurnPlayer;
 	Dice dice;
+	bool useGuiStream;
+	std::function<void(const std::string&)> outputCallback;
+	std::function<std::string(const std::string&)> inputCallback;
 
 public:
 	GameManager();
@@ -54,6 +58,9 @@ public:
 	void setLogger(Logger logger) { this->logger = logger; };
 	void setCurrentTurnPlayer(Player* currentTurnPlayer) { this->currentTurnPlayer = currentTurnPlayer; };
 	static void setDice(std::vector<int> dice) { GameManager::getInstance().dice.setValues(dice); };
+	void setUseGuiStream(bool useGuiStream) { this->useGuiStream = useGuiStream; }
+	void setOutputCallback(std::function<void(const std::string&)> callback) { outputCallback = std::move(callback); }
+	void setInputCallback(std::function<std::string(const std::string&)> callback) { inputCallback = std::move(callback); }
 	void setAllPlayersCurrency(int currency) {
 		initialCurrency = currency;
 		for (Player* player : players) {
@@ -69,6 +76,7 @@ public:
 	int getTurn() const { return turn; }
 	int getMaxTurn() const { return maxTurn; }
 	Player* getCurrentTurnPlayer() const { return currentTurnPlayer; }
+	bool isGuiStreamActive() const { return useGuiStream; }
 	Dice& getDice() { return dice; }
 	const Dice& getDice() const { return dice; }
 	CardDeck<SkillCard>& getSkillDeck() { return deckSkill; }
@@ -84,6 +92,9 @@ public:
 	bool isGameValid();
 	void runGame();
 	void auction(Tile*);
+	void write(const std::string& text) const;
+	void writeLine(const std::string& text) const;
+	std::string readLine(const std::string& prompt) const;
 	void rollDice();
 	void rollDice(int dice1, int dice2);
 	void initAutoUseDecks();

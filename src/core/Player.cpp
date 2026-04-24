@@ -2,7 +2,6 @@
 #include "../../include/core/GameManager.hpp"
 #include "../../include/core/Tile.hpp"
 #include <algorithm>
-#include <iostream>
 
 Player::Player()
     : username(""), currency(0), currentStatus(ACTIVE), currentTile(nullptr),
@@ -55,8 +54,8 @@ bool Player::addSkillCard(SkillCard* card) {
     if (deck.size() > 3) {
         printSkillCards();
 
-        std::cout << username << " mendapat kartu kemampuan: " << card->getCardName() << std::endl;
-        std::cout << "Deck penuh, buang kartu!" << std::endl;
+        GameManager::getInstance().writeLine(username + " mendapat kartu kemampuan: " + card->getCardName());
+        GameManager::getInstance().writeLine("Deck penuh, buang kartu!");
         int cardNumber = GameManager::getInstance().getCommandHandler().askInt("Buang Kartu (1-" + std::to_string(deck.size()) + "): ", 1, deck.size());
 
         SkillCard* discardedCard = deck.removeAt(cardNumber - 1);
@@ -65,7 +64,7 @@ bool Player::addSkillCard(SkillCard* card) {
         }
         return true;
     }
-    else std::cout << username << " mendapat kartu kemampuan: " << card->getCardName() << std::endl;
+    else GameManager::getInstance().writeLine(username + " mendapat kartu kemampuan: " + card->getCardName());
     return true;
 }
 
@@ -80,13 +79,13 @@ SkillCard* Player::removeSkillCard(int index) {
 void Player::printSkillCards() const {
     const std::vector<SkillCard*>& cards = deck.getCards();
     if (cards.empty()) {
-        std::cout << "Tidak ada kartu kemampuan." << std::endl;
+        GameManager::getInstance().writeLine("Tidak ada kartu kemampuan.");
         return;
     }
 
     for (size_t i = 0; i < cards.size(); i++) {
         if (cards[i] != nullptr) {
-            std::cout << i + 1 << ". " << cards[i]->getCardName() << " - " << cards[i]->getCardDescription() << std::endl;
+            GameManager::getInstance().writeLine(std::to_string(i + 1) + ". " + cards[i]->getCardName() + " - " + cards[i]->getCardDescription());
         }
     }
 }

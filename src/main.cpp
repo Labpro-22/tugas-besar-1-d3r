@@ -7,6 +7,9 @@
 
 static void runCli(GameManager &gm)
 {
+    gm.setUseGuiStream(false);
+    gm.setOutputCallback(nullptr);
+    gm.setInputCallback(nullptr);
     gm.getBoard().printBoard();
     gm.runGame();
     if (!gm.getPlayer().empty()) {
@@ -16,14 +19,10 @@ static void runCli(GameManager &gm)
 
 static void runGui(GameManager &gm)
 {
-    (void)gm;
-    // std::cout << "[WARN] GUI route requested, but this build is CLI-only." << std::endl;
-
     const int screenWidth = 1280;
     const int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "Nimonpoli");
     BoardRenderer br;
-    // Konfigurasi Kamera (Opsional, agar bisa zoom/pan)
     Camera2D camera = {0};
     camera.target = {(float)screenWidth / 2, (float)screenHeight / 2};
     camera.offset = {(float)screenWidth / 2, (float)screenHeight / 2};
@@ -33,56 +32,29 @@ static void runGui(GameManager &gm)
     SetTargetFPS(60);
     PawnRenderer pr("data/assets/players.png");
     GameConsole console({900, 450, 350, 300});
-    console.WriteLine("=== NIMONPOLI SYSTEM READY ===");
-    console.WriteLine("1. Ketik 'roll' untuk jalan");
-    console.WriteLine("2. Ketik 'clear' untuk hapus log");
-    
-    // Add players for testing
-    Player *player1 = new Player();
-    player1->setUsername("Player 1");
-    player1->setCurrency(2000000);
-    
-    Player *player2 = new Player();
-    player2->setUsername("Player 2");
-    player2->setCurrency(2000000);
-    
-    std::vector<Player *> testPlayers = {player1, player2};
-    gm.setPlayers(testPlayers);
-    gm.initPlayers();
-    
-    // Add house to a Street tile for rendering demo
-    
-    /* code */
-    for (size_t i = 1; i < 10; i++) {
-        Tile *testTile = gm.getBoard().getTile(i % 41); // Get tile at index 6
-        if (testTile != nullptr) {
-            Street *street = dynamic_cast<Street *>(testTile);
-            if (street != nullptr) {
-                street->setOwner(player1);
-                street->setPropertyStatus(OWNED);
-                street->setCurrentLevel(3); // Add 2 houses for visualization
-            }
-        }
-    }
-    for (size_t i = 11; i < 40; i++) {
-        Tile *testTile = gm.getBoard().getTile(i % 41); // Get tile at index 6
-        if (testTile != nullptr) {
-            Street *street = dynamic_cast<Street *>(testTile);
-            if (street != nullptr) {
-                street->setOwner(player2);
-                street->setPropertyStatus(OWNED);
-                street->setCurrentLevel(3); // Add 2 houses for visualization
-            }
-        }
-    }
-    cout << "AMANN\n\n\n\n";
-    PawnRenderer pawnRenderer("data/assets/players.png");
 
-    //
-    // Main Game Loop
-    while (!WindowShouldClose()) {
+    gm.setUseGuiStream(true);
+    gm.setOutputCallback([&console](const std::string &text)
+                         { console.WriteLine(text); });
+    gm.setInputCallback([&console](const std::string &prompt)
+                        { return console.ReadLineBlocking(prompt); });
 
-        // Fitur Zoom sederhana dengan Scroll Mouse
+    gm.writeLine("=== NIMONPOLI SYSTEM READY ===");
+    gm.writeLine("Ketik command seperti CLI di console.");
+    gm.writeLine("Contoh: CETAK_PAPAN, LEMPAR_DADU, STATUS");
+
+    gm.getBoard().printBoard();
+    gm.runGame();
+
+    console.SetCommandCallback([&gm, &console](std::string cmd)
+                               {
+        if (!gm.getCommandHandler().execute(cmd))
+        {
+            console.WriteLine("Command loop selesai.");
+        } });
+
+    while (!WindowShouldClose())
+    {
         float wheel = GetMouseWheelMove();
         Vector2 mousePos = GetMousePosition();
 
@@ -91,48 +63,28 @@ static void runGui(GameManager &gm)
                 console.HandleScroll(wheel);
             }
         }
-        else {
-            if (wheel != 0) {
-                float zoomSpeed = 0.05f;
-                camera.zoom += (wheel * zoomSpeed);
-                camera.zoom += wheel * 0.05f;
-                if (camera.zoom < 0.3f)
-                    camera.zoom = 0.3f;
-                if (camera.zoom > 3.0f)
-                    camera.zoom = 3.0f; // Limit zoom maksimal
+        else if (wheel != 0)
+        {
+            float zoomSpeed = 0.05f;
+            camera.zoom += wheel * zoomSpeed;
+            if (camera.zoom < 0.3f)
+            {
+                camera.zoom = 0.3f;
+            }
+            if (camera.zoom > 3.0f)
+            {
+                camera.zoom = 3.0f;
             }
         }
 
         console.Update();
 
-        // Render Logic
         BeginDrawing();
         ClearBackground(BACKGROUND);
-
         BeginMode2D(camera);
-
-        // Memanggil fungsi render
         br.RenderBoard(gm.getBoard());
-        pawnRenderer.DrawPawn(23, 0);
-        pawnRenderer.DrawPawn(40, 1);
-
-        // console.SetCommandCallback([&](std::string cmd){
-        //     if (cmd == "roll")
-        //     {
-        //         console.WriteLine("Sistem melempar data base dadu");
-        //     }else if (cmd == "clear")
-        //     {
-        //         console.WriteLine("membersihkan data base");
-        //     } else{
-        //         console.WriteLine("tidak ada function");
-        //     }
-
-        // });
-
         EndMode2D();
-
-        // Overlay UI Statis (Tidak terpengaruh kamera)
-        DrawText("MONOPOLY ISO-ENGINE v0.1", 20, 20, 20, BLACK);
+        DrawText("MONOPOLY ISO-ENGINE v0.1", 20, 20, 20, RAYWHITE);
         DrawText("Scroll to Zoom | Right Click to Pan (if implemented)", 20, 50, 10, LIGHTGRAY);
         DrawFPS(screenWidth - 100, 20);
         console.Render();
@@ -148,6 +100,7 @@ int main()
         const bool useGui = true;
 
         GameManager &gm = GameManager::getInstance();
+        gm.setUseGuiStream(useGui);
 
         std::string defaultConfigPath = "config/";
         DataManager dm(
@@ -159,12 +112,9 @@ int main()
             defaultConfigPath + "special.txt",
             defaultConfigPath + "aksi.txt");
 
-        std::cout << "[INFO] Loading game data..." << std::endl;
+        gm.writeLine("[INFO] Loading game data...");
         dm.load();
-        std::cout << "[SUCCESS] Game data loaded successfully!" << std::endl;
-
-        Board b = gm.getBoard();
-        gm.initPlayers();
+        gm.writeLine("[SUCCESS] Game data loaded successfully!");
 
         if (useGui) {
             runGui(gm);

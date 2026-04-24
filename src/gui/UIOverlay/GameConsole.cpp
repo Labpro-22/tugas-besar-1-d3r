@@ -1,5 +1,6 @@
-#include "../include/gui/UIOverlay/GameConsole.hpp"
+#include "gui/UIOverlay/GameConsole.hpp"
 #include <algorithm>
+#include <cmath>
 
 // Forward Declarations
 static void DrawTextBoxedSelectable(Font font, const char *text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint, int selectStart, int selectLength, Color selectTint, Color selectBackTint);
@@ -126,6 +127,40 @@ void GameConsole::WriteLine(std::string text)
     AutoScrollToBottom();
 }
 
+std::string GameConsole::ReadLineBlocking(const std::string& prompt)
+{
+    (void)prompt;
+
+    waitingForBlockingInput = true;
+    blockingInputReady = false;
+    blockingInputResult.clear();
+
+    while (!blockingInputReady && !WindowShouldClose()) {
+        float wheel = GetMouseWheelMove();
+        if (wheel != 0) {
+            HandleScroll(wheel);
+        }
+
+        Update();
+
+        BeginDrawing();
+        ClearBackground(BLACK);
+        Render();
+        EndDrawing();
+    }
+
+    waitingForBlockingInput = false;
+
+    if (!blockingInputReady) {
+        return "";
+    }
+
+    std::string result = blockingInputResult;
+    blockingInputReady = false;
+    blockingInputResult.clear();
+    return result;
+}
+
 void GameConsole::AutoScrollToBottom()
 {
     float historyHeight = bounds.height - 75;
@@ -186,22 +221,6 @@ void GameConsole::Update()
 
     lastMouse = mouse;
 
-    // Handle Scrolling Mouse Wheel
-    float wheel = GetMouseWheelMove();
-    if (wheel != 0) {
-        scrollOffset -= (int)wheel;
-        if (scrollOffset < 0) scrollOffset = 0;
-
-        // Calculate max scroll based on visible lines
-        float historyHeight = bounds.height - 75;
-        int lineSpacing = fontSize + 4;
-        int visibleLines = (int)(historyHeight / lineSpacing);
-        int maxScroll = (int)history.size() - visibleLines;
-
-        if (maxScroll < 0) maxScroll = 0;
-        if (scrollOffset > maxScroll) scrollOffset = maxScroll;
-    }
-
     // Handle Text Input
     int key = GetCharPressed();
     while (key > 0) {
@@ -219,7 +238,11 @@ void GameConsole::Update()
     if (IsKeyPressed(KEY_ENTER) && !currentInput.empty()) {
         WriteLine("> " + currentInput);
 
-        if (commandCallback != nullptr) {
+        if (waitingForBlockingInput) {
+            blockingInputResult = currentInput;
+            blockingInputReady = true;
+        }
+        else if (commandCallback != nullptr) {
             commandCallback(currentInput);
         }
         else {
@@ -279,9 +302,27 @@ void GameConsole::Render()
         bounds.height - 75 
     };
 
-    // Render history with word wrap
-    std::string fullLog = GetFullHistoryText();
-    DrawTextBoxed(GetFontDefault(), fullLog.c_str(), historyArea, (float)fontSize, 1.5f, true, RAYWHITE);
+    // Render history as fixed one-line entries so scroll offset maps 1:1 to queue rows.
+    int lineSpacing = fontSize + 4;
+    int visibleLines = (int)std::floor(historyArea.height / lineSpacing);
+    if (visibleLines < 1) visibleLines = 1;
+
+    int maxScroll = (int)history.size() - visibleLines;
+    if (maxScroll < 0) maxScroll = 0;
+    if (scrollOffset < 0) scrollOffset = 0;
+    if (scrollOffset > maxScroll) scrollOffset = maxScroll;
+
+    BeginScissorMode((int)historyArea.x, (int)historyArea.y, (int)historyArea.width, (int)historyArea.height);
+    for (int i = 0; i < visibleLines; ++i) {
+        int historyIdx = scrollOffset + i;
+        if (historyIdx >= (int)history.size()) {
+            break;
+        }
+
+        const int drawY = (int)historyArea.y + (i * lineSpacing);
+        DrawText(history[historyIdx].c_str(), (int)historyArea.x, drawY, fontSize, RAYWHITE);
+    }
+    EndScissorMode();
 
     // Render input box at bottom
     float inputPosY = bounds.y + bounds.height - 30;

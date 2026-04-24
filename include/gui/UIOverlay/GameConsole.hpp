@@ -17,6 +17,9 @@ private:
     std::vector<std::string> history;
     std::string currentInput;
     int scrollOffset = 0;
+    bool waitingForBlockingInput = false;
+    bool blockingInputReady = false;
+    std::string blockingInputResult;
 
     // State Input
     bool isActive = true;
@@ -37,6 +40,7 @@ private:
 public:
     GameConsole(Rectangle area, int fSize = 12);
     void WriteLine(std::string text);
+    std::string ReadLineBlocking(const std::string& prompt);
     void ProcessCommand(std::string cmd) ;
     void AutoScrollToBottom();
     std::string GetFullHistoryText();

@@ -9,14 +9,7 @@
 #include "../../include/core/Tile.hpp"
 
 std::string CommandHandler::askInput(const std::string& prompt) const {
-    std::cout << prompt;
-
-    std::string line;
-    if (!std::getline(std::cin, line)) {
-        return "";
-    }
-
-    return line;
+    return GameManager::getInstance().readLine(prompt);
 }
 
 int CommandHandler::askInt(const std::string& prompt, int minValue, int maxValue) const {
@@ -31,13 +24,13 @@ int CommandHandler::askInt(const std::string& prompt, int minValue, int maxValue
         char tail = '\0';
         if ((iss >> value) && !(iss >> tail)) {
             if (value < minValue || value > maxValue) {
-                std::cout << "Masukkan angka antara " << minValue << " dan " << maxValue << "." << std::endl;
+                GameManager::getInstance().writeLine("Masukkan angka antara " + std::to_string(minValue) + " dan " + std::to_string(maxValue) + ".");
                 continue;
             }
             return value;
         }
 
-        std::cout << "Input tidak valid. Masukkan angka." << std::endl;
+        GameManager::getInstance().writeLine("Input tidak valid. Masukkan angka.");
     }
 }
 
@@ -51,13 +44,14 @@ void CommandHandler::commands() {
             break;
         }
 
-        std::cout << "\n[Turn " << game.getTurn() + 1;
+        std::string prompt = "\n[Turn " + std::to_string(game.getTurn() + 1);
         if (game.getMaxTurn() > 0) {
-            std::cout << "/" << game.getMaxTurn();
+            prompt += "/" + std::to_string(game.getMaxTurn());
         }
-        std::cout << "] " << currentPlayer->getUsername() << " > ";
+        prompt += "] " + currentPlayer->getUsername() + " > ";
 
-        if (!std::getline(std::cin, line)) {
+        line = game.readLine(prompt);
+        if (line.empty() && (game.isGuiStreamActive() || std::cin.eof())) {
             break;
         }
 
@@ -68,13 +62,14 @@ void CommandHandler::commands() {
 
     Player* winner = game.getWinner();
     if (winner != nullptr) {
-        std::cout << "Pemenang sementara: " << winner->getUsername() << std::endl;
+        game.writeLine("Pemenang sementara: " + winner->getUsername());
     }
 }
 
 bool CommandHandler::execute(const std::string& line) {
     GameManager& game = GameManager::getInstance();
 
+    // Normal command processing
     std::istringstream iss(line);
     std::string command;
     iss >> command;
@@ -89,36 +84,41 @@ bool CommandHandler::execute(const std::string& line) {
         if (iss >> first >> second) {
             game.rollDice(first, second);
         } else {
-            std::cout << "Format: ATUR_DADU X Y" << std::endl;
+            game.writeLine("Format: ATUR_DADU X Y");
         }
     } else if (command == "STATUS") {
         Player* currentPlayer = game.getCurrentTurnPlayer();
         if (currentPlayer != nullptr) {
-            std::cout << currentPlayer->getUsername() << " | Uang: M" << currentPlayer->getCurrency();
+            std::string status = currentPlayer->getUsername() + " | Uang: M" + std::to_string(currentPlayer->getCurrency());
             if (currentPlayer->getCurrentTile() != nullptr) {
-                std::cout << " | Tile: " << currentPlayer->getCurrentTile()->getCode();
+                status += " | Tile: " + currentPlayer->getCurrentTile()->getCode();
             }
             if (currentPlayer->getDiscount() > 0.0f) {
-                std::cout << " | Diskon: " << currentPlayer->getDiscount() << "%";
+                status += " | Diskon: " + std::to_string(currentPlayer->getDiscount()) + "%";
             }
             if (currentPlayer->hasShield()) {
-                std::cout << " | Shield aktif";
+                status += " | Shield aktif";
             }
-            std::cout << std::endl;
+            game.writeLine(status);
+        } else {
+            game.writeLine("Game belum diinisialisasi. Current player belum ada.");
         }
     } else if (command == "CETAK_KARTU") {
         Player* currentPlayer = game.getCurrentTurnPlayer();
         if (currentPlayer != nullptr) {
             currentPlayer->printSkillCards();
+        } else {
+            game.writeLine("Game belum diinisialisasi. Current player belum ada.");
         }
     } else if (command == "GUNAKAN_KEMAMPUAN") {
         Player* currentPlayer = game.getCurrentTurnPlayer();
         if (currentPlayer == nullptr) {
+            game.writeLine("Game belum diinisialisasi. Current player belum ada.");
             return true;
         }
 
         if (!currentPlayer->getCanUseCard()) {
-            std::cout << "Kartu kemampuan hanya bisa digunakan 1 kali dalam 1 giliran." << std::endl;
+            game.writeLine("Kartu kemampuan hanya bisa digunakan 1 kali dalam 1 giliran.");
             return true;
         }
 
@@ -143,7 +143,7 @@ bool CommandHandler::execute(const std::string& line) {
             return true;
         }
 
-        std::cout << card->getCardName() << " used!" << std::endl;
+        game.writeLine(card->getCardName() + " used!");
         card->useCard(currentPlayer, game.getPlayers());
         currentPlayer->setCanUseCard(false);
         delete card;
@@ -152,11 +152,11 @@ bool CommandHandler::execute(const std::string& line) {
     //     // not yet
     // } 
     else if (command == "BANTUAN") {
-        std::cout << "Commands: CETAK_PAPAN,\nLEMPAR_DADU,\nATUR_DADU X Y,\nSTATUS,\nCETAK_KARTU,\nGUNAKAN_KEMAMPUAN,\nKELUAR" << std::endl;
+        game.writeLine("Commands: CETAK_PAPAN,\nLEMPAR_DADU,\nATUR_DADU X Y,\nSTATUS,\nCETAK_KARTU,\nGUNAKAN_KEMAMPUAN,\nKELUAR");
     } else if (command == "KELUAR") {
         return false;
     } else if (!command.empty()) {
-        std::cout << "Command tidak dikenali. Ketik BANTUAN." << std::endl;
+        game.writeLine("Command tidak dikenali. Ketik BANTUAN.");
     }
 
     return true;
