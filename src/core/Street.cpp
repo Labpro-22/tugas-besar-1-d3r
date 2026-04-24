@@ -30,7 +30,7 @@ void Street::runTile(Player* player) {
         return;
     }
     
-    Logger logger = Logger::getInstance();
+    Logger &logger = Logger::getInstance();
 
     if (propertyStatus == BANK) {
         int price = landCost;

@@ -52,6 +52,9 @@ private:
 	std::vector<StateLog> logs;
 
 public:
+	Logger();
+	Logger(const Logger&) = delete;
+	Logger& operator=(const Logger&) = delete;
 	static Logger& getInstance() {
 		static Logger instance;
 		return instance;

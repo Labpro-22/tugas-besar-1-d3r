@@ -46,7 +46,7 @@ void Player::endTurnEffects() {
 }
 
 bool Player::addSkillCard(SkillCard* card) {
-    Logger logger = Logger::getInstance();
+    Logger &logger = Logger::getInstance();
     if (card == nullptr) {
         return false;
     }

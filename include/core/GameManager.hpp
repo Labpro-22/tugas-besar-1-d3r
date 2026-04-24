@@ -56,7 +56,6 @@ public:
 	void setDeckSkill(CardDeck<SkillCard> deckSkill) { this->deckSkill = std::move(deckSkill); };
 	void setDeckChance(CardDeck<AutoUseCard> deckChance) { this->deckChance = std::move(deckChance); };
 	void setDeckCurrency(CardDeck<AutoUseCard> deckCurrency) { this->deckCurrency = std::move(deckCurrency); };
-	void setLogger(Logger logger) { this->logger = logger; };
 	void setCurrentTurnPlayer(Player* currentTurnPlayer) { this->currentTurnPlayer = currentTurnPlayer; };
 	static void setDice(std::vector<int> dice) { GameManager::getInstance().dice.setValues(dice); };
 	void setUseGuiStream(bool useGuiStream) { this->useGuiStream = useGuiStream; }

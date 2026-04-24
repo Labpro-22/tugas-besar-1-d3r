@@ -7,7 +7,7 @@
 Utility::Utility(int index, const std::string& code, const std::string& name, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& costMultiplier) : Property(index, code, name, color, landCost, mortgageValue, festivalMultiplier, festivalDuration, owner, propertyStatus), costMultiplier(costMultiplier) {}
 
 void Utility::runTile(Player* player) {
-    Logger logger = Logger::getInstance();
+    Logger &logger = Logger::getInstance();
     if (player == nullptr) {
         return;
     }

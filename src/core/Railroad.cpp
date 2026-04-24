@@ -16,7 +16,7 @@ Railroad::Railroad(int index, const std::string &code, const std::string &name,
 
 void Railroad::runTile(Player *player)
 {
-    Logger logger = Logger::getInstance();
+    Logger &logger = Logger::getInstance();
     if (player == nullptr) {
         return;
     }

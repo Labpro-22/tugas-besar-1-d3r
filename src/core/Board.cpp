@@ -94,19 +94,18 @@ void Board::addTile(Tile* newTile){
     }
 }
 
-bool Board::canBuildHouse(Player &player, Tile* tile) {
-    // TODO: Implement check for building house
+bool Board::canUpgradeProperty(Player &player, Tile* tile) {
     if(tile == nullptr) return false;
     if(tile->getColor() == "Default") return false; // asumsi namanya "Default"
     std::vector<Tile*> colorGroup = getColorGroup(tile->getColor());
-    auto it = std::find_if(colorGroup.begin(), colorGroup.end(), [&player](Tile* tile){
-        if(tile == nullptr) return false; // ???
+    Street* targetProp = dynamic_cast<Street*>(tile);
+    if(targetProp->getCurrentLevel() == 5) return false;
+    bool imbalanceTileExists = std::any_of(colorGroup.begin(), colorGroup.end(), [&player, targetProp](Tile* tile){
         Street* prop = dynamic_cast<Street*>(tile);
-        if(prop == nullptr) return true;
         if(prop->getOwner() != &player) return true;
-        return false;
+        return targetProp->getCurrentLevel() - prop->getCurrentLevel() > 0;
     });
-    return it == colorGroup.end();
+    return !imbalanceTileExists;
 }
 
 int Board::getRailroadLevel(Tile* tile) {
