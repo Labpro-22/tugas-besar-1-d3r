@@ -66,6 +66,33 @@ bool GameManager::isGameValid() {
     });
 }
 
+void GameManager::printTurnInfo() {
+    if (currentTurnPlayer == nullptr) {
+        return;
+    }
+
+    std::string turnInfo = "\n[Turn " + std::to_string(getTurn() + 1);
+    if (getMaxTurn() > 0) {
+        turnInfo += "/" + std::to_string(getMaxTurn());
+    }
+    turnInfo += "] " + currentTurnPlayer->getUsername() + " > ";
+    write(turnInfo);
+}
+
+void GameManager::promptForCommand() {
+    if (currentTurnPlayer == nullptr || isGameFinished()) {
+        return;
+    }
+
+    std::string prompt = "\n[Turn " + std::to_string(getTurn() + 1);
+    if (getMaxTurn() > 0) {
+        prompt += "/" + std::to_string(getMaxTurn());
+    }
+    prompt += "] " + currentTurnPlayer->getUsername() + " > ";
+
+    readLine(prompt);
+}
+
 void GameManager::runGame() {
     if (players.empty()) {
         CommandHandler& handler = getCommandHandler();
@@ -85,6 +112,7 @@ void GameManager::runGame() {
         initPlayers();
         initSkillDeck();
         initAutoUseDecks();
+        currentTurnPlayer = players[0];
         drawSkillCard(currentTurnPlayer);
     }
 
@@ -94,6 +122,7 @@ void GameManager::runGame() {
     }
 
     writeLine("[INFO] Game ready.");
+    printTurnInfo();
 }
 
 void GameManager::auction(Tile* tile) {
@@ -212,10 +241,16 @@ void GameManager::nextTurn() {
     if (currentTurnPlayer != nullptr) {
         currentTurnPlayer->resetCardUse();
         drawSkillCard(currentTurnPlayer);
-        // drawSkillCard(currentTurnPlayer);
-        // drawSkillCard(currentTurnPlayer);
-        // drawSkillCard(currentTurnPlayer);
+    }
 
+    // Print turn info for GUI and CLI
+    if (currentTurnPlayer != nullptr) {
+        std::string turnInfo = "\n[Turn " + std::to_string(getTurn() + 1);
+        if (getMaxTurn() > 0) {
+            turnInfo += "/" + std::to_string(getMaxTurn());
+        }
+        turnInfo += "> " + currentTurnPlayer->getUsername() + " turn";
+        writeLine(turnInfo);
     }
 }
 

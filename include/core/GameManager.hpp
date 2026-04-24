@@ -100,6 +100,8 @@ public:
 	void initAutoUseDecks();
 	void drawSkillCard(Player* player);
 	void nextTurn();
+	void printTurnInfo();
+	void promptForCommand();
 	bool isGameFinished() const;
 	Player* getWinner() const;
 	void initBoard();

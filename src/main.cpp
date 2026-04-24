@@ -46,24 +46,24 @@ static void runGui(GameManager &gm)
     gm.getBoard().printBoard();
     gm.runGame();
 
-    console.SetCommandCallback([&gm, &console](std::string cmd)
-                               {
+    // Game loop state management
+    bool gameLoopActive = true;
+    
+    console.SetCommandCallback([&gm, &console, &gameLoopActive](std::string cmd)
+    {
         if (!gm.getCommandHandler().execute(cmd))
         {
-            console.WriteLine("Command loop selesai.");
-        } });
+            console.WriteLine("=== GAME ENDED ===");
+            gameLoopActive = false;
+        }
+    });
 
-    while (!WindowShouldClose())
+    while (!WindowShouldClose() && gameLoopActive)
     {
-        float wheel = GetMouseWheelMove();
         Vector2 mousePos = GetMousePosition();
 
-        if (CheckCollisionPointRec(mousePos, console.getBounds())) {
-            if (wheel != 0) {
-                console.HandleScroll(wheel);
-            }
-        }
-        else if (wheel != 0)
+        float wheel = GetMouseWheelMove();
+        if (wheel != 0 && !CheckCollisionPointRec(mousePos, console.getBounds()))
         {
             float zoomSpeed = 0.05f;
             camera.zoom += wheel * zoomSpeed;

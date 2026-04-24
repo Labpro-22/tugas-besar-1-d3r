@@ -15,11 +15,13 @@ private:
     
     // Data Teks
     std::vector<std::string> history;
+    std::vector<std::string> displayLines;  // Wrapped lines for rendering
     std::string currentInput;
     int scrollOffset = 0;
     bool waitingForBlockingInput = false;
     bool blockingInputReady = false;
     std::string blockingInputResult;
+    std::vector<std::string> WrapText(const std::string& text, float maxWidth);
 
     // State Input
     bool isActive = true;
@@ -43,10 +45,8 @@ public:
     std::string ReadLineBlocking(const std::string& prompt);
     void ProcessCommand(std::string cmd) ;
     void AutoScrollToBottom();
-    std::string GetFullHistoryText();
     void Update();
     void Render();
-    void HandleScroll(float wheelValue);
     void disableConsole(){
         this->isActive = false;
     }

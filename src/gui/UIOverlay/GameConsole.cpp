@@ -119,10 +119,60 @@ GameConsole::GameConsole(Rectangle area, int fSize)
     titleBar = {bounds.x, bounds.y, bounds.width, titleBarHeight};
 }
 
+std::vector<std::string> GameConsole::WrapText(const std::string& text, float maxWidth)
+{
+    std::vector<std::string> lines;
+    size_t start = 0;
+
+    while (start <= text.size()) {
+        size_t newlinePos = text.find('\n', start);
+        std::string segment;
+
+        if (newlinePos == std::string::npos) {
+            segment = text.substr(start);
+            start = text.size() + 1;
+        } else {
+            segment = text.substr(start, newlinePos - start);
+            start = newlinePos + 1;
+        }
+
+        if (segment.empty()) {
+            lines.push_back("");
+            continue;
+        }
+
+        std::string currentLine;
+        for (char c : segment) {
+            std::string nextLine = currentLine + c;
+            if (!currentLine.empty() && MeasureText(nextLine.c_str(), fontSize) > maxWidth) {
+                lines.push_back(currentLine);
+                currentLine.clear();
+            }
+            currentLine += c;
+        }
+
+        if (!currentLine.empty()) {
+            lines.push_back(currentLine);
+        }
+    }
+
+    return lines.empty() ? std::vector<std::string>({""}) : lines;
+}
+
 void GameConsole::WriteLine(std::string text)
 {
     history.push_back(text);
     if (history.size() > maxHistory) history.erase(history.begin());
+
+    // Wrap text and add to display lines
+    float maxLineWidth = bounds.width - 20;  // Padding on both sides
+    std::vector<std::string> wrappedLines = WrapText(text, maxLineWidth);
+    for (const auto& line : wrappedLines) {
+        displayLines.push_back(line);
+        if (displayLines.size() > maxHistory * 3) {  // Prevent unlimited growth
+            displayLines.erase(displayLines.begin());
+        }
+    }
 
     AutoScrollToBottom();
 }
@@ -136,11 +186,6 @@ std::string GameConsole::ReadLineBlocking(const std::string& prompt)
     blockingInputResult.clear();
 
     while (!blockingInputReady && !WindowShouldClose()) {
-        float wheel = GetMouseWheelMove();
-        if (wheel != 0) {
-            HandleScroll(wheel);
-        }
-
         Update();
 
         BeginDrawing();
@@ -167,8 +212,8 @@ void GameConsole::AutoScrollToBottom()
     int lineSpacing = fontSize + 4;
     int visibleLines = (int)(historyHeight / lineSpacing);
 
-    if ((int)history.size() > visibleLines) {
-        scrollOffset = history.size() - visibleLines;
+    if ((int)displayLines.size() > visibleLines) {
+        scrollOffset = displayLines.size() - visibleLines;
     }
     else {
         scrollOffset = 0;
@@ -180,6 +225,21 @@ void GameConsole::Update()
     framesCounter++;
 
     Vector2 mouse = GetMousePosition();
+
+    float wheel = GetMouseWheelMove();
+    if (wheel != 0) {
+        scrollOffset -= (int)wheel;
+        if (scrollOffset < 0) scrollOffset = 0;
+
+        // Calculate max scroll based on display lines (wrapped)
+        float historyHeight = bounds.height - 75;
+        int lineSpacing = fontSize + 4;
+        int visibleLines = (int)(historyHeight / lineSpacing);
+        int maxScroll = (int)displayLines.size() - visibleLines;
+
+        if (maxScroll < 0) maxScroll = 0;
+        if (scrollOffset > maxScroll) scrollOffset = maxScroll;
+    }
 
     if (isResizing) {
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
@@ -259,29 +319,6 @@ void GameConsole::ProcessCommand(std::string cmd)
     else WriteLine("Sistem: Perintah tidak dikenal.");
 }
 
-std::string GameConsole::GetFullHistoryText()
-{
-    std::string full;
-
-    // Calculate visible lines based on history area height and font size
-    float historyHeight = bounds.height - 75; // Adjust for title bar + input box
-    int lineSpacing = fontSize + 4;
-    int visibleLines = (int)(historyHeight / lineSpacing);
-
-    // Calculate start and end indices based on scroll offset
-    int startIdx = scrollOffset;
-    int endIdx = std::min(startIdx + visibleLines, (int)history.size());
-
-    // Build string only with visible lines
-    for (int i = startIdx; i < endIdx; i++) {
-        if (i < history.size()) {
-            full += history[i] + "\n";
-        }
-    }
-
-    return full;
-}
-
 void GameConsole::Render()
 {
     // Draw main background
@@ -294,33 +331,28 @@ void GameConsole::Render()
     DrawRectangleLinesEx(titleBar, 1, SKYBLUE);
     DrawText("NIMONPOLI CONSOLE - Drag to Move", bounds.x + 5, bounds.y + 5, 12, RAYWHITE);
 
-    // Prepare text history area (below title bar, with padding)
     Rectangle historyArea = {
         bounds.x + 10,
-        bounds.y + 35, 
+        bounds.y + 35,
         bounds.width - 20,
-        bounds.height - 75 
+        bounds.height - 75
     };
 
-    // Render history as fixed one-line entries so scroll offset maps 1:1 to queue rows.
+    // Draw history text line-by-line (no wrapping needed - already wrapped)
+    float historyHeight = historyArea.height;
     int lineSpacing = fontSize + 4;
-    int visibleLines = (int)std::floor(historyArea.height / lineSpacing);
-    if (visibleLines < 1) visibleLines = 1;
+    int visibleLines = (int)(historyHeight / lineSpacing);
 
-    int maxScroll = (int)history.size() - visibleLines;
-    if (maxScroll < 0) maxScroll = 0;
-    if (scrollOffset < 0) scrollOffset = 0;
-    if (scrollOffset > maxScroll) scrollOffset = maxScroll;
+    int startIdx = scrollOffset;
+    int endIdx = std::min(startIdx + visibleLines, (int)displayLines.size());
 
+    float textY = historyArea.y;
     BeginScissorMode((int)historyArea.x, (int)historyArea.y, (int)historyArea.width, (int)historyArea.height);
-    for (int i = 0; i < visibleLines; ++i) {
-        int historyIdx = scrollOffset + i;
-        if (historyIdx >= (int)history.size()) {
-            break;
+    for (int i = startIdx; i < endIdx; i++) {
+        if (i < (int)displayLines.size()) {
+            DrawText(displayLines[i].c_str(), (int)historyArea.x, (int)textY, fontSize, RAYWHITE);
+            textY += lineSpacing;
         }
-
-        const int drawY = (int)historyArea.y + (i * lineSpacing);
-        DrawText(history[historyIdx].c_str(), (int)historyArea.x, drawY, fontSize, RAYWHITE);
     }
     EndScissorMode();
 
@@ -341,22 +373,6 @@ void GameConsole::Render()
     Color resizerColor = isResizing ? Fade(YELLOW, 0.8f) : Fade(DARKGRAY, 0.6f);
     DrawRectangleRec(resizer, resizerColor);
     DrawRectangleLinesEx(resizer, 1, YELLOW);
-}
-
-void GameConsole::HandleScroll(float wheelValue)
-{
-    // wheelValue positif = scroll up, negatif = scroll down
-    scrollOffset -= (int)wheelValue;
-
-    // Calculate visible lines based on history area height and font size
-    float historyHeight = bounds.height - 75; // Adjust for title bar + input box
-    int lineSpacing = fontSize + 4;
-    int visibleLines = (int)(historyHeight / lineSpacing);
-    int maxScroll = (int)history.size() - visibleLines;
-
-    if (maxScroll < 0) maxScroll = 0;
-    if (scrollOffset < 0) scrollOffset = 0;
-    if (scrollOffset > maxScroll) scrollOffset = maxScroll;
 }
 
 GameConsole::~GameConsole() {}
