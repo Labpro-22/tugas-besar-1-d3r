@@ -31,7 +31,7 @@ public:
 	std::vector<Tile*> getColorGroup(const std::string& color) const ; // done
 	std::vector<Railroad*> getAllRailroad() const ; // done
 	std::vector<Utility*> getAllUtility() const ; // done
-	bool canBuildHouse(Player &player, Tile* tile); // done
+	bool canUpgradeProperty(Player &player, Tile* tile); 
 	int getRailroadLevel(Tile* tile);
 	int getUtilityLevel(Tile* tile);
 	Player* getNextPlayer(Player* player);
