@@ -16,6 +16,7 @@ Railroad::Railroad(int index, const std::string &code, const std::string &name,
 
 void Railroad::runTile(Player *player)
 {
+    Logger logger = Logger::getInstance();
     if (player == nullptr) {
         return;
     }
@@ -30,12 +31,18 @@ void Railroad::runTile(Player *player)
                 properties.push_back(this);
                 player->setOwnedProperties(properties);
             }
+            logger.log(player->getUsername(), StateLog::RAILROAD, code + " kini milik " + player->getUsername() + " (otomatis)");
         }
         return;
     }
 
     if (propertyStatus == OWNED && owner != nullptr && owner != player) {
         int rent = getRentCost();
+        std::string mulLog;
+        if(festivalMultiplier != 1) mulLog = ", festival aktif x" + to_string(festivalMultiplier);
+        int level = GameManager::getInstance().getBoard().getRailroadLevel(const_cast<Railroad *>(this));
+        std::string rentLog = "Bayar " + to_string(rent) + " ke " + owner->getUsername() + " (" + code + ", level" + to_string(level) + mulLog + ")";
+        logger.log(player->getUsername(), StateLog::PAY_RENT, rentLog);
         *player -= rent;
         *owner += rent;
     }
