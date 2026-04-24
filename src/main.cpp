@@ -12,8 +12,7 @@ static void runCli(GameManager &gm)
     gm.setInputCallback(nullptr);
     gm.getBoard().printBoard();
     gm.runGame();
-    if (!gm.getPlayer().empty())
-    {
+    if (!gm.getPlayer().empty()) {
         gm.getCommandHandler().commands();
     }
 }
@@ -29,7 +28,7 @@ static void runGui(GameManager &gm)
     camera.offset = {(float)screenWidth / 2, (float)screenHeight / 2};
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
-
+    
     SetTargetFPS(60);
     PawnRenderer pr("data/assets/players.png");
     GameConsole console({900, 450, 350, 300});
@@ -59,10 +58,8 @@ static void runGui(GameManager &gm)
         float wheel = GetMouseWheelMove();
         Vector2 mousePos = GetMousePosition();
 
-        if (CheckCollisionPointRec(mousePos, console.getBounds()))
-        {
-            if (wheel != 0)
-            {
+        if (CheckCollisionPointRec(mousePos, console.getBounds())) {
+            if (wheel != 0) {
                 console.HandleScroll(wheel);
             }
         }
@@ -99,8 +96,7 @@ static void runGui(GameManager &gm)
 
 int main()
 {
-    try
-    {
+    try {
         const bool useGui = true;
 
         GameManager &gm = GameManager::getInstance();
@@ -120,22 +116,18 @@ int main()
         dm.load();
         gm.writeLine("[SUCCESS] Game data loaded successfully!");
 
-        if (useGui)
-        {
+        if (useGui) {
             runGui(gm);
         }
-        else
-        {
+        else {
             runCli(gm);
         }
     }
-    catch (const std::exception &e)
-    {
+    catch (const std::exception &e) {
         std::cerr << "[ERROR] " << e.what() << std::endl;
         return 1;
     }
-    catch (...)
-    {
+    catch (...) {
         std::cerr << "[ERROR] Unknown exception occurred!" << std::endl;
         return 1;
     }

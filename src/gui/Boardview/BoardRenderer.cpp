@@ -1,52 +1,55 @@
 #include "../include/gui/Boardview/BoardRenderer.hpp"
 #include "../include/core/Board.hpp"
 #include <iostream>
-void BoardRenderer::RenderBoard(Board board)
-{
-    // Cetak dari Bagian board atas ke bagian titik n,n dari kiri
-    int boardsize = board.getTiles().size();
 
-    // Cetak dari bagian ke bagian titik n + 1,n - 1 dari kanan
-    for (int i = boardsize / 2 + 1; i < boardsize + 1; i++) {
-        Vector2 pos = IsoTransformer::GetScreenPosition(i);
 
-        Tile *logicTile = board.getTile(i-1);
-        if (logicTile == nullptr) {
-            TileRenderer::DrawIsometricTile(pos, LIGHTGRAY);
-            continue;
-        }
 
-        std::pair<Color, Color> c = TileRenderer::ParseColor(logicTile);
-        TileRenderer::DrawIsometricTile(pos, c.first);
-        TileRenderer::FillTileTypes(pos, i, c.first);
-        TileRenderer::DrawTextIsometric(logicTile->getCode(), pos, TileRenderer::GetTextRotation(i));
-    }
+void renderSingleTile(int index, Board& board) {
+    Vector2 pos = IsoTransformer::GetScreenPosition(index);
+    Tile *logicTile = board.getTile(index);
 
-    for (int i = boardsize / 2; i >= 1; i--) {
-        Vector2 pos = IsoTransformer::GetScreenPosition(i);
-
-        Tile *logicTile = board.getTile(i-1);
-        if (logicTile == nullptr) {
-            TileRenderer::DrawIsometricTile(pos, LIGHTGRAY);
-            continue;
-        }
-
-        std::pair<Color, Color> c = TileRenderer::ParseColor(logicTile);
-        TileRenderer::DrawIsometricTile(pos, c.first);
-        TileRenderer::FillTileTypes(pos, i, c.first);
-        TileRenderer::DrawTextIsometric(logicTile->getCode(), pos, TileRenderer::GetTextRotation(i));
-    }
-
-    // Update TILE bagian awal agar tidak tertumpuk
-    Vector2 pos = IsoTransformer::GetScreenPosition(1);
-
-    Tile *logicTile = board.getTile(0);
+    // Kasus tile kosong
     if (logicTile == nullptr) {
         TileRenderer::DrawIsometricTile(pos, LIGHTGRAY);
+        return;
     }
 
+    // Logika render utama
     std::pair<Color, Color> c = TileRenderer::ParseColor(logicTile);
     TileRenderer::DrawIsometricTile(pos, c.first);
-    TileRenderer::FillTileTypes(pos, 1, c.first);
-    TileRenderer::DrawTextIsometric(logicTile->getCode(), pos, TileRenderer::GetTextRotation(0));
+    TileRenderer::FillTileTypes(pos, index, c.first);
+    
+    // Ambil rotasi teks (asumsi index untuk rotasi sama dengan index posisi)
+    float rotation = TileRenderer::GetTextRotation(index);
+    TileRenderer::DrawTextIsometric(logicTile->getCode(),{0,0}, pos, rotation);
+
+
+    BuildingRenderer br;
+    br.setContext(index );
+    Tile *tile = board.getTile(index );
+    Property* prop = dynamic_cast<Property*>(tile);
+    if (prop)
+    {   
+
+        prop->callViewer(br);
+    }
+    
+    
 }
+
+void BoardRenderer::RenderBoard(Board board)
+{
+    int boardsize = board.getTiles().size();
+
+    // Render bagian half ke kanan
+    for (int i = (boardsize / 2 ) + 1 ; i < boardsize; i++) {
+        renderSingleTile(i, board);
+    }
+
+    // Render bagian half ke kiri
+    for (int i = (boardsize / 2 ); i >= 1; i--) {
+        renderSingleTile(i, board);
+    }
+
+}
+

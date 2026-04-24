@@ -15,9 +15,6 @@ Player* Player::operator+=(int money) {
 
 Player* Player::operator-=(int money) {
     this->currency -= money;
-    if (this->currency < 0) {
-        this->currentStatus = BANKRUPT;
-    }
     return this;
 }
 
@@ -170,5 +167,26 @@ int Player::getTotalWealth(const Board* board) const {
         total += prop->getAssetValue();
     }
     return total;
+}
+
+int Player::getMaxLiquidatableValue(const Board* board) const  {
+    int maxCash = this->currency;
+    for(Tile* tile : board->getTiles()){
+        Property* prop = dynamic_cast<Property*>(tile);
+        if (prop != nullptr && prop->getOwner() == this){
+            if (prop->getPropertyStatus() == OWNED){
+                int propVal = prop->getLandCost();
+
+                Street* street = dynamic_cast<Street*>(prop);
+                if (street != nullptr){
+                    int buildingVal = street->getBuildingValue();
+                    propVal += (buildingVal / 2);
+                }
+
+                maxCash += propVal;
+            }
+        }
+    }
+    return maxCash;
 }
 
