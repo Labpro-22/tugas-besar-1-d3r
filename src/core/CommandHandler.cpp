@@ -110,6 +110,12 @@ bool CommandHandler::execute(const std::string& line) {
         } else {
             game.writeLine("Game belum diinisialisasi. Current player belum ada.");
         }
+    } else if (command == "CETAK_LOG") {
+        int amount;
+        Logger &logger = Logger::getInstance();
+        if (iss >> amount){
+            logger.printLog(amount);
+        } else logger.printLog();
     } else if (command == "GUNAKAN_KEMAMPUAN") {
         Player* currentPlayer = game.getCurrentTurnPlayer();
         if (currentPlayer == nullptr) {

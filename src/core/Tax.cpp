@@ -21,7 +21,7 @@ void PPH::payTax(Player* player) {
 }
 
 void PPH::payPphTax(Player* player, PPH_OPTION option) {
-    Logger logger = Logger::getInstance();
+    Logger &logger = Logger::getInstance();
     int taxAmount = 0;
     if (option == FLAT){
         taxAmount = calculateFlatTax();
@@ -49,7 +49,7 @@ int PBM::getFixedTax() const {
     return fixedTax;
 }
 void PBM::payTax(Player* player) {
-    Logger logger = Logger::getInstance();
+    Logger &logger = Logger::getInstance();
     if (player != nullptr) {
         logger.log(player->getUsername(), StateLog::PAY_TAX, 
             "Pemain membayar pajak PBM sebesar " + to_string(fixedTax));

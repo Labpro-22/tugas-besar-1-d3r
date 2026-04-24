@@ -33,6 +33,8 @@ std::string StateLog::actionToString(ACTION_TYPE action){
     return actionName[action];
 }
 
+Logger::Logger() = default;
+
 void Logger::log(const std::string& username, StateLog::ACTION_TYPE action, const std::string& detail){
     int turn = GameManager::getInstance().getTurn();
     StateLog newLog = StateLog(turn, username, action, detail);
