@@ -62,6 +62,17 @@ int Street::getRentCost() const {
     return 0;
 }
 
+int Street::getBuildingValue() const {
+    int level = this->getCurrentLevel();
+    int buildingVal = 0;    
+    if (level >= 1 && level <= 4) {
+        buildingVal = level * this->getHouseCost();
+    } else if (level == 5) {
+        buildingVal = (4 * this->getHouseCost()) + this->getHotelCost();
+    }
+    return buildingVal;
+}
+
 int Street::getAssetValue() const {
     int buildingValue = 0;
 

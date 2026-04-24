@@ -103,4 +103,8 @@ public:
 	}
 	std::vector<Player*> getPlayer() const { return players; }
     Logger& getLogger();
+	void forcePay(Player *debtor, int amount, Player* creditor);
+	void sellPropertyToBank(Player* player, Property* property);
+	void handleBankruptcy(Player *debtor, int amount, Player* creditor);
+	void assetAcquisition(Player* debtor, Player* creditor);
 };

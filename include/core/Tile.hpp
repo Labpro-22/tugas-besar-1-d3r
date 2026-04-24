@@ -114,6 +114,7 @@ public:
     
     // Untuk interface GUI
     void callViewer(PropertyRenderCall& other) override;
+    int getBuildingValue() const;
 };
 
 class CardTile : public Tile {
