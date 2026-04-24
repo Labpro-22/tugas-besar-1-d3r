@@ -1,5 +1,6 @@
 #include "../../include/core/Tile.hpp"
 #include "../../include/core/Player.hpp"
+#include "../../include/core/Logger.hpp"
 
 #include <algorithm>
 
@@ -28,6 +29,8 @@ void Street::runTile(Player* player) {
     if (player == nullptr) {
         return;
     }
+    
+    Logger logger = Logger::getInstance();
 
     if (propertyStatus == BANK) {
         int price = landCost;
@@ -44,12 +47,20 @@ void Street::runTile(Player* player) {
                 properties.push_back(this);
                 player->setOwnedProperties(properties);
             }
+            logger.log(player->getUsername(), StateLog::BUY_TILE, "Beli " + name + " (" + code + ") seharga " + to_string(price));
         }
         return;
     }
 
     if (propertyStatus == OWNED && owner != nullptr && owner != player) {
         int rent = getRentCost();
+        std::string houseCount;
+        std::string mulLog;
+        if(currentLevel < 5 && currentLevel > 0) houseCount = ", " + to_string(currentLevel) + " rumah";
+        if(currentLevel == 5) houseCount = ", 4 rumah, 1 hotel";
+        if(festivalMultiplier != 1) mulLog = ", festival aktif x" + to_string(festivalMultiplier);
+        std::string rentLog = "Bayar " + to_string(rent) + " ke " + owner->getUsername() + " (" + code + houseCount + mulLog + ")";
+        logger.log(player->getUsername(), StateLog::PAY_RENT, rentLog);
         *player -= rent;
         *owner += rent;
     }

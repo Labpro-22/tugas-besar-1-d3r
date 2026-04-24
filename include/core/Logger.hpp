@@ -10,21 +10,21 @@ class StateLog {
 		BANKRUPT, // done
 		BUILD_HOTEL, // BELUM IMPLEMENT
 		BUILD_HOUSE, // BELUM IMPLEMENT
-		BUY_TILE, // BELUM IMPLEMENT
+		BUY_TILE, // done
 		CHANCE_CARD, // done
 		DICE, // done
 		DOUBLE, // done
-		FESTIVAL,
+		FESTIVAL, // BELUM IMPLEMENT
 		FUND_CARD, // done
-		GET_CARD,
+		GET_CARD, // done
 		GO_JAIL, // done
 		LOAD,
 		PAY_MORTGAGE,
-		PAY_RENT,
-		PAY_TAX,
-		RAILROAD,
+		PAY_RENT, // half done, sisa UTILITY
+		PAY_TAX, // done
+		RAILROAD, // done
 		SAVE,
-		UTILITY,
+		UTILITY, // done
 		SKILL_CARD, // done
 		WIN
 	};

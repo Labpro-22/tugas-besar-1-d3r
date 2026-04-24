@@ -7,6 +7,7 @@
 Utility::Utility(int index, const std::string& code, const std::string& name, const std::string& color, int landCost, int mortgageValue, int festivalMultiplier, int festivalDuration, Player* owner, PROPERTY_STATUS propertyStatus, const std::vector<int>& costMultiplier) : Property(index, code, name, color, landCost, mortgageValue, festivalMultiplier, festivalDuration, owner, propertyStatus), costMultiplier(costMultiplier) {}
 
 void Utility::runTile(Player* player) {
+    Logger logger = Logger::getInstance();
     if (player == nullptr) {
         return;
     }
@@ -21,6 +22,7 @@ void Utility::runTile(Player* player) {
                 properties.push_back(this);
                 player->setOwnedProperties(properties);
             }
+            logger.log(player->getUsername(), StateLog::UTILITY, code + " kini milik " + player->getUsername() + " (otomatis)");
         }
         return;
     }
@@ -44,6 +46,7 @@ int Utility::getRentCost() const {
     if (level > static_cast<int>(costMultiplier.size())) {
         level = static_cast<int>(costMultiplier.size());
     }
+    int totalDice = GameManager::getInstance().getDice().getTotal();
 
-    return costMultiplier[level - 1] * festivalMultiplier;
+    return totalDice * costMultiplier[level - 1] * festivalMultiplier;
 }
