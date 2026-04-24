@@ -46,6 +46,7 @@ int Utility::getRentCost() const {
     if (level > static_cast<int>(costMultiplier.size())) {
         level = static_cast<int>(costMultiplier.size());
     }
+    int totalDice = GameManager::getInstance().getDice().getTotal();
 
-    return costMultiplier[level - 1] * festivalMultiplier;
+    return totalDice * costMultiplier[level - 1] * festivalMultiplier;
 }
