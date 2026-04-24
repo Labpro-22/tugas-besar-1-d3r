@@ -1,11 +1,11 @@
 #include "../../include/core/Deck.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <random>
 #include <cstddef>
 
 #include "../../include/core/Card.hpp"
+#include "../../include/core/GameManager.hpp"
 
 template <typename T>
 void CardDeck<T>::addCard(T* card) {
@@ -25,7 +25,7 @@ template <typename T>
 void CardDeck<T>::printDeck() const {
 	for (const T* card : availableCards) {
 		if (card != nullptr) {
-			std::cout << card->getCardName() << "\n";
+			GameManager::getInstance().writeLine(card->getCardName());
 		}
 	}
 }

@@ -1,7 +1,6 @@
 #include "../../include/core/Card.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <random>
 #include <string>
 #include <vector>
@@ -234,7 +233,7 @@ void TeleportCard::useCard(Player *currentPlayer, std::vector<Player *>)
     {
         currentPlayer->moveTo(destination, false);
     } else {
-        std::cout << "Kode petak tidak valid." << std::endl;
+        GameManager::getInstance().writeLine("Kode petak tidak valid.");
     }
 }
 
@@ -270,8 +269,8 @@ void DemolitionCard::useCard(Player *currentPlayer, std::vector<Player *>)
     if (street != nullptr && street->getOwner() != nullptr && street->getOwner() != currentPlayer && street->getCurrentLevel() > 0)
     {
         street->setCurrentLevel(street->getCurrentLevel() - 1);
-        std::cout << "Bangunan di " << street->getName() << " dihancurkan." << std::endl;
+        GameManager::getInstance().writeLine("Bangunan di " + street->getName() + " dihancurkan.");
     } else {
-        std::cout << "Target tidak valid atau tidak memiliki bangunan." << std::endl;
+        GameManager::getInstance().writeLine("Target tidak valid atau tidak memiliki bangunan.");
     }
 }

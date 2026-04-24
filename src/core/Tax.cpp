@@ -2,18 +2,13 @@
 #include "../../include/core/Player.hpp"
 #include "../../include/core/GameManager.hpp"
 
-#include <iostream>
-
 PPH::PPH(int index, const std::string& code, const std::string& color, int flatTax, int taxPercentage): Tax(index, code, "Pajak Penghasilan", color), flatTax(flatTax), taxPercentage(taxPercentage) {}
 void PPH::payTax(Player* player) {
     if (player != nullptr) {
         CommandHandler& handler = GameManager::getInstance().getCommandHandler();
-        const int flat = calculateFlatTax();
-        const int percentage = calculatePercentageTax(*player);
-
-        std::cout << "Pilih metode pembayaran:\n";
-        std::cout << "1. Flat\n";
-        std::cout << "2. Persentase\n";
+        GameManager::getInstance().writeLine("Pilih metode pembayaran:");
+        GameManager::getInstance().writeLine("1. Flat");
+        GameManager::getInstance().writeLine("2. Persentase");
 
         const int choice = handler.askInt("Pilihan (1-2): ", 1, 2);
         if (choice == 1) {

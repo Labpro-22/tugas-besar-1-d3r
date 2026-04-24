@@ -7,6 +7,9 @@
 
 static void runCli(GameManager &gm)
 {
+    gm.setUseGuiStream(false);
+    gm.setOutputCallback(nullptr);
+    gm.setInputCallback(nullptr);
     gm.getBoard().printBoard();
     gm.runGame();
     if (!gm.getPlayer().empty())
@@ -17,14 +20,10 @@ static void runCli(GameManager &gm)
 
 static void runGui(GameManager &gm)
 {
-    (void)gm;
-    // std::cout << "[WARN] GUI route requested, but this build is CLI-only." << std::endl;
-
     const int screenWidth = 1280;
     const int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "Nimonpoli");
     BoardRenderer br;
-    // Konfigurasi Kamera (Opsional, agar bisa zoom/pan)
     Camera2D camera = {0};
     camera.target = {(float)screenWidth / 2, (float)screenHeight / 2};
     camera.offset = {(float)screenWidth / 2, (float)screenHeight / 2};
@@ -34,15 +33,29 @@ static void runGui(GameManager &gm)
     SetTargetFPS(60);
     PawnRenderer pr("data/assets/players.png");
     GameConsole console({900, 450, 350, 300});
-    console.WriteLine("=== NIMONPOLI SYSTEM READY ===");
-    console.WriteLine("1. Ketik 'roll' untuk jalan");
-    console.WriteLine("2. Ketik 'clear' untuk hapus log");
 
-    // Main Game Loop
+    gm.setUseGuiStream(true);
+    gm.setOutputCallback([&console](const std::string &text)
+                         { console.WriteLine(text); });
+    gm.setInputCallback([&console](const std::string &prompt)
+                        { return console.ReadLineBlocking(prompt); });
+
+    gm.writeLine("=== NIMONPOLI SYSTEM READY ===");
+    gm.writeLine("Ketik command seperti CLI di console.");
+    gm.writeLine("Contoh: CETAK_PAPAN, LEMPAR_DADU, STATUS");
+
+    gm.getBoard().printBoard();
+    gm.runGame();
+
+    console.SetCommandCallback([&gm, &console](std::string cmd)
+                               {
+        if (!gm.getCommandHandler().execute(cmd))
+        {
+            console.WriteLine("Command loop selesai.");
+        } });
+
     while (!WindowShouldClose())
     {
-
-        // Fitur Zoom sederhana dengan Scroll Mouse
         float wheel = GetMouseWheelMove();
         Vector2 mousePos = GetMousePosition();
 
@@ -53,47 +66,27 @@ static void runGui(GameManager &gm)
                 console.HandleScroll(wheel);
             }
         }
-        else
+        else if (wheel != 0)
         {
-            if (wheel != 0)
+            float zoomSpeed = 0.05f;
+            camera.zoom += wheel * zoomSpeed;
+            if (camera.zoom < 0.3f)
             {
-                float zoomSpeed = 0.05f;
-                camera.zoom += (wheel * zoomSpeed);
-                camera.zoom += wheel * 0.05f;
-                if (camera.zoom < 0.3f)
-                    camera.zoom = 0.3f;
-                if (camera.zoom > 3.0f)
-                    camera.zoom = 3.0f; // Limit zoom maksimal
+                camera.zoom = 0.3f;
+            }
+            if (camera.zoom > 3.0f)
+            {
+                camera.zoom = 3.0f;
             }
         }
 
         console.Update();
 
-        // Render Logic
         BeginDrawing();
         ClearBackground(BACKGROUND);
-
         BeginMode2D(camera);
-
-        // Memanggil fungsi render
         br.RenderBoard(gm.getBoard());
-
-        // console.SetCommandCallback([&](std::string cmd){
-        //     if (cmd == "roll")
-        //     {
-        //         console.WriteLine("Sistem melempar data base dadu");
-        //     }else if (cmd == "clear")
-        //     {
-        //         console.WriteLine("membersihkan data base");
-        //     } else{
-        //         console.WriteLine("tidak ada function");
-        //     }
-
-        // });
-
         EndMode2D();
-
-        // Overlay UI Statis (Tidak terpengaruh kamera)
         DrawText("MONOPOLY ISO-ENGINE v0.1", 20, 20, 20, RAYWHITE);
         DrawText("Scroll to Zoom | Right Click to Pan (if implemented)", 20, 50, 10, LIGHTGRAY);
         DrawFPS(screenWidth - 100, 20);
@@ -111,6 +104,7 @@ int main()
         const bool useGui = true;
 
         GameManager &gm = GameManager::getInstance();
+        gm.setUseGuiStream(useGui);
 
         std::string defaultConfigPath = "config/";
         DataManager dm(
@@ -122,12 +116,9 @@ int main()
             defaultConfigPath + "special.txt",
             defaultConfigPath + "aksi.txt");
 
-        std::cout << "[INFO] Loading game data..." << std::endl;
+        gm.writeLine("[INFO] Loading game data...");
         dm.load();
-        std::cout << "[SUCCESS] Game data loaded successfully!" << std::endl;
-
-        Board b = gm.getBoard();
-        gm.initPlayers();
+        gm.writeLine("[SUCCESS] Game data loaded successfully!");
 
         if (useGui)
         {

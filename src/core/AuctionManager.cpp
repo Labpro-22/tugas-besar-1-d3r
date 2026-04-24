@@ -1,7 +1,6 @@
 #include "../../include/core/AuctionManager.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -69,7 +68,7 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
 
     if (order.size() == 1) {
         transferProperty(property, order.front(), 0);
-        std::cout << "Winner (only 1) - " << order.front()->getUsername() << std::endl;
+        game.writeLine("Winner (only 1) - " + order.front()->getUsername());
         return true;
     }
 
@@ -81,7 +80,7 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
 
     while (highestBidder == nullptr || consecutivePasses < requiredPasses) {
         Player* currentPlayer = order[currentIndex];
-        std::cout << "BID Turn: " << currentPlayer->getUsername() << std::endl;
+        game.writeLine("BID Turn: " + currentPlayer->getUsername());
 
         const std::string line = game.getCommandHandler().askInput("Masukkan PASS atau BID <angka>: ");
         if (line.empty()) {
@@ -95,7 +94,7 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
         if (action == "PASS") {
             // when there is already a bidder, poker like
             if (highestBidder == nullptr && consecutivePasses + 1 >= requiredPasses) {
-                std::cout << "Must bid" << std::endl;
+                game.writeLine("Must bid");
                 continue;
             }
 
@@ -130,7 +129,7 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
 
     transferProperty(property, highestBidder, highestBid);
 
-    std::cout << "Winner - " << highestBidder->getUsername() << " price: " << highestBid << std::endl;
+    game.writeLine("Winner - " + highestBidder->getUsername() + " price: " + std::to_string(highestBid));
 
     return true;
 }

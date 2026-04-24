@@ -1,7 +1,6 @@
 #include "../../include/core/Board.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -159,10 +158,10 @@ int Board::stringToIndex(const std::string& str) {
 }
 
 void Board::printBoard() const {
-    std::cout << "Board tiles (1-indexed):\n";
+    GameManager::getInstance().writeLine("Board tiles (1-indexed):");
     for (size_t i = 0; i < tiles.size(); i++) {
         if (tiles[i] != nullptr) {
-            std::cout << i + 1 << ": " << tiles[i]->getCode() << " - " << tiles[i]->getName() << "\n";
+            GameManager::getInstance().writeLine(std::to_string(i + 1) + ": " + tiles[i]->getCode() + " - " + tiles[i]->getName());
         }
     }
 }

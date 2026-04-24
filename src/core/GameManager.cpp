@@ -8,8 +8,44 @@
 #include "../../include/core/Tile.hpp"
 
 GameManager::GameManager() 
-    : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), initialCurrency(0), board(40), currentTurnPlayer(nullptr) {
+    : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), initialCurrency(0),
+      board(40), currentTurnPlayer(nullptr), useGuiStream(false) {
     // Board initialized with 40 tiles (standard Monopoly)
+}
+
+void GameManager::write(const std::string& text) const {
+    if (useGuiStream && outputCallback) {
+        outputCallback(text);
+        return;
+    }
+
+    std::cout << text;
+}
+
+void GameManager::writeLine(const std::string& text) const {
+    if (useGuiStream && outputCallback) {
+        outputCallback(text);
+        return;
+    }
+
+    std::cout << text << std::endl;
+}
+
+std::string GameManager::readLine(const std::string& prompt) const {
+    if (!prompt.empty()) {
+        write(prompt);
+    }
+
+    if (useGuiStream && inputCallback) {
+        return inputCallback(prompt);
+    }
+
+    std::string line;
+    if (!std::getline(std::cin, line)) {
+        return "";
+    }
+
+    return line;
 }
 
 bool GameManager::isGameValid() {
@@ -53,11 +89,11 @@ void GameManager::runGame() {
     }
 
     if (!isGameValid()) {
-        std::cout << "[WARN] Game state is not valid yet." << std::endl;
+        writeLine("[WARN] Game state is not valid yet.");
         return;
     }
 
-    std::cout << "[INFO] Game ready." << std::endl;
+    writeLine("[INFO] Game ready.");
 }
 
 void GameManager::auction(Tile* tile) {
@@ -98,30 +134,31 @@ void GameManager::rollDice() {
 
 void GameManager::rollDice(int dice1, int dice2) {
     if (currentTurnPlayer == nullptr || currentTurnPlayer->getCurrentTile() == nullptr) {
+        writeLine("Game belum siap. Current player belum diinisialisasi.");
         return;
     }
 
     if (!dice.setValues(dice1, dice2)) {
-        std::cout << "Nilai dadu harus 1 sampai 6." << std::endl;
+        writeLine("Nilai dadu harus 1 sampai 6.");
         return;
     }
 
     int total = dice.getTotal();
     Tile* destination = board.goToTile(*currentTurnPlayer->getCurrentTile(), total);
 
-    std::cout << "Hasil: " << dice.getFirst() << " + " << dice.getSecond() << " = " << total << std::endl;
+    writeLine("Hasil: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + " = " + std::to_string(total));
     if (destination == nullptr) {
-        std::cout << "Tujuan tidak valid." << std::endl;
+        writeLine("Tujuan tidak valid.");
         return;
     }
 
     currentTurnPlayer->moveTo(destination, true);
-    std::cout << "Mendarat di: " << destination->getName() << " (" << destination->getCode() << ")" << std::endl;
+    writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
 
     if (!dice.isDouble()) {
         nextTurn();
     } else {
-        std::cout << "Double. Pemain mendapat giliran tambahan." << std::endl;
+        writeLine("Double. Pemain mendapat giliran tambahan.");
     }
 }
 
