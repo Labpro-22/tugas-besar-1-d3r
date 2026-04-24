@@ -91,7 +91,6 @@ std::vector<Utility*> Board::getAllUtility() const {
 void Board::addTile(Tile* newTile){
     if (newTile != nullptr && newTile->getIndex() < (int)tiles.size()) {
         tiles[newTile->getIndex()] = newTile;
-        cout << "Board Size: " << tiles.size() << " added Tiles at: " << newTile->getIndex() << "\n"; 
     }
 }
 
