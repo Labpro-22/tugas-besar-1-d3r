@@ -214,7 +214,7 @@ void Player::setToJailed() {
     this->jailTurnCount = 3;  // Default 3 turns in jail
 }
 
-void Player::buyBackMortgaged(Property* mortgaged, Board* board) {
+void Player::buyBackMortgaged(Property* mortgaged) {
     // Check if mortgaged actually points to a property
     if(mortgaged == nullptr) return;
 

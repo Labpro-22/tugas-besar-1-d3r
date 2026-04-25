@@ -1,6 +1,7 @@
 #include "../../include/core/DataManager.hpp"
 #include "../../include/core/GameManager.hpp"
 #include "../../include/core/Tile.hpp"
+#include <sys/stat.h>
 
 
 DataManager::DataManager(const std::string& configMisc, const std::string& configProperty, const std::string& configTax, const std::string& configUtility, const std::string& configRailroad, const std::string& configSpecial) : configMisc(configMisc), configProperty(configProperty), configTax(configTax), configUtility(configUtility), configRailroad(configRailroad), configSpecial(configSpecial), configAction("config/aksi.txt"){}
@@ -180,4 +181,100 @@ void DataManager::load() {
 
     loadProperties(utilityRent, railroadRent);
     loadActions(taxConfig, specialConfig);
+}
+
+void DataManager::save(string fileName, bool override) {
+    GameManager& game = GameManager::getInstance();
+    
+    const std::vector<StateLog>& logs = game.getLogger().getLogs();
+    if(!logs.empty() && logs.back().getTurn() == game.getTurn()) {
+        throw SaveProhibitedException();
+    }
+
+    string path = "data/" + fileName;
+    if(isFileExists(path) && !override) {
+        throw FileExistsException(path);
+    }
+    ofstream file("data/" + fileName);
+    if (!file.is_open()) {
+        throw SaveFailedException();
+    }
+
+    file << game.getTurn() << " " << game.getMaxTurn() << "\n";
+    const vector<Player*>& players = game.getPlayers();
+
+    // State Player
+    file << players.size() << "\n";
+    for(size_t i = 0; i < players.size(); i++) {
+        const Player* player = players.at(i);
+        file << player->getUsername() << " " << player->getCurrency() << " " << player->getCurrentTile()->getCode() << " " << player->getStatus() << "\n";
+        const vector<SkillCard*>& skillCards = player->getDeck().getCards();
+        for(size_t i = 0; i < skillCards.size(); i++) {
+            const SkillCard* skillCard = skillCards.at(i);
+            file << skillCard->getCardName();
+            if(skillCard->getCardValue() != 0) {
+                file << " " << skillCard->getCardValue();
+            }
+            if(skillCard->getCardDuration() != 0) {
+                file << " " << skillCard->getCardDuration();
+            }
+            file << "\n";
+        }
+    }
+
+    // State Properti
+    const vector<Street*> &streets = game.getBoard().getAllStreet();
+    const vector<Railroad*> &railroads = game.getBoard().getAllRailroad();
+    const vector<Utility*> &utilities = game.getBoard().getAllUtility();
+
+    file << streets.size() + railroads.size() + utilities.size() << "\n";
+
+    for(size_t i = 0; i < streets.size(); i++) {
+        const Street* street = streets.at(i);
+        file << street->getCode() << " " << "street" << " ";
+        if(street->getOwner() == nullptr) file << "BANK" << " ";
+        else file << street->getOwner()->getUsername() << " ";
+        file << street->getPropertyStatus() << " " << street->getFestivalMultiplier() << " " << street->getFestivalDuration() << " " << street->getCurrentLevel() << "\n";
+    }
+
+    for(size_t i = 0; i < railroads.size(); i++) {
+        const Railroad* railroad = railroads.at(i);
+        file << railroad->getCode() << " " << "railroad" << " ";
+        if(railroad->getOwner() == nullptr) file << "BANK" << " ";
+        else file << railroad->getOwner()->getUsername() << " ";
+        file << railroad->getPropertyStatus() << " " << railroad->getFestivalMultiplier() << " " << railroad->getFestivalDuration() << " " << 0 << "\n";
+    }
+
+    for(size_t i = 0; i < utilities.size(); i++) {
+        const Utility* utility = utilities.at(i);
+        file << utility->getCode() << " " << "utility" << " ";
+        if(utility->getOwner() == nullptr) file << "BANK" << " ";
+        else file << utility->getOwner()->getUsername() << " ";
+        file << utility->getPropertyStatus() << " " << utility->getFestivalMultiplier() << " " << utility->getFestivalDuration() << " " << 0 << "\n";
+    }
+
+    // State Deck
+    const CardDeck<SkillCard>& skillDeck = game.getSkillDeck();
+
+    file << skillDeck.size() << "\n";
+
+    for(size_t i = 0; i < skillDeck.size(); i++) {
+        const SkillCard* skillCard = skillDeck.getCards().at(i);
+        file << skillCard->getCardName() << "\n";
+    }
+
+    // State Log
+    file << logs.size() << "\n";
+
+    for(size_t i = 0; i < logs.size(); i++) {
+        const StateLog& log = logs.at(i);
+        file << log.getTurn() << " " << log.getUsername() << " " << log.getAction() << " " << log.getDetail() << "\n";
+    }
+
+    file.close();
+}
+
+bool DataManager::isFileExists (const string& name) {
+    struct stat buffer;   
+    return (stat(name.c_str(), &buffer) == 0); 
 }

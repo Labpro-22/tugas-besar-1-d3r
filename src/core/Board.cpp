@@ -64,6 +64,19 @@ std::vector<Tile*> Board::getColorGroup(const std::string& color) const {
     return result;
 }
 
+std::vector<Street*> Board::getAllStreet() const {
+    std::vector<Street*> result;
+    for(auto& tile: tiles){
+        if(tile != nullptr){
+            Street* rail = dynamic_cast<Street*>(tile);
+            if(rail != nullptr) result.push_back(rail);
+        }
+    }
+
+    return result;
+}
+
+
 std::vector<Railroad*> Board::getAllRailroad() const {
     std::vector<Railroad*> result;
     for(auto& tile: tiles){

@@ -18,6 +18,7 @@ private:
     string configAction;
 
 public:
+    DataManager() : configMisc(""), configProperty(""), configTax(""), configUtility(""), configRailroad(""), configSpecial(""), configAction("") {}
     DataManager(const std::string& configMisc, const std::string& configProperty, const std::string& configTax, const std::string& configUtility, const std::string& configRailroad,const std::string& configSpecial);
     DataManager(const std::string& configMisc, const std::string& configProperty, const std::string& configTax, const std::string& configUtility, const std::string& configRailroad,const std::string& configSpecial, const std::string& configAction);
     void loadMisc();
@@ -30,5 +31,6 @@ public:
     void loadDefaultTiles();
 
     void load();
-    void save();
+    void save(string fileName, bool override = false);
+    bool isFileExists(const string& fileName);
 };

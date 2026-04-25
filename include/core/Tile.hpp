@@ -55,7 +55,6 @@ public:
     void setOwner(Player*);
     void setPropertyStatus(PROPERTY_STATUS);
 
-    void runTile(Player*) override;
     virtual int getRentCost() const = 0;
     int getAssetValue() const override;
 

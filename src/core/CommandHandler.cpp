@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../../include/core/GameManager.hpp"
+#include "../../include/core/DataManager.hpp"
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
 
@@ -277,12 +278,49 @@ bool CommandHandler::execute(const std::string& line) {
     //     // not yet
     // } 
     else if (command == "BANTUAN") {
-        game.writeLine("Commands: CETAK_PAPAN,\nCETAK_PROPERTI,\nBANGUN,\nLEMPAR_DADU,\nATUR_DADU X Y,\nSTATUS,\nCETAK_KARTU,\nGUNAKAN_KEMAMPUAN,\nKELUAR");
-    } else if (command == "KELUAR") {
+        game.writeLine("Commands: CETAK_PAPAN,\nCETAK_PROPERTI,\nBANGUN,\nLEMPAR_DADU,\nATUR_DADU X Y,\nSTATUS,\nCETAK_KARTU,\nGUNAKAN_KEMAMPUAN,\nSIMPAN,\nMUAT,\nKELUAR");
+    }
+    // SAVE/LOAD
+    else if (command == "SIMPAN") {
+        string first;
+        if (iss >> first) {
+            DataManager dm;
+            bool isOverride = false;
+            while(true) {
+                try {
+                    game.writeLine("Menyimpan permainan...");
+                    dm.save(first, isOverride);
+                    game.writeLine("Permainan berhasil disimpan ke: " + first);
+                } catch (SaveProhibitedException& e) {
+                    game.writeLine("Command SIMPAN tidak bisa dilakukan jika telah melakukan suatu aksi.");
+                } catch (FileExistsException& e) {
+                    game.writeLine("File \"" + e.getFileName() + "\" sudah ada.");
+                    string confirmation = askInput("Timpa file lama? (y/n): ");
+                    if(confirmation == "y" || confirmation == "Y") {
+                        isOverride = true;
+                        continue;
+                    }
+                    game.writeLine("SIMPAN dibatalkan.");
+                } catch (SaveFailedException& e) {
+                    game.writeLine("Gagal menyimpan file! Pastikan direktori dapat ditulis.");
+                }
+                break;
+            }
+        }
+
+        else {
+            game.writeLine("Format: SIMPAN <nama_file>.txt");
+        }
+    } else if (command == "MUAT") {
+        // not implemented yet
+    }
+    
+    else if (command == "KELUAR") {
         return false;
     } else if (!command.empty()) {
-        game.writeLine("Command tidak dikenali. Ketik BANTUAN.");
+        game.writeLine("Command tidak dikenali. Ketik BANTUAN untuk melihat command yang dikenali.");
     }
+    
 
     return true;
 }

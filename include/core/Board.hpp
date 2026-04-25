@@ -6,6 +6,7 @@
 
 class Player;
 class Tile;
+class Street;
 class Railroad;
 class Utility;
 
@@ -29,6 +30,7 @@ public:
 	void setGoIndex(int index){ this->goIndex = index; } // done
 	void setJailIndex(int index){ this->jailIndex = index; } // done
 	std::vector<Tile*> getColorGroup(const std::string& color) const ; // done
+	std::vector<Street*> getAllStreet() const;
 	std::vector<Railroad*> getAllRailroad() const ; // done
 	std::vector<Utility*> getAllUtility() const ; // done
 	bool canUpgradeProperty(Player &player, Tile* tile); 

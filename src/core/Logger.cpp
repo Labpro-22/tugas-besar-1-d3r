@@ -48,7 +48,7 @@ void Logger::log(int turn, const std::string& username, StateLog::ACTION_TYPE ac
 void Logger::printLog(int amount){
     int startIdx;
 	GameManager& game = GameManager::getInstance();
-    if(amount < 0 || amount > logs.size()){ // nanti pake exception
+    if(amount < 0 || amount > int(logs.size())){ // nanti pake exception
         startIdx = 0;
         game.writeLine("=== Log Transaksi Penuh ===");
     }

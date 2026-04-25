@@ -50,7 +50,7 @@ void BoardRenderer::RenderBoard(Board board)
     }
 
     std::vector<Player*> players = GameManager::getInstance().getPlayers();
-    for (int j = 0; j < players.size(); j++) {
+    for (size_t j = 0; j < players.size(); j++) {
         int playerPositionIndex = players.at(j)->getCurrentTile()->getIndex();
         PawnRenderer::getInstance().DrawPawn(playerPositionIndex, j);
     }

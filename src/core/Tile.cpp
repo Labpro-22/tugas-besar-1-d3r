@@ -38,9 +38,6 @@ void Property::setFestivalDuration(int duration) { this->festivalDuration = dura
 void Property::setOwner(Player* newOwner) { this->owner = newOwner; }
 void Property::setPropertyStatus(PROPERTY_STATUS status) { this->propertyStatus = status; }
 
-void Property::runTile(Player* player) {
-    // TODO: Implement property tile behavior
-}
 int Property::getAssetValue() const {
     return landCost;
 }
