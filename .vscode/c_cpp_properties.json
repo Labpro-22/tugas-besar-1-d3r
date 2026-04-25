@@ -32,8 +32,8 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/include",
-                "${workspaceFolder}/include/**",
+                "c:/Users/FAIQ/Documents/GitHub/tugas-besar-1-d3r/include",
+                "c:/Users/FAIQ/Documents/GitHub/tugas-besar-1-d3r/include/**",
                 "/usr/include",
                 "/usr/include/raylib",
                 "/usr/local/include",
@@ -41,18 +41,21 @@
                 "/opt/raylib/include"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/g++",
+            "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "linux-gcc-x64",
             "browse": {
                 "path": [
-                    "${workspaceFolder}",
+                    "c:/Users/FAIQ/Documents/GitHub/tugas-besar-1-d3r",
                     "/usr/include",
                     "/usr/local/include"
                 ],
                 "limitSymbolsToIncludedHeaders": true
-            }
+            },
+            "compilerPathInCppPropertiesJson": "/usr/bin/g++",
+            "mergeConfigurations": false,
+            "recursiveIncludes": {}
         },
         {
             "name": "Windows",

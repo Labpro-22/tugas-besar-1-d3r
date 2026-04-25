@@ -2,6 +2,9 @@
 
 #include "raylib.h"
 
+#undef PINK
+#undef ORANGE
+
 #include "Boardview/BoardRenderer.hpp"
 #include "Boardview/BuildingRenderer.hpp"
 #include "Boardview/CenterRenderer.hpp"

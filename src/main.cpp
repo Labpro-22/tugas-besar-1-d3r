@@ -23,7 +23,7 @@ static void runGui(GameManager &gm)
     const int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "Nimonpoli");
     BoardRenderer br;
-    Camera2D camera = {0};
+    Camera2D camera;
     camera.target = {(float)screenWidth / 2, (float)screenHeight / 2};
     camera.offset = {(float)screenWidth / 2, (float)screenHeight / 2};
     camera.rotation = 0.0f;

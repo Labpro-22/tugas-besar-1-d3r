@@ -6,6 +6,7 @@
 
 class Player;
 class Tile;
+class Street;
 class Railroad;
 class Utility;
 

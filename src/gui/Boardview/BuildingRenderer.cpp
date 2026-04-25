@@ -34,7 +34,7 @@ void BuildingRenderer::drawHouses(int count)
         return Vector2{s.x + t * (e.x - s.x), s.y + t * (e.y - s.y)};
     };
 
-    if (currentIndex >= 1 && currentIndex <= base || currentIndex > base && currentIndex <= base * 2) {
+    if ((currentIndex >= 1 && currentIndex <= base) || (currentIndex > base && currentIndex <= base * 2)) {
         // Sisi Kanan-Bawah (menuju mid dari arah 'right')
         anchors[0] = Vector2Lerp(right, mid, 0.25f);
         anchors[1] = Vector2Lerp(right, mid, 0.50f);

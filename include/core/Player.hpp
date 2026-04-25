@@ -62,7 +62,7 @@ class Player {
         
         // specific method
 
-        void buyBackMortgaged(Property* mortgaged, Board* board);
+        void buyBackMortgaged(Property* mortgaged);
         Player* operator+=(int money); // untuk proses penambahan currency
         Player* operator-=(int money); // untuk proses pengurangan currency
         void activateDiscount(float discount, int turns = 1);

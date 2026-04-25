@@ -21,7 +21,7 @@ class InvalidDiceException : public NimonspoliException {
         int dice1Value;
         int dice2Value;
     public:
-        InvalidDiceException(int dice1, int dice2) : dice1Value(dice1), dice2Value(dice2), NimonspoliException(1, "DICE_VALUE_INVALID") {}
+        InvalidDiceException(int dice1, int dice2) : NimonspoliException(1, "DICE_VALUE_INVALID"), dice1Value(dice1), dice2Value(dice2) {}
         int getDice1() const noexcept { return dice1Value; }
         int getDice2() const noexcept { return dice2Value; }
 };
@@ -30,7 +30,7 @@ class InvalidTileCodeException : public NimonspoliException {
     private:
         string tileCode;
     public:
-        InvalidTileCodeException(string tileCode) : tileCode(tileCode), NimonspoliException(2, "TILE_CODE_INVALID") {}
+        InvalidTileCodeException(string tileCode) : NimonspoliException(2, "TILE_CODE_INVALID"), tileCode(tileCode) {}
         string getTileCode() const noexcept { return tileCode; }
 };
 
@@ -45,7 +45,7 @@ class NotEnoughMoneyException : public NimonspoliException {
         int moneyNeeded;
         int moneyAvailable;
     public:
-        NotEnoughMoneyException(string purchaseWhat, int need, int avail) : failedToPurchase(purchaseWhat), moneyNeeded(need), moneyAvailable(avail), NimonspoliException(4, "NOT_ENOUGH_MONEY") {}
+        NotEnoughMoneyException(string purchaseWhat, int need, int avail) : NimonspoliException(4, "NOT_ENOUGH_MONEY"), failedToPurchase(purchaseWhat), moneyNeeded(need), moneyAvailable(avail) {}
         string purchaseWhat() const noexcept { return failedToPurchase; }
         int getMoneyNeeded() const noexcept { return moneyNeeded; }
         int getMoneyAvailable() const noexcept { return moneyAvailable; }
@@ -71,7 +71,7 @@ class FailedMortgageException : public NimonspoliException {
         string propertyName;
         string colorGroup;
     public:
-        FailedMortgageException(string prop, string color) : propertyName(prop), colorGroup(color), NimonspoliException(8, "MORTGAGE_FAILED") {}
+        FailedMortgageException(string prop, string color) : NimonspoliException(8, "MORTGAGE_FAILED"), propertyName(prop), colorGroup(color) {}
         string getPropertyName() const noexcept { return propertyName; }
         string getColorGroup() const noexcept { return colorGroup; }
 };
@@ -88,8 +88,7 @@ class InvalidChoiceException : public NimonspoliException {
         int actualChoice;
     public:
         InvalidChoiceException(int selected, int min, int max) : 
-            minExpectedChoice(min), maxExpectedChoice(max), actualChoice(selected),
-            NimonspoliException(10, "INVALID_CHOICE") {}
+            NimonspoliException(10, "INVALID_CHOICE"), minExpectedChoice(min), maxExpectedChoice(max), actualChoice(selected) {}
         int getMinChoice() const noexcept { return minExpectedChoice; }
         int getMaxChoice() const noexcept { return maxExpectedChoice; }
         int getActualChoice() const noexcept { return actualChoice; }      
