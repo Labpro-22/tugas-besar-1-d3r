@@ -110,6 +110,7 @@ class FileExistsException : public NimonspoliException {
         string& fileName;
     public:
         FileExistsException(string& fileName) : NimonspoliException(13, "FILE_EXISTS"), fileName(fileName)  {}
+        string& getFileName() const { return fileName; }
 };
 
 class FileNotExistsException : public NimonspoliException {
@@ -117,4 +118,10 @@ class FileNotExistsException : public NimonspoliException {
         string& fileName;
     public:
         FileNotExistsException(string& fileName) : NimonspoliException(14, "FILE_NOT_EXISTS"), fileName(fileName)  {}
+        string& getFileName() const { return fileName; }
+};
+
+class SaveProhibitedException : public NimonspoliException { 
+    public:
+        SaveProhibitedException() : NimonspoliException(15, "SAVE_PROHIBITED") {}
 };

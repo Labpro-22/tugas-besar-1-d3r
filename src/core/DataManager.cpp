@@ -184,6 +184,13 @@ void DataManager::load() {
 }
 
 void DataManager::save(string fileName, bool override = false) {
+    GameManager& game = GameManager::getInstance();
+    
+    const std::vector<StateLog>& logs = game.getLogger().getLogs();
+    if(logs.back().getTurn() == game.getTurn()) {
+        throw SaveProhibitedException();
+    }
+
     string path = "data/" + fileName;
     if(isFileExists(path) && !override) {
         throw FileExistsException(path);
@@ -192,8 +199,6 @@ void DataManager::save(string fileName, bool override = false) {
     if (!file.is_open()) {
         throw SaveFailedException();
     }
-
-    GameManager& game = GameManager::getInstance();
 
     file << game.getTurn() << " " << game.getMaxTurn() << "\n";
     const vector<Player*>& players = game.getPlayers();
@@ -267,6 +272,8 @@ void DataManager::save(string fileName, bool override = false) {
         const StateLog& log = logs.at(i);
         file << log.getTurn() << " " << log.getUsername() << " " << log.getAction() << " " << log.getDetail() << "\n";
     }
+
+    file.close();
 }
 
 bool DataManager::isFileExists (const string& name) {
