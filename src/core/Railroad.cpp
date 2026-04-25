@@ -45,21 +45,46 @@ void Railroad::runTile(Player *player){
     // rent mechanism
     if (propertyStatus == OWNED && owner != nullptr && owner != player) {
         int rent = getRentCost();
-        
+
         gm.writeLine("Kamu mendarat di " + name + " (" + code + "), milik " + owner->getUsername() + "!");
         gm.writeLine("");
-        
+
         int level = gm.getBoard().getRailroadLevel(const_cast<Railroad *>(this));
-        gm.writeLine("Kondisi      : " + to_string(level) + " stasiun dimiliki");
-        gm.writeLine("Sewa         : M" + to_string(rent));
+        std::string condition = std::to_string(level) + " stasiun dimiliki";
+        if (festivalMultiplier != 1) {
+            condition += ", festival aktif x" + std::to_string(festivalMultiplier);
+        }
+
+        gm.writeLine("Kondisi      : " + condition);
+        gm.writeLine("Sewa         : M" + std::to_string(rent));
         gm.writeLine("");
-        
-        std::string mulLog;
-        if(festivalMultiplier != 1) mulLog = ", festival aktif x" + to_string(festivalMultiplier);
-        std::string rentLog = "Bayar " + to_string(rent) + " ke " + owner->getUsername() + " (" + code + ", level" + to_string(level) + mulLog + ")";
+
+        std::string rentLog = "Bayar " + std::to_string(rent) + " ke " + owner->getUsername() +
+                            " (" + code + ", level " + std::to_string(level) + ")";
         logger.log(player->getUsername(), StateLog::PAY_RENT, rentLog);
-        
+
+        int playerMoneyBefore = player->getCurrency();
+        int ownerMoneyBefore = owner->getCurrency();
+        bool canPayNormally = playerMoneyBefore >= rent;
+
         gm.pay(player, rent, owner);
+
+        if (canPayNormally) {
+            std::string playerMoneyLabel = "Uang kamu";
+            if (playerMoneyLabel.length() < 14) {
+                playerMoneyLabel += std::string(14 - playerMoneyLabel.length(), ' ');
+            }
+
+            std::string ownerMoneyLabel = "Uang " + owner->getUsername();
+            if (ownerMoneyLabel.length() < 14) {
+                ownerMoneyLabel += std::string(14 - ownerMoneyLabel.length(), ' ');
+            }
+
+            gm.writeLine(playerMoneyLabel + ": M" + std::to_string(playerMoneyBefore) +
+                        " -> M" + std::to_string(player->getCurrency()));
+            gm.writeLine(ownerMoneyLabel + ": M" + std::to_string(ownerMoneyBefore) +
+                        " -> M" + std::to_string(owner->getCurrency()));
+        }
     }
 }
 

@@ -133,24 +133,40 @@ void Street::runTile(Player* player) {
     if (propertyStatus == OWNED && owner != nullptr && owner != player) {
         gm.writeLine("Kamu mendarat di " + name + " (" + code + "), milik " + owner->getUsername() + "!");
         gm.writeLine("");
-        
+
         int rent = getRentCost();
         string houseCount;
         string mulLog;
-        if(currentLevel < 5 && currentLevel > 0) houseCount = to_string(currentLevel) + " rumah";
-        else if(currentLevel == 5) houseCount = "Hotel";
-        else houseCount = "Tanah kosong";
-        
-        if(festivalMultiplier != 1) mulLog = ", festival aktif x" + to_string(festivalMultiplier);
-        
+
+        if (currentLevel < 5 && currentLevel > 0) {
+            houseCount = to_string(currentLevel) + " rumah";
+        } else if (currentLevel == 5) {
+            houseCount = "Hotel";
+        } else {
+            houseCount = "Tanah kosong";
+        }
+
+        if (festivalMultiplier != 1) {
+            mulLog = ", festival aktif x" + to_string(festivalMultiplier);
+        }
+
         gm.writeLine("Kondisi      : " + houseCount + mulLog);
         gm.writeLine("Sewa         : M" + to_string(rent));
         gm.writeLine("");
 
         string rentLog = "Bayar " + to_string(rent) + " ke " + owner->getUsername() + " (" + code + ", " + houseCount + mulLog + ")";
         logger.log(player->getUsername(), StateLog::PAY_RENT, rentLog);
-        
+
+        int playerMoneyBefore = player->getCurrency();
+        int ownerMoneyBefore = owner->getCurrency();
+        bool canPayNormally = playerMoneyBefore >= rent;
+
         gm.pay(player, rent, owner);
+
+        if (canPayNormally) {
+            gm.writeLine("Uang kamu     : M" + to_string(playerMoneyBefore) + " -> M" + to_string(player->getCurrency()));
+            gm.writeLine("Uang " + owner->getUsername() + " : M" + to_string(ownerMoneyBefore) + " -> M" + to_string(owner->getCurrency()));
+        }
     }
 }
 

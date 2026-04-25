@@ -155,7 +155,7 @@ void GameManager::rollDice(int dice1, int dice2) {
     }
 
     currentTurnPlayer->moveTo(destination, true);
-    writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
+    // writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
 
     if (!dice.isDouble()) {
         nextTurn();
