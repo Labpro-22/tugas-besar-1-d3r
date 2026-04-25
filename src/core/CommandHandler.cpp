@@ -9,23 +9,71 @@
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
 
-std::string CommandHandler::askInput(const std::string& prompt) const {
-    return GameManager::getInstance().readLine(prompt);
+static std::string normalizeToken(std::string text, bool caseInsensitive)
+{
+    if (!caseInsensitive) {
+        return text;
+    }
+
+    std::transform(text.begin(), text.end(), text.begin(),
+        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+    return text;
+}
+
+static std::string joinOptions(const std::vector<std::string>& options)
+{
+    std::string result;
+    for (size_t i = 0; i < options.size(); ++i) {
+        if (i > 0) {
+            result += "/";
+        }
+        result += options[i];
+    }
+    return result;
+}
+
+std::string CommandHandler::askInput(const std::string& prompt, bool allowEmpty) const {
+    while (true) {
+        const std::string line = GameManager::getInstance().readLine(prompt);
+        if (allowEmpty || !line.empty()) {
+            return line;
+        }
+
+        GameManager::getInstance().writeLine("Input tidak boleh kosong.");
+    }
+}
+
+std::string CommandHandler::askChoice(const std::string& prompt,const std::vector<std::string>& validOptions,bool caseInsensitive) const {
+    while (true) {
+        const std::string line = askInput(prompt);
+        const std::string normalizedLine = normalizeToken(line, caseInsensitive);
+
+        for (const std::string& option : validOptions) {
+            if (normalizedLine == normalizeToken(option, caseInsensitive)) {
+                return option;
+            }
+        }
+
+        GameManager::getInstance().writeLine(
+            "Pilihan tidak valid. Opsi yang tersedia: " + joinOptions(validOptions)
+        );
+    }
 }
 
 int CommandHandler::askInt(const std::string& prompt, int minValue, int maxValue) const {
     while (true) {
         const std::string line = askInput(prompt);
-        if (line.empty()) {
-            return minValue;
-        }
 
         std::istringstream iss(line);
         int value = 0;
         char tail = '\0';
+
         if ((iss >> value) && !(iss >> tail)) {
             if (value < minValue || value > maxValue) {
-                GameManager::getInstance().writeLine("Masukkan angka antara " + std::to_string(minValue) + " dan " + std::to_string(maxValue) + ".");
+                GameManager::getInstance().writeLine(
+                    "Masukkan angka antara " + std::to_string(minValue) + " dan " + std::to_string(maxValue) + "."
+                );
                 continue;
             }
             return value;

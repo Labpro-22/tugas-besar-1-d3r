@@ -179,9 +179,9 @@ void GameConsole::WriteLine(std::string text)
 
 std::string GameConsole::ReadLineBlocking(const std::string& prompt)
 {
-    (void)prompt;
-
-    waitingForBlockingInput = true;
+    inputMode = InputMode::Prompt;
+    promptLabel = prompt;
+    promptBuffer.clear();
     blockingInputReady = false;
     blockingInputResult.clear();
 
@@ -194,7 +194,8 @@ std::string GameConsole::ReadLineBlocking(const std::string& prompt)
         EndDrawing();
     }
 
-    waitingForBlockingInput = false;
+    inputMode = InputMode::Command;
+    promptLabel.clear();
 
     if (!blockingInputReady) {
         return "";
@@ -205,6 +206,7 @@ std::string GameConsole::ReadLineBlocking(const std::string& prompt)
     blockingInputResult.clear();
     return result;
 }
+
 
 void GameConsole::AutoScrollToBottom()
 {
@@ -231,7 +233,6 @@ void GameConsole::Update()
         scrollOffset -= (int)wheel;
         if (scrollOffset < 0) scrollOffset = 0;
 
-        // Calculate max scroll based on display lines (wrapped)
         float historyHeight = bounds.height - 75;
         int lineSpacing = fontSize + 4;
         int visibleLines = (int)(historyHeight / lineSpacing);
@@ -244,73 +245,66 @@ void GameConsole::Update()
     if (isResizing) {
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             isResizing = false;
-        }
-        else {
+        } else {
             float width = bounds.width + (mouse.x - lastMouse.x);
             bounds.width = (width > minWidth) ? ((width < maxWidth) ? width : maxWidth) : minWidth;
 
             float height = bounds.height + (mouse.y - lastMouse.y);
             bounds.height = (height > minHeight) ? ((height < maxHeight) ? height : maxHeight) : minHeight;
         }
-    }
-    else if (isMoving) {
+    } else if (isMoving) {
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             isMoving = false;
-        }
-        else {
+        } else {
             bounds.x += (mouse.x - lastMouse.x);
             bounds.y += (mouse.y - lastMouse.y);
         }
-    }
-    else {
+    } else {
         if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, resizer)) {
             isResizing = true;
-        }
-        else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, titleBar)) {
+        } else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, titleBar)) {
             isMoving = true;
         }
     }
 
-    // Update positions
     resizer.x = bounds.x + bounds.width - 17;
     resizer.y = bounds.y + bounds.height - 17;
-
     titleBar.x = bounds.x;
     titleBar.y = bounds.y;
     titleBar.width = bounds.width;
-
     lastMouse = mouse;
 
-    // Handle Text Input
+    std::string& buffer = (inputMode == InputMode::Prompt) ? promptBuffer : commandBuffer;
+
     int key = GetCharPressed();
     while (key > 0) {
         if ((key >= 32) && (key <= 125)) {
-            currentInput += (char)key;
+            buffer += (char)key;
         }
         key = GetCharPressed();
     }
 
-    if (IsKeyPressed(KEY_BACKSPACE) && !currentInput.empty()) {
-        currentInput.pop_back();
+    if (IsKeyPressed(KEY_BACKSPACE) && !buffer.empty()) {
+        buffer.pop_back();
     }
 
-    // Handle Enter (Eksekusi Perintah)
-    if (IsKeyPressed(KEY_ENTER) && !currentInput.empty()) {
-        WriteLine("> " + currentInput);
+    if (IsKeyPressed(KEY_ENTER) && !buffer.empty()) {
+        std::string submitted = buffer;
+        buffer.clear();
 
-        if (waitingForBlockingInput) {
-            blockingInputResult = currentInput;
+        WriteLine("> " + submitted);
+
+        if (inputMode == InputMode::Prompt) {
+            blockingInputResult = submitted;
             blockingInputReady = true;
+        } else if (commandCallback != nullptr) {
+            commandCallback(submitted);
+        } else {
+            ProcessCommand(submitted);
         }
-        else if (commandCallback != nullptr) {
-            commandCallback(currentInput);
-        }
-        else {
-            ProcessCommand(currentInput);
-        }
-        currentInput.clear();
     }
 }
+
 
 void GameConsole::ProcessCommand(std::string cmd)
 {
@@ -321,11 +315,9 @@ void GameConsole::ProcessCommand(std::string cmd)
 
 void GameConsole::Render()
 {
-    // Draw main background
     DrawRectangleRec(bounds, ColorAlpha(BLACK, 0.8f));
     DrawRectangleLinesEx(bounds, 2, DARKGRAY);
 
-    // Draw title bar (for dragging)
     Color titleBarColor = isMoving ? Fade(BLUE, 0.7f) : Fade(DARKBLUE, 0.6f);
     DrawRectangleRec(titleBar, titleBarColor);
     DrawRectangleLinesEx(titleBar, 1, SKYBLUE);
@@ -338,7 +330,6 @@ void GameConsole::Render()
         bounds.height - 75
     };
 
-    // Draw history text line-by-line (no wrapping needed - already wrapped)
     float historyHeight = historyArea.height;
     int lineSpacing = fontSize + 4;
     int visibleLines = (int)(historyHeight / lineSpacing);
@@ -356,20 +347,24 @@ void GameConsole::Render()
     }
     EndScissorMode();
 
-    // Render input box at bottom
     float inputPosY = bounds.y + bounds.height - 30;
     DrawRectangle(bounds.x, inputPosY, bounds.width, 30, ColorAlpha(DARKGRAY, 0.9f));
 
-    std::string inputShow = "CMD: " + currentInput;
+    const bool isPrompt = (inputMode == InputMode::Prompt);
+    const std::string& buffer = isPrompt ? promptBuffer : commandBuffer;
+
+    if (isPrompt && !promptLabel.empty()) {
+        DrawText(promptLabel.c_str(), bounds.x + 10, inputPosY - 16, 10, LIGHTGRAY);
+    }
+
+    std::string inputShow = (isPrompt ? "PROMPT: " : "CMD: ") + buffer;
     DrawText(inputShow.c_str(), bounds.x + 10, inputPosY + 7, fontSize, YELLOW);
 
-    // Blinking cursor
     if (((framesCounter / 20) % 2) == 0) {
         int txtWidth = MeasureText(inputShow.c_str(), fontSize);
         DrawText("_", bounds.x + 10 + txtWidth, inputPosY + 7, fontSize, YELLOW);
     }
 
-    // Draw resizer handle in bottom-right corner
     Color resizerColor = isResizing ? Fade(YELLOW, 0.8f) : Fade(DARKGRAY, 0.6f);
     DrawRectangleRec(resizer, resizerColor);
     DrawRectangleLinesEx(resizer, 1, YELLOW);

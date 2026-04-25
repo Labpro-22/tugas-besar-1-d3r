@@ -101,10 +101,12 @@ void Street::runTile(Player* player) {
         
         //premature check currency because the spec says so
         if (player->getCurrency() >= price) {
-            string yN = gm.getCommandHandler().askInput("Apakah kamu ingin membeli properti ini seharga M" + to_string(price) + "? (y/n): ");
-            if (yN == "y" || yN == "Y") {
-                wantBuy = true;
-            }
+            const std::string choice = gm.getCommandHandler().askChoice(
+                "Apakah kamu ingin membeli properti ini seharga M" + std::to_string(price) + "? (y/n): ",
+                {"y", "n"}
+            );
+
+            wantBuy = (choice == "y");
         }
         
         if (wantBuy) {

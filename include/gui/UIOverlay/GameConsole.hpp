@@ -6,6 +6,11 @@
 class GameConsole
 {
 private:
+    enum class InputMode {
+        Command,
+        Prompt
+    };
+
     // Konfigurasi Area
     Rectangle bounds;
     Rectangle resizer;             
@@ -16,11 +21,18 @@ private:
     // Data Teks
     std::vector<std::string> history;
     std::vector<std::string> displayLines;  // Wrapped lines for rendering
-    std::string currentInput;
+    
+    // std::string currentInput;
+    std::string commandBuffer;
+    std::string promptBuffer;
+    std::string promptLabel;
+    InputMode inputMode = InputMode::Command;
+
     int scrollOffset = 0;
-    bool waitingForBlockingInput = false;
+    // bool waitingForBlockingInput = false;
     bool blockingInputReady = false;
     std::string blockingInputResult;
+
     std::vector<std::string> WrapText(const std::string& text, float maxWidth);
 
     // State Input
