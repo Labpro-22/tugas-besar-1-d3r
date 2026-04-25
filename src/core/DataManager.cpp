@@ -207,10 +207,10 @@ void DataManager::save(string fileName, bool override = false) {
         for(int i = 0; i < skillCards.size(); i++) {
             const SkillCard* skillCard = skillCards.at(i);
             file << skillCard->getCardName();
-            if(skillCard->getCardValue() > 0) {
+            if(skillCard->getCardValue() != 0) {
                 file << " " << skillCard->getCardValue();
             }
-            if(skillCard->getCardDuration() > 0) {
+            if(skillCard->getCardDuration() != 0) {
                 file << " " << skillCard->getCardDuration();
             }
             file << "\n";
@@ -218,12 +218,55 @@ void DataManager::save(string fileName, bool override = false) {
     }
 
     // State Properti
+    const vector<Street*> &streets = game.getBoard().getAllStreet();
+    const vector<Railroad*> &railroads = game.getBoard().getAllRailroad();
+    const vector<Utility*> &utilities = game.getBoard().getAllUtility();
+
+    file << streets.size() + railroads.size() + utilities.size() << "\n";
+
+    for(int i = 0; i < streets.size(); i++) {
+        const Street* street = streets.at(i);
+        file << street->getCode() << " " << "street" << " ";
+        if(street->getOwner() == nullptr) file << "BANK" << " ";
+        else file << street->getOwner()->getUsername() << " ";
+        file << street->getPropertyStatus() << " " << street->getFestivalMultiplier() << " " << street->getFestivalDuration() << " " << street->getCurrentLevel() << "\n";
+    }
+
+    for(int i = 0; i < railroads.size(); i++) {
+        const Railroad* railroad = railroads.at(i);
+        file << railroad->getCode() << " " << "railroad" << " ";
+        if(railroad->getOwner() == nullptr) file << "BANK" << " ";
+        else file << railroad->getOwner()->getUsername() << " ";
+        file << railroad->getPropertyStatus() << " " << railroad->getFestivalMultiplier() << " " << railroad->getFestivalDuration() << " " << 0 << "\n";
+    }
+
+    for(int i = 0; i < utilities.size(); i++) {
+        const Utility* utility = utilities.at(i);
+        file << utility->getCode() << " " << "utility" << " ";
+        if(utility->getOwner() == nullptr) file << "BANK" << " ";
+        else file << utility->getOwner()->getUsername() << " ";
+        file << utility->getPropertyStatus() << " " << utility->getFestivalMultiplier() << " " << utility->getFestivalDuration() << " " << 0 << "\n";
+    }
 
     // State Deck
+    const CardDeck<SkillCard>& skillDeck = game.getSkillDeck();
+
+    file << skillDeck.size() << "\n";
+
+    for(int i = 0; i < skillDeck.size(); i++) {
+        const SkillCard* skillCard = skillDeck.getCards().at(i);
+        file << skillCard->getCardName() << "\n";
+    }
 
     // State Log
+    const vector<StateLog>& logs = game.getLogger().getLogs();
+    
+    file << logs.size() << "\n";
 
-    // Other
+    for(int i = 0; i < logs.size(); i++) {
+        const StateLog& log = logs.at(i);
+        file << log.getTurn() << " " << log.getUsername() << " " << log.getAction() << " " << log.getDetail() << "\n";
+    }
 }
 
 bool DataManager::isFileExists (const string& name) {

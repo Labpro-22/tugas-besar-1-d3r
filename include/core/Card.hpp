@@ -72,7 +72,7 @@ public:
 };
 
 class SkillCard : public Card {
-private:
+protected:
     int cardValue;
     int cardDuration;
 public:
@@ -82,13 +82,12 @@ public:
     CARD_TYPE getCardType() const;
     int getCardValue() const;
     int getCardDuration() const;
+    void setCardValue(int value);
+    void setCardDuration(int duration);
     void useCard(Player*, std::vector<Player*>) override = 0;
 };
 
 class MoveCard : public SkillCard {
-private:
-    int tileCount;
-
 public:
     MoveCard();
     MoveCard(int);
@@ -98,11 +97,11 @@ public:
 };
 
 class DiscountCard : public SkillCard {
-private:
-    float discount;
 public:
     DiscountCard();
-    DiscountCard(float);
+    DiscountCard(int);
+    float getDiscount() const;
+    void setDiscount(int);
     void useCard(Player*, std::vector<Player*>) override;
 };
 

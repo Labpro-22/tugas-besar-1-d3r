@@ -182,6 +182,13 @@ int SkillCard::getCardDuration() const {
     return cardDuration;
 }
 
+void SkillCard::setCardValue(int value) {
+    cardValue = value;
+}
+void SkillCard::setCardDuration(int duration) {
+    cardDuration = duration;
+}
+
 static int randomInt(int minValue, int maxValue)
 {
     static std::random_device rd;
@@ -191,15 +198,15 @@ static int randomInt(int minValue, int maxValue)
 }
 
 MoveCard::MoveCard() : MoveCard(randomInt(1, 12)) {}
-MoveCard::MoveCard(int tileCount) : SkillCard("MOVE_CARD", "Maju sejumlah " + std::to_string(tileCount) + " petak"), tileCount(tileCount) {}
+MoveCard::MoveCard(int tileCount) : SkillCard("MOVE_CARD", "Maju sejumlah " + std::to_string(tileCount) + " petak", tileCount, 0) {}
 int MoveCard::getTileCount() const
 {
-    return tileCount;
+    return getCardValue();
 }
 
 void MoveCard::setTileCount(int value)
 {
-    tileCount = value;
+    cardValue = value;
 }
 
 void MoveCard::useCard(Player *currentPlayer, std::vector<Player *>)
@@ -209,29 +216,36 @@ void MoveCard::useCard(Player *currentPlayer, std::vector<Player *>)
         return;
     }
 
-    Tile *destination = GameManager::getInstance().getBoard().goToTile(*currentPlayer->getCurrentTile(), tileCount);
+    Tile *destination = GameManager::getInstance().getBoard().goToTile(*currentPlayer->getCurrentTile(), getTileCount());
     if (destination != nullptr)
     {
         currentPlayer->moveTo(destination, true);
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai MoveCard → Maju sejauh " + to_string(tileCount) + " petak, mendarat di " + destination->getName() + " (" + destination->getCode() + ")");
+        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai MoveCard → Maju sejauh " + to_string(getTileCount()) + " petak, mendarat di " + destination->getName() + " (" + destination->getCode() + ")");
     }
 }
 
-DiscountCard::DiscountCard() : DiscountCard(static_cast<float>(randomInt(10, 50))) {}
-DiscountCard::DiscountCard(float discount) : SkillCard("DISCOUNT_CARD", "Semua properti mendapatkan diskon sebesar " + std::to_string(discount) + " persen"), discount(discount) {}
+DiscountCard::DiscountCard() : DiscountCard((randomInt(10, 50))) {}
+DiscountCard::DiscountCard(int discount) : SkillCard("DISCOUNT_CARD", "Semua properti mendapatkan diskon sebesar " + std::to_string(discount) + " persen", discount, 1) {}
+
+float DiscountCard::getDiscount() const {
+    return static_cast<float>(getCardValue());
+}
+void DiscountCard::setDiscount(int discount) {
+    setCardValue(discount);
+}
 
 void DiscountCard::useCard(Player *currentPlayer, std::vector<Player *>)
 {
     if (currentPlayer != nullptr)
     {
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai DiscountCard → Dapat diskon sebesar " + to_string(discount));
-        currentPlayer->activateDiscount(discount);
+        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai DiscountCard → Dapat diskon sebesar " + to_string(getDiscount()));
+        currentPlayer->activateDiscount(getDiscount());
     }
 }
 
-ShieldCard::ShieldCard() : SkillCard("SHIELD_CARD", "Melindungi dari tagihan sewa dan sanksi selama 1 giliran") {}
+ShieldCard::ShieldCard() : SkillCard("SHIELD_CARD", "Melindungi dari tagihan sewa dan sanksi selama 1 giliran", 0, 1) {}
 void ShieldCard::useCard(Player *currentPlayer, std::vector<Player *>)
 {
     if (currentPlayer != nullptr)
@@ -242,7 +256,7 @@ void ShieldCard::useCard(Player *currentPlayer, std::vector<Player *>)
     }
 }
 
-TeleportCard::TeleportCard() : SkillCard("TELEPORT_CARD", "Berpindah ke petak tujuan") {}
+TeleportCard::TeleportCard() : SkillCard("TELEPORT_CARD", "Berpindah ke petak tujuan", 0 , 0) {}
 
 void TeleportCard::useCard(Player *currentPlayer, std::vector<Player *>)
 {
@@ -265,7 +279,7 @@ void TeleportCard::useCard(Player *currentPlayer, std::vector<Player *>)
     }
 }
 
-LassoCard::LassoCard() : SkillCard("LASSO_CARD", "Tarik pemain di depan ke posisimu") {}
+LassoCard::LassoCard() : SkillCard("LASSO_CARD", "Tarik pemain di depan ke posisimu", 0, 0) {}
 
 void LassoCard::useCard(Player *currentPlayer, std::vector<Player *>)
 {
@@ -283,7 +297,7 @@ void LassoCard::useCard(Player *currentPlayer, std::vector<Player *>)
     }
 }
 
-DemolitionCard::DemolitionCard() : SkillCard("DEMOLITION_CARD", "Hancurkan properti lawan pada petak tujuan") {}
+DemolitionCard::DemolitionCard() : SkillCard("DEMOLITION_CARD", "Hancurkan properti lawan pada petak tujuan", 0, 0) {}
 
 void DemolitionCard::useCard(Player *currentPlayer, std::vector<Player *>)
 {

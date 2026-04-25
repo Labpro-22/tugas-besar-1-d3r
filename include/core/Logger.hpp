@@ -59,6 +59,10 @@ public:
 		static Logger instance;
 		return instance;
 	}
+
+	std::vector<StateLog> getLogs() const { return logs; }
+	void setLogs(std::vector<StateLog> logs) { this->logs = logs; }
+
 	void log(const std::string& username, StateLog::ACTION_TYPE action, const std::string& detail);
 	void log(int turn, const std::string& username, StateLog::ACTION_TYPE action, const std::string& detail);
 	void printLog(int amount = -1);
