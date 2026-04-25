@@ -30,5 +30,6 @@ public:
     void loadDefaultTiles();
 
     void load();
-    void save();
+    void save(string fileName, bool override = false);
+    bool isFileExists(const string fileName);
 };

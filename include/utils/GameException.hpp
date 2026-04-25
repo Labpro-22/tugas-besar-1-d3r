@@ -104,3 +104,17 @@ class LoadFailedException : public NimonspoliException {
     public:
         LoadFailedException() : NimonspoliException(12, "LOAD_FAILED") {}
 };
+
+class FileExistsException : public NimonspoliException {
+    private:
+        string& fileName;
+    public:
+        FileExistsException(string& fileName) : NimonspoliException(13, "FILE_EXISTS"), fileName(fileName)  {}
+};
+
+class FileNotExistsException : public NimonspoliException {
+    private:
+        string& fileName;
+    public:
+        FileNotExistsException(string& fileName) : NimonspoliException(14, "FILE_NOT_EXISTS"), fileName(fileName)  {}
+};

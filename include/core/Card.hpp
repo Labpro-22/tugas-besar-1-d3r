@@ -72,11 +72,16 @@ public:
 };
 
 class SkillCard : public Card {
+private:
+    int cardValue;
+    int cardDuration;
 public:
-    SkillCard(const std::string& cardName, const std::string& cardDescription);
+    SkillCard(const std::string& cardName, const std::string& cardDescription, const int cardValue, const int cardDuration);
     virtual ~SkillCard() = default;
 
     CARD_TYPE getCardType() const;
+    int getCardValue() const;
+    int getCardDuration() const;
     void useCard(Player*, std::vector<Player*>) override = 0;
 };
 

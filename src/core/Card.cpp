@@ -173,7 +173,14 @@ CARD_TYPE SkillCard::getCardType() const
     return SKILL;
 }
 
-SkillCard::SkillCard(const std::string &cardName, const std::string &cardDescription) : Card(cardName, cardDescription) {}
+SkillCard::SkillCard(const std::string &cardName, const std::string &cardDescription, const int cardValue, const int cardDuration) : Card(cardName, cardDescription), cardValue(cardValue), cardDuration(cardDuration) {}
+
+int SkillCard::getCardValue() const {
+    return cardValue;
+}
+int SkillCard::getCardDuration() const {
+    return cardDuration;
+}
 
 static int randomInt(int minValue, int maxValue)
 {

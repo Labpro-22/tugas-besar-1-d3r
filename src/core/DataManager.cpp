@@ -1,6 +1,7 @@
 #include "../../include/core/DataManager.hpp"
 #include "../../include/core/GameManager.hpp"
 #include "../../include/core/Tile.hpp"
+#include <sys/stat.h>
 
 
 DataManager::DataManager(const std::string& configMisc, const std::string& configProperty, const std::string& configTax, const std::string& configUtility, const std::string& configRailroad, const std::string& configSpecial) : configMisc(configMisc), configProperty(configProperty), configTax(configTax), configUtility(configUtility), configRailroad(configRailroad), configSpecial(configSpecial), configAction("config/aksi.txt"){}
@@ -180,4 +181,52 @@ void DataManager::load() {
 
     loadProperties(utilityRent, railroadRent);
     loadActions(taxConfig, specialConfig);
+}
+
+void DataManager::save(string fileName, bool override = false) {
+    string path = "data/" + fileName;
+    if(isFileExists(path) && !override) {
+        throw FileExistsException(path);
+    }
+    ofstream file("data/" + fileName);
+    if (!file.is_open()) {
+        throw SaveFailedException();
+    }
+
+    GameManager& game = GameManager::getInstance();
+
+    file << game.getTurn() << " " << game.getMaxTurn() << "\n";
+    const vector<Player*>& players = game.getPlayers();
+
+    // State Player
+    file << players.size() << "\n";
+    for(int i = 0; i < players.size(); i++) {
+        const Player* player = players.at(i);
+        file << player->getUsername() << " " << player->getCurrency() << " " << player->getCurrentTile()->getCode() << " " << player->getStatus() << "\n";
+        const vector<SkillCard*>& skillCards = player->getDeck().getCards();
+        for(int i = 0; i < skillCards.size(); i++) {
+            const SkillCard* skillCard = skillCards.at(i);
+            file << skillCard->getCardName();
+            if(skillCard->getCardValue() > 0) {
+                file << " " << skillCard->getCardValue();
+            }
+            if(skillCard->getCardDuration() > 0) {
+                file << " " << skillCard->getCardDuration();
+            }
+            file << "\n";
+        }
+    }
+
+    // State Properti
+
+    // State Deck
+
+    // State Log
+
+    // Other
+}
+
+bool DataManager::isFileExists (const string& name) {
+    struct stat buffer;   
+    return (stat(name.c_str(), &buffer) == 0); 
 }
