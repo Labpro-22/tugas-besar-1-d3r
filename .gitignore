@@ -8,7 +8,6 @@
 *.obj
 build/
 obj/
-bin/
 
 # Precompiled Headers
 *.gch
