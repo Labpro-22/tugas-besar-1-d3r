@@ -334,3 +334,29 @@ void DemolitionCard::useCard(Player *currentPlayer, std::vector<Player *>)
         GameManager::getInstance().writeLine("Target tidak valid atau tidak memiliki bangunan.");
     }
 }
+
+FreeJailCard::FreeJailCard() : SkillCard("Bebas Penjara", "Bebas dari Penjara", 0, 0) {}
+
+void FreeJailCard::useCard(Player *currentPlayer, std::vector<Player *>)
+{
+    if (currentPlayer == nullptr)
+    {
+        return;
+    }
+
+    if (currentPlayer->getStatus() == JAILED) {
+        Tile *jailTile = GameManager::getInstance().getBoard().getJailTile();
+        if (jailTile != nullptr) {
+            Prison* prison = dynamic_cast<Prison*>(jailTile);
+            if (prison != nullptr) {
+                prison->freeFromJailed(currentPlayer);
+                Logger &logger = Logger::getInstance();
+                logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai FreeJailCard → Bebas dari penjara");
+                GameManager::getInstance().writeLine("Berhasil menggunakan Kartu Bebas Penjara. Kamu sekarang bebas!");
+            }
+        }
+    } else {
+        GameManager::getInstance().writeLine("Kartu ini hanya bisa digunakan saat berada di penjara.");
+        // Should we refund the card? Usually skill cards are consumed, but we can assume the player is smart enough.
+    }
+}

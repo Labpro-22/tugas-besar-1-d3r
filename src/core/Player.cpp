@@ -7,7 +7,7 @@
 
 Player::Player()
     : username(""), currency(0), currentStatus(ACTIVE), currentTile(nullptr),
-    activeCardEffect(NOEFFECT), discountValue(0.0f), effectTurns(0), jailTurnCount(0),
+    activeCardEffect(NOEFFECT), discountValue(0.0f), effectTurns(0), jailTurnCount(0), doubleCount(0),
       canUseCard(true) {}
 
 Player* Player::operator+=(int money) {
