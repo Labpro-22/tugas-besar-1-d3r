@@ -53,6 +53,7 @@ Dari root project:
 cmake -S . -B build
 cmake --build build
 ```
+(Jika tidak memiliki hal yang ada di prasyarat, bisa langsung jalankan _executable_-nya saja)
 
 Lalu jalankan _executable_:
 
