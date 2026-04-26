@@ -63,7 +63,7 @@ Linux/macOS:
 
 Windows:
 ```powershell
-.\bin\MonopolyGame.exe
+.\bin\MonopolyGame
 ```
 
 ### Menjalankan via VS Code Task
@@ -109,3 +109,4 @@ Setelah inisialisasi selesai, permainan berjalan berbasis giliran. Input command
 - `data/`: data pendukung dan aset.
 - `build/`: output dan cache CMake.
 - `bin/`: executable hasil build.
+- `doc/`: laporan pengerjaan tugas besar
