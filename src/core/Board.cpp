@@ -113,10 +113,16 @@ std::vector<Utility*> Board::getAllUtility() const {
     return result;
 }
 
-void Board::addTile(Tile* newTile){
-    if (newTile != nullptr && newTile->getIndex() < (int)tiles.size()) {
-        tiles[newTile->getIndex()] = newTile;
+void Board::addTile(Tile* newTile) {
+    if (newTile == nullptr) return;
+
+    int idx = newTile->getIndex();
+
+    if (idx >= (int)tiles.size()) {
+        tiles.resize(idx + 1, nullptr);
     }
+
+    tiles[idx] = newTile;
 }
 
 void Board::advanceFestivalEffects(Player* owner) {

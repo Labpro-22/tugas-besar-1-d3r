@@ -255,7 +255,7 @@ void DataManager::load(string fileName) {
     game.setMaxTurn(maxTurn);
     game.setPlayerCount(playerCount);
 
-    int countMove(4), countDiscount(3), countShield(2), countTeleport(2), countLasso(2), countDemolition(2), countFreeJail(2);
+    int countMove(4), countDiscount(3), countShield(2), countTeleport(2), countLasso(2), countDemolition(2), countFreeJail(4);
 
     game.writeLine("\tMemuat pemain...");
 
