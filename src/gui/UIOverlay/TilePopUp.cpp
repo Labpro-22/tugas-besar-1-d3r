@@ -149,7 +149,6 @@ void TilePopup::handleInput()
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         Vector2 mouse = GetMousePosition();
         // Klik tombol Tutup
-        std::cout << "bisa engga sih? pos " << mouse.x << " " << mouse.y;
         if (CheckCollisionPointRec(mouse, btnRect_)) {
             setVisible(false);
             return;
