@@ -62,6 +62,7 @@ public:
     void setPropertyStatus(PROPERTY_STATUS);
 
     virtual int getRentCost() const = 0;
+    virtual int getRentCostLevel(int level) const;
     int getAssetValue() const override;
 
     // Untuk Memanggil GUI
@@ -121,6 +122,7 @@ public:
 
     void runTile(Player*) override;
     int getRentCost() const override;
+    int getRentCostLevel(int level) const override;
     int getAssetValue() const override;   
     
     // Untuk interface GUI

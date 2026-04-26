@@ -595,9 +595,14 @@ bool CommandHandler::execute(const std::string& line) {
     
     else if (command == "KELUAR") {
         return false;
+    }
+    else if (command == "CETAK_AKTA") {
+        const std::string code = askInput("Masukkan kode petak: ");
+        game.getBoard().cetakAkta(code);
+    
     } else if (!command.empty()) {
         game.writeLine("Command tidak dikenali. Ketik BANTUAN untuk melihat command yang dikenali.");
-    }
+    } 
     
 
     return true;

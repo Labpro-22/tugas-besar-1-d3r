@@ -73,6 +73,10 @@ void Property::setFestivalDuration(int duration) { this->festivalDuration = dura
 void Property::setOwner(Player* newOwner) { this->owner = newOwner; }
 void Property::setPropertyStatus(PROPERTY_STATUS status) { this->propertyStatus = status; }
 
+int Property::getRentCostLevel(int) const {
+    return getRentCost();
+}
+
 int Property::getAssetValue() const {
     return landCost;
 }

@@ -179,6 +179,13 @@ int Street::getRentCost() const {
     return 0;
 }
 
+int Street::getRentCostLevel(int level) const {
+    if (level >= 0 && level < (int)rentCost.size()) {
+        return rentCost[level] * festivalMultiplier;
+    }
+    return 0;
+}
+
 int Street::getBuildingValue() const {
     int level = this->getCurrentLevel();
     int buildingVal = 0;    

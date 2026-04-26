@@ -41,4 +41,5 @@ public:
 	void addTile(Tile* newTile); // done
 	void advanceFestivalEffects(Player* owner);
 	void printBoard() const;
+	void cetakAkta(std::string code);
 };
