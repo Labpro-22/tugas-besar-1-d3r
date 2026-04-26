@@ -47,7 +47,7 @@ void BirthDayCard::useCard(Player *currentPlayer, std::vector<Player *> players)
         }
 
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::FUND_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Dapat M100 dari setiap pemain");
+        logger.log(currentPlayer->getUsername(), StateLog::FUND_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " Dapat M100 dari setiap pemain");
         *player -= 100;
         *currentPlayer += 100;
     }
@@ -62,8 +62,8 @@ void DoctorCard::useCard(Player *currentPlayer, std::vector<Player *>)
     }
 
     Logger &logger = Logger::getInstance();
-    logger.log(currentPlayer->getUsername(), StateLog::FUND_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Pergi ke stasiun terdekat");
-    *currentPlayer -= 700;
+    logger.log(currentPlayer->getUsername(), StateLog::FUND_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " Pergi ke stasiun terdekat");
+    GameManager::getInstance().pay(currentPlayer, 700, nullptr);
 }
 
 CampaignCard::CampaignCard() : AutoUseCard("CAMPAIGN", "Anda mau nyaleg. Bayar M200 kepada setiap pemain") {}
@@ -81,10 +81,9 @@ void CampaignCard::useCard(Player *currentPlayer, std::vector<Player *> players)
             continue;
         }
 
-        *currentPlayer -= 200;
-        *player += 200;
+        GameManager::getInstance().pay(currentPlayer, 200, player);
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::FUND_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Bayar M200 kepada setiap pemain");
+        logger.log(currentPlayer->getUsername(), StateLog::FUND_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " Bayar M200 kepada setiap pemain");
     }
 }
 
@@ -124,7 +123,7 @@ void NearestStationCard::useCard(Player *currentPlayer, std::vector<Player *>)
     if (nearestStation != nullptr)
     {
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Pergi ke stasiun terdekat (" + nearestStation->getName() + ")");
+        logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " Pergi ke stasiun terdekat (" + nearestStation->getName() + ")");
         currentPlayer->moveTo(nearestStation, true, FORWARD);
     }
 }
@@ -142,7 +141,7 @@ void MoveBackCard::useCard(Player *currentPlayer, std::vector<Player *>)
     if (destination != nullptr)
     {
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Mundur 3 petak (" + destination->getName() + ")");
+        logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " Mundur 3 petak (" + destination->getName() + ")");
         currentPlayer->moveTo(destination, false, BACKWARD);
     }
 }
@@ -163,7 +162,7 @@ void ToJailCard::useCard(Player *currentPlayer, std::vector<Player *>)
     }
 
     Logger &logger = Logger::getInstance();
-    logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Masuk penjara");
+    logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " Masuk penjara");
     currentPlayer->moveTo(jailTile, false, FORWARD);
     currentPlayer->setToJailed();
 }
@@ -221,7 +220,7 @@ void MoveCard::useCard(Player *currentPlayer, std::vector<Player *>)
     {
         currentPlayer->moveTo(destination, true, FORWARD);
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai MoveCard → Maju sejauh " + to_string(getTileCount()) + " petak, mendarat di " + destination->getName() + " (" + destination->getCode() + ")");
+        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai MoveCard -> Maju sejauh " + to_string(getTileCount()) + " petak, mendarat di " + destination->getName() + " (" + destination->getCode() + ")");
     }
 }
 
@@ -240,7 +239,7 @@ void DiscountCard::useCard(Player *currentPlayer, std::vector<Player *>)
     if (currentPlayer != nullptr)
     {
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai DiscountCard → Dapat diskon sebesar " + to_string(getDiscount()));
+        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai DiscountCard -> Dapat diskon sebesar " + to_string(getDiscount()));
         currentPlayer->activateDiscount(getDiscount());
     }
 }
@@ -251,7 +250,7 @@ void ShieldCard::useCard(Player *currentPlayer, std::vector<Player *>)
     if (currentPlayer != nullptr)
     {
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai ShieldCard → Bebas tagihan dan sanksi selama 1 giliran");
+        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai ShieldCard -> Bebas tagihan dan sanksi selama 1 giliran");
         currentPlayer->activateShield();
     }
 }
@@ -276,7 +275,7 @@ void TeleportCard::useCard(Player *currentPlayer, std::vector<Player *>)
         }
 
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai TeleportCard → Pindah ke " + destination->getName() + " (" + destination->getCode() + ")");
+        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai TeleportCard -> Pindah ke " + destination->getName() + " (" + destination->getCode() + ")");
         currentPlayer->moveTo(destination, false, FORWARD);
     } catch (const InvalidTileCodeException&) {
         GameManager::getInstance().writeLine("Kode petak tidak valid.");
@@ -296,7 +295,7 @@ void LassoCard::useCard(Player *currentPlayer, std::vector<Player *>)
     if (target != nullptr)
     {
         Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai LassoCard → Pemain " + target->getUsername() + " pindah ke petak " + currentPlayer->getCurrentTile()->getName() + " (" + currentPlayer->getCurrentTile()->getCode() + ")");
+        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai LassoCard -> Pemain " + target->getUsername() + " pindah ke petak " + currentPlayer->getCurrentTile()->getName() + " (" + currentPlayer->getCurrentTile()->getCode() + ")");
         target->moveTo(currentPlayer->getCurrentTile(), false, FORWARD);
     }
 }
@@ -325,7 +324,7 @@ void DemolitionCard::useCard(Player *currentPlayer, std::vector<Player *>)
         {
             street->setCurrentLevel(street->getCurrentLevel() - 1);
             Logger &logger = Logger::getInstance();
-            logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai DemolitionCard → Bangunan di " + street->getName() + " dihancurkan.");
+            logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai DemolitionCard Bangunan di " + street->getName() + " dihancurkan.");
             GameManager::getInstance().writeLine("Bangunan di " + street->getName() + " dihancurkan.");
         } else {
             GameManager::getInstance().writeLine("Target tidak valid atau tidak memiliki bangunan.");

@@ -10,7 +10,6 @@ static void runCli(GameManager &gm)
     gm.setUseGuiStream(false);
     gm.setOutputCallback(nullptr);
     gm.setInputCallback(nullptr);
-    gm.getBoard().printBoard();
     gm.runGame();
     if (!gm.getPlayer().empty()) {
         gm.getCommandHandler().commands();
@@ -53,7 +52,6 @@ static void runGui(GameManager &gm)
     gm.writeLine("Ketik command seperti CLI di console.");
     gm.writeLine("Contoh: CETAK_PAPAN, LEMPAR_DADU, STATUS");
 
-    gm.getBoard().printBoard();
     gm.runGame();
 
     // Game loop state management

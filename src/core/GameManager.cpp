@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <random>
 #include <string>
 
 #include "../../include/core/Player.hpp"
@@ -71,6 +72,15 @@ bool GameManager::isGameValid() {
 void GameManager::runGame() {
     if (players.empty()) {
         CommandHandler& handler = getCommandHandler();
+        writeLine("=== Inisialisasi Game ===");
+        writeLine("1. New Game");
+        writeLine("2. Load Game");
+
+        const int mode = handler.askInt("Pilih mode (1-2): ", 1, 2);
+        if (mode == 2) {
+            // loadGame disini
+        }
+
         const int count = handler.askInt("Jumlah pemain (2-4): ", 2, 4);
 
         std::vector<Player*> newPlayers;
@@ -83,11 +93,26 @@ void GameManager::runGame() {
             newPlayers.push_back(player);
         }
 
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::shuffle(newPlayers.begin(), newPlayers.end(), gen);
+
         setPlayers(newPlayers);
         initPlayers();
         initSkillDeck();
         initAutoUseDecks();
         drawSkillCard(currentTurnPlayer);
+        if (!newPlayers.empty()) {
+            std::string order = "Urutan giliran: ";
+            for (size_t i = 0; i < newPlayers.size(); ++i) {
+                if (i > 0) {
+                    order += " -> ";
+                }
+                order += newPlayers[i]->getUsername();
+            }
+            writeLine(order);
+            writeLine("Giliran pertama: " + newPlayers.front()->getUsername());
+        }
     }
 
     if (!isGameValid()) {
@@ -178,6 +203,8 @@ void GameManager::rollDice(int dice1, int dice2) {
     }
 
     Tile* destination = board.goToTile(*currentTurnPlayer->getCurrentTile(), total);
+
+    currentTurnPlayer->setCanUseCard(false);
 
     writeLine("Hasil: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + " = " + std::to_string(total));
     if (destination == nullptr) {
@@ -316,6 +343,15 @@ Logger& GameManager::getLogger() {
 
 void GameManager::pay(Player *debtor, int amount, Player* creditor) {
     if (debtor == nullptr || amount <= 0) {
+        return;
+    }
+
+    if (debtor->hasShield()) {
+        if (creditor != nullptr) {
+            writeLine("[SHIELD ACTIVE] " + debtor->getUsername() + " kebal. Pembayaran " + std::to_string(amount) + " dibatalkan.");
+        } else {
+            writeLine("[SHIELD ACTIVE] " + debtor->getUsername() + " kebal. Tagihan " + std::to_string(amount) + " dibatalkan.");
+        }
         return;
     }
 
