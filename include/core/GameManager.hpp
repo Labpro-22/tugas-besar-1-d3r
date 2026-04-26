@@ -36,7 +36,6 @@ private:
 	Logger logger;
 	Player* currentTurnPlayer;
 	Dice dice;
-	bool useGuiStream;
 	std::function<void(const std::string&)> outputCallback;
 	std::function<std::string(const std::string&)> inputCallback;
 
@@ -64,7 +63,6 @@ public:
 		} catch (const InvalidDiceException&) {
 		}
 	};
-	void setUseGuiStream(bool useGuiStream) { this->useGuiStream = useGuiStream; }
 	void setOutputCallback(std::function<void(const std::string&)> callback) { outputCallback = std::move(callback); }
 	void setInputCallback(std::function<std::string(const std::string&)> callback) { inputCallback = std::move(callback); }
 	void setAllPlayersCurrency(int currency) {
@@ -84,7 +82,6 @@ public:
 	int getMaxTurn() const { return maxTurn; }
 	int getPlayerCount() const { return playerCount; }
 	Player* getCurrentTurnPlayer() const { return currentTurnPlayer; }
-	bool isGuiStreamActive() const { return useGuiStream; }
 	Dice& getDice() { return dice; }
 	const Dice& getDice() const { return dice; }
 	CardDeck<SkillCard>& getSkillDeck() { return deckSkill; }

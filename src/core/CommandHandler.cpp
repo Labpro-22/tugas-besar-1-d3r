@@ -164,7 +164,7 @@ bool CommandHandler::handleJailTurn(Player* currentPlayer) const {
             if (currentPlayer->getStatus() == JAILED) {
                 freeCurrentPlayer();
             }
-            delete card;
+            game.getSkillDeck().addCard(card);
         }
         // game.writeLine("Sekarang kamu bisa lanjut dengan command biasa seperti LEMPAR_DADU, ATUR_DADU, atau CETAK_AKTA.");
         return true;
@@ -207,8 +207,11 @@ void CommandHandler::commands() {
         prompt += "] " + currentPlayer->getUsername() + " > ";
 
         line = game.readLine(prompt);
-        if (line.empty() && (game.isGuiStreamActive() || std::cin.eof())) {
-            break;
+        if (line.empty()) {
+            if (std::cin.eof()) {
+                break;
+            }
+            continue;
         }
 
         if (!execute(line)) {
@@ -663,7 +666,7 @@ bool CommandHandler::execute(const std::string& line) {
         card->useCard(currentPlayer, game.getPlayers());
         game.getSkillDeck().addUsedCard(card);
         currentPlayer->setCanUseCard(false);
-        delete card;
+        game.getSkillDeck().addCard(card);
     } 
     // else if (command == "DROP_KARTU") {
     //     // not yet

@@ -9,7 +9,13 @@
 
 template <typename T>
 void CardDeck<T>::addCard(T* card) {
-	if (card != nullptr) {
+	if (card == nullptr) {
+		return;
+	}
+
+	usedCard.erase(std::remove(usedCard.begin(), usedCard.end(), card), usedCard.end());
+
+	if (std::find(availableCards.begin(), availableCards.end(), card) == availableCards.end()) {
 		availableCards.push_back(card);
 	}
 }

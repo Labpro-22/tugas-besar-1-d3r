@@ -13,12 +13,12 @@ using namespace std;
 
 GameManager::GameManager() 
     : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), initialCurrency(0),
-      board(45), currentTurnPlayer(nullptr), useGuiStream(false) {
+            board(45), currentTurnPlayer(nullptr) {
     // Board initialized with 40 tiles (standard Monopoly)
 }
 
 void GameManager::write(const std::string& text) const {
-    if (useGuiStream && outputCallback) {
+        if (outputCallback) {
         outputCallback(text);
         return;
     }
@@ -27,7 +27,7 @@ void GameManager::write(const std::string& text) const {
 }
 
 void GameManager::writeLine(const std::string& text) const {
-    if (useGuiStream && outputCallback) {
+    if (outputCallback) {
         outputCallback(text);
         return;
     }
@@ -36,7 +36,7 @@ void GameManager::writeLine(const std::string& text) const {
 }
 
 std::string GameManager::readLine(const std::string& prompt) const {
-    if (useGuiStream && inputCallback) {
+    if (inputCallback) {
         return inputCallback(prompt);
     }
 
@@ -273,7 +273,8 @@ void GameManager::drawSkillCard(Player* player) {
     }
 
     if (!player->addSkillCard(card)) {
-        delete card;
+        deckSkill.addCard(card);
+        return;
     }
 }
 

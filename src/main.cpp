@@ -5,17 +5,6 @@
 #include <exception>
 #include <iostream>
 
-static void runCli(GameManager &gm)
-{
-    gm.setUseGuiStream(false);
-    gm.setOutputCallback(nullptr);
-    gm.setInputCallback(nullptr);
-    gm.runGame();
-    if (!gm.getPlayer().empty()) {
-        gm.getCommandHandler().commands();
-    }
-}
-
 static void runGui(GameManager &gm)
 {
     const int screenWidth = 1280;
@@ -41,7 +30,6 @@ static void runGui(GameManager &gm)
         DrawFPS(screenWidth - 100, 20);
     };
 
-    gm.setUseGuiStream(true);
     gm.setOutputCallback([&console](const std::string &text)
                          { console.WriteLine(text); });
     gm.setInputCallback([&console](const std::string &prompt)
@@ -99,10 +87,7 @@ static void runGui(GameManager &gm)
 int main()
 {
     try {
-        const bool useGui = true;
-
         GameManager &gm = GameManager::getInstance();
-        gm.setUseGuiStream(useGui);
 
         std::string defaultConfigPath = "config/";
         DataManager dm(
@@ -118,12 +103,7 @@ int main()
         dm.loadConfig();
         gm.writeLine("[SUCCESS] Game data loaded successfully!");
 
-        if (useGui) {
-            runGui(gm);
-        }
-        else {
-            runCli(gm);
-        }
+        runGui(gm);
     }
     catch (const std::exception &e) {
         std::cerr << "[ERROR] " << e.what() << std::endl;

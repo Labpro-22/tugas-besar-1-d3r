@@ -103,9 +103,11 @@ bool Player::addSkillCard(SkillCard* card) {
         int cardNumber = GameManager::getInstance().getCommandHandler().askInt("Buang Kartu (1-" + std::to_string(deck.size()) + "): ", 1, deck.size());
 
         SkillCard* discardedCard = deck.removeAt(cardNumber - 1);
-        logger.log(username, StateLog::GET_CARD, "Mendapatkan kartu " + card->getCardName() + " dan membuang kartu " + discardedCard->getCardName());
         if (discardedCard != nullptr) {
-            delete discardedCard;
+            logger.log(username, StateLog::GET_CARD, "Mendapatkan kartu " + card->getCardName() + " dan membuang kartu " + discardedCard->getCardName());
+            GameManager::getInstance().getSkillDeck().addCard(discardedCard);
+        } else {
+            logger.log(username, StateLog::GET_CARD, "Mendapatkan kartu " + card->getCardName());
         }
         return true;
     }
