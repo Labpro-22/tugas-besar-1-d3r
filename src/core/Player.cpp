@@ -228,11 +228,10 @@ void Player::moveOneStep(const Board& board, bool getPayment, MOVE_DIRECTION dir
         Tile* go = board.getTile("GO");
         if (go != nullptr && go != currentTile) {
             GameManager& gm = GameManager::getInstance();
+            go->runTile(this);
             if (gm.getTilePopup() != nullptr) {
                 go->callPopUp(*gm.getTilePopup());
-                go->runTile(this);
             }
-            // Show popup if using GUI
         }
     }
 }

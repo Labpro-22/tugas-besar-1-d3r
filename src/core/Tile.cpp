@@ -126,6 +126,11 @@ void Go::givePayments(Player* player) {
 }
 
 void Go::runTile(Player* player) {
+    if (player != nullptr) {
+        GameManager::getInstance().writeLine(
+            player->getUsername() + " melewati GO dan menerima M" + std::to_string(payment) + "."
+        );
+    }
     givePayments(player);
 }
 
