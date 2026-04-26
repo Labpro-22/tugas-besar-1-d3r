@@ -2,6 +2,7 @@
 #include "../../include/core/GameManager.hpp"
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Logger.hpp"
+#include "../../include/gui/UIOverlay/UIComponent.hpp"
 
 using namespace std;
 

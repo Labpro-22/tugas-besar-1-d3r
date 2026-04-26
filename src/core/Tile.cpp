@@ -48,7 +48,6 @@ void FreeParking::callPopUp(TilePopUpCall& other){
 }
 
 
-TilePopup popUpcaller;
 // ============== Tile Base Class ==============
 Tile::Tile(int index, const std::string& code, const std::string& name, const std::string& color)
     : index(index), code(code), name(name), color(color) {}
@@ -87,7 +86,6 @@ void Tax::runTile(Player* player) {
         payTax(player);
         
     }
-    callPopUp(popUpcaller);
 }
 
 CardTile::CardTile(int index, const std::string& code, const std::string& name, const std::string& color)
@@ -125,7 +123,6 @@ void Go::givePayments(Player* player) {
 
 void Go::runTile(Player* player) {
     givePayments(player);
-    callPopUp(popUpcaller);
 }
 
 
@@ -165,7 +162,6 @@ void Prison::runTile(Player* player) {
         payFee(player);
         freeFromJailed(player);
     }
-    callPopUp(popUpcaller);
 }
 
 Trap::Trap(int index, const std::string& code, const std::string& name, const std::string& color)
@@ -179,12 +175,10 @@ void Trap::runTile(Player* player){
         return;
     }
     player->setToJailed();
-    player->moveTo(prison, false);
-    callPopUp(popUpcaller);
+    player->moveTo(prison, false, FORWARD);
 }
 
 FreeParking::FreeParking(int index, const std::string& code, const std::string& name, const std::string& color)
 : Tile(index, code, name, color){}
 void FreeParking::runTile(Player*){
-    callPopUp(popUpcaller);
 }

@@ -16,6 +16,7 @@
 
 class Tile;
 class CardTile;
+class TilePopup;
 
 class GameManager {
 private:
@@ -38,6 +39,7 @@ private:
 	bool useGuiStream;
 	std::function<void(const std::string&)> outputCallback;
 	std::function<std::string(const std::string&)> inputCallback;
+	TilePopup* tilePopup;
 
 public:
 	GameManager();
@@ -57,10 +59,16 @@ public:
 	void setDeckChance(CardDeck<AutoUseCard> deckChance) { this->deckChance = std::move(deckChance); };
 	void setDeckCurrency(CardDeck<AutoUseCard> deckCurrency) { this->deckCurrency = std::move(deckCurrency); };
 	void setCurrentTurnPlayer(Player* currentTurnPlayer) { this->currentTurnPlayer = currentTurnPlayer; };
-	static void setDice(std::vector<int> dice) { GameManager::getInstance().dice.setValues(dice); };
+	static void setDice(std::vector<int> dice) {
+		try {
+			GameManager::getInstance().dice.setValues(dice);
+		} catch (const InvalidDiceException&) {
+		}
+	};
 	void setUseGuiStream(bool useGuiStream) { this->useGuiStream = useGuiStream; }
 	void setOutputCallback(std::function<void(const std::string&)> callback) { outputCallback = std::move(callback); }
 	void setInputCallback(std::function<std::string(const std::string&)> callback) { inputCallback = std::move(callback); }
+	void setTilePopup(TilePopup* popup) { tilePopup = popup; }
 	void setAllPlayersCurrency(int currency) {
 		initialCurrency = currency;
 		for (Player* player : players) {
@@ -77,6 +85,7 @@ public:
 	int getMaxTurn() const { return maxTurn; }
 	Player* getCurrentTurnPlayer() const { return currentTurnPlayer; }
 	bool isGuiStreamActive() const { return useGuiStream; }
+	TilePopup* getTilePopup() const { return tilePopup; }
 	Dice& getDice() { return dice; }
 	const Dice& getDice() const { return dice; }
 	CardDeck<SkillCard>& getSkillDeck() { return deckSkill; }

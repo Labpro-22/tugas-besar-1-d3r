@@ -15,6 +15,7 @@ class Board;
 
 enum PLAYER_STATUS { ACTIVE, BANKRUPT, JAILED };
 enum CARD_EFFECT { NOEFFECT, DISCOUNT, SHIELD };
+enum MOVE_DIRECTION { FORWARD, BACKWARD };
 
 class Player {
     private:
@@ -28,6 +29,7 @@ class Player {
         int effectTurns;
         int jailTurnCount;
         bool canUseCard;
+        void moveOneStep(const Board& board, bool getPayment, MOVE_DIRECTION direction);
     public:
         Player();
 
@@ -73,7 +75,7 @@ class Player {
         SkillCard* removeSkillCard(int index);
         void printSkillCards() const;
         void printProperties() const;
-        void moveTo(Tile* destination, bool getPayment);
+        void moveTo(Tile* destination, bool getPayment, MOVE_DIRECTION direction = FORWARD);
         void mortgageProperty(Property* property, Board* board); // ubah status Tile jadi mortgaged
         void setToJailed();
         int getTotalWealth(const Board* board) const; // helper func to easily count tax

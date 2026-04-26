@@ -1,6 +1,7 @@
 #include "../include/core/DataManager.hpp"
 #include "../include/core/GameManager.hpp"
 #include "../include/gui/NimonspoliGUI.hpp"
+#include "../include/gui/UIOverlay/UIComponent.hpp"
 
 #include <exception>
 #include <iostream>
@@ -23,6 +24,9 @@ static void runGui(GameManager &gm)
     const int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "Nimonpoli");
     BoardRenderer br;
+    TilePopup tilePopup;
+    gm.setTilePopup(&tilePopup);
+    
     Camera2D camera;
     camera.target = {(float)screenWidth / 2, (float)screenHeight / 2};
     camera.offset = {(float)screenWidth / 2, (float)screenHeight / 2};
@@ -32,11 +36,22 @@ static void runGui(GameManager &gm)
     SetTargetFPS(60);
     GameConsole console({900, 450, 350, 300});
 
+    auto renderScene = [&]() {
+        ClearBackground(BACKGROUND);
+        BeginMode2D(camera);
+        br.RenderBoard(gm.getBoard());
+        EndMode2D();
+        DrawText("Permainan NIMONSPOLI v0.1", 20, 20, 20, BLACK);
+        DrawText("Scroll to Zoom | Right Click to Pan (if implemented)", 20, 50, 10, LIGHTGRAY);
+        DrawFPS(screenWidth - 100, 20);
+    };
+
     gm.setUseGuiStream(true);
     gm.setOutputCallback([&console](const std::string &text)
                          { console.WriteLine(text); });
     gm.setInputCallback([&console](const std::string &prompt)
                         { return console.ReadLineBlocking(prompt); });
+    console.SetBlockingRenderCallback(renderScene);
 
     gm.writeLine("=== NIMONPOLI SYSTEM READY ===");
     gm.writeLine("Ketik command seperti CLI di console.");
@@ -76,16 +91,12 @@ static void runGui(GameManager &gm)
             }
         }
 
+        tilePopup.handleInput();
         console.Update();
 
         BeginDrawing();
-        ClearBackground(BACKGROUND);
-        BeginMode2D(camera);
-        br.RenderBoard(gm.getBoard());
-        EndMode2D();
-        DrawText("Permainan NIMONSPOLI v0.1", 20, 20, 20, BLACK);
-        DrawText("Scroll to Zoom | Right Click to Pan (if implemented)", 20, 50, 10, LIGHTGRAY);
-        DrawFPS(screenWidth - 100, 20);
+        renderScene();
+        tilePopup.render();
         console.Render();
         EndDrawing();
     }

@@ -189,7 +189,11 @@ std::string GameConsole::ReadLineBlocking(const std::string& prompt)
         Update();
 
         BeginDrawing();
-        ClearBackground(BLACK);
+        if (blockingRenderCallback != nullptr) {
+            blockingRenderCallback();
+        } else {
+            ClearBackground(BLACK);
+        }
         Render();
         EndDrawing();
     }
@@ -347,17 +351,18 @@ void GameConsole::Render()
     }
     EndScissorMode();
 
-    float inputPosY = bounds.y + bounds.height - 30;
-    DrawRectangle(bounds.x, inputPosY, bounds.width, 30, ColorAlpha(DARKGRAY, 0.9f));
-
     const bool isPrompt = (inputMode == InputMode::Prompt);
-    const std::string& buffer = isPrompt ? promptBuffer : commandBuffer;
-
+    float inputPosY = bounds.y + bounds.height - 30;
     if (isPrompt && !promptLabel.empty()) {
-        DrawText(promptLabel.c_str(), bounds.x + 10, inputPosY - 16, 10, LIGHTGRAY);
+        DrawRectangle(bounds.x, inputPosY - 22, bounds.width, 20, ColorAlpha(DARKBLUE, 0.85f));
+        //DrawText("CURRENT PROMPT", bounds.x + 10, inputPosY - 19, 10, SKYBLUE);
+        DrawText(promptLabel.c_str(), bounds.x + 10, inputPosY - 19, 10, RAYWHITE);
     }
 
-    std::string inputShow = (isPrompt ? "PROMPT: " : "CMD: ") + buffer;
+    DrawRectangle(bounds.x, inputPosY, bounds.width, 30, ColorAlpha(DARKGRAY, 0.9f));
+    const std::string& buffer = isPrompt ? promptBuffer : commandBuffer;
+
+    std::string inputShow = (isPrompt ? "INPUT: " : "CMD: ") + buffer;
     DrawText(inputShow.c_str(), bounds.x + 10, inputPosY + 7, fontSize, YELLOW);
 
     if (((framesCounter / 20) % 2) == 0) {

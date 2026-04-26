@@ -125,7 +125,7 @@ void NearestStationCard::useCard(Player *currentPlayer, std::vector<Player *>)
     {
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Pergi ke stasiun terdekat (" + nearestStation->getName() + ")");
-        currentPlayer->moveTo(nearestStation, true);
+        currentPlayer->moveTo(nearestStation, true, FORWARD);
     }
 }
 
@@ -143,7 +143,7 @@ void MoveBackCard::useCard(Player *currentPlayer, std::vector<Player *>)
     {
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Mundur 3 petak (" + destination->getName() + ")");
-        currentPlayer->moveTo(destination, false);
+        currentPlayer->moveTo(destination, false, BACKWARD);
     }
 }
 
@@ -164,7 +164,7 @@ void ToJailCard::useCard(Player *currentPlayer, std::vector<Player *>)
 
     Logger &logger = Logger::getInstance();
     logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Masuk penjara");
-    currentPlayer->moveTo(jailTile, false);
+    currentPlayer->moveTo(jailTile, false, FORWARD);
     currentPlayer->setToJailed();
 }
 
@@ -219,7 +219,7 @@ void MoveCard::useCard(Player *currentPlayer, std::vector<Player *>)
     Tile *destination = GameManager::getInstance().getBoard().goToTile(*currentPlayer->getCurrentTile(), getTileCount());
     if (destination != nullptr)
     {
-        currentPlayer->moveTo(destination, true);
+        currentPlayer->moveTo(destination, true, FORWARD);
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai MoveCard → Maju sejauh " + to_string(getTileCount()) + " petak, mendarat di " + destination->getName() + " (" + destination->getCode() + ")");
     }
@@ -268,13 +268,17 @@ void TeleportCard::useCard(Player *currentPlayer, std::vector<Player *>)
     CommandHandler &handler = GameManager::getInstance().getCommandHandler();
     std::string targetTile = handler.askInput("Masukkan kode petak tujuan: ");
 
-    Tile *destination = GameManager::getInstance().getBoard().getTile(targetTile);
-    if (destination != nullptr)
-    {   
+    try {
+        Tile *destination = GameManager::getInstance().getBoard().getTile(targetTile);
+        if (destination == nullptr)
+        {
+            throw InvalidTileCodeException(targetTile);
+        }
+
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai TeleportCard → Pindah ke " + destination->getName() + " (" + destination->getCode() + ")");
-        currentPlayer->moveTo(destination, false);
-    } else {
+        currentPlayer->moveTo(destination, false, FORWARD);
+    } catch (const InvalidTileCodeException&) {
         GameManager::getInstance().writeLine("Kode petak tidak valid.");
     }
 }
@@ -293,7 +297,7 @@ void LassoCard::useCard(Player *currentPlayer, std::vector<Player *>)
     {
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai LassoCard → Pemain " + target->getUsername() + " pindah ke petak " + currentPlayer->getCurrentTile()->getName() + " (" + currentPlayer->getCurrentTile()->getCode() + ")");
-        target->moveTo(currentPlayer->getCurrentTile(), false);
+        target->moveTo(currentPlayer->getCurrentTile(), false, FORWARD);
     }
 }
 
@@ -309,14 +313,24 @@ void DemolitionCard::useCard(Player *currentPlayer, std::vector<Player *>)
     CommandHandler &handler = GameManager::getInstance().getCommandHandler();
     std::string targetCode = handler.askInput("Masukkan kode properti target: ");
 
-    Street *street = dynamic_cast<Street *>(GameManager::getInstance().getBoard().getTile(targetCode));
-    if (street != nullptr && street->getOwner() != nullptr && street->getOwner() != currentPlayer && street->getCurrentLevel() > 0)
-    {
-        street->setCurrentLevel(street->getCurrentLevel() - 1);
-        Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai DemolitionCard → Bangunan di " + street->getName() + " dihancurkan.");
-        GameManager::getInstance().writeLine("Bangunan di " + street->getName() + " dihancurkan.");
-    } else {
+    try {
+        Tile *targetTile = GameManager::getInstance().getBoard().getTile(targetCode);
+        if (targetTile == nullptr)
+        {
+            throw InvalidTileCodeException(targetCode);
+        }
+
+        Street *street = dynamic_cast<Street *>(targetTile);
+        if (street != nullptr && street->getOwner() != nullptr && street->getOwner() != currentPlayer && street->getCurrentLevel() > 0)
+        {
+            street->setCurrentLevel(street->getCurrentLevel() - 1);
+            Logger &logger = Logger::getInstance();
+            logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai DemolitionCard → Bangunan di " + street->getName() + " dihancurkan.");
+            GameManager::getInstance().writeLine("Bangunan di " + street->getName() + " dihancurkan.");
+        } else {
+            GameManager::getInstance().writeLine("Target tidak valid atau tidak memiliki bangunan.");
+        }
+    } catch (const InvalidTileCodeException&) {
         GameManager::getInstance().writeLine("Target tidak valid atau tidak memiliki bangunan.");
     }
 }

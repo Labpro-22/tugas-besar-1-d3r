@@ -50,6 +50,7 @@ private:
     const float titleBarHeight = 25.0f;
 
     std::function<void(std::string)> commandCallback = nullptr;
+    std::function<void()> blockingRenderCallback = nullptr;
     
 public:
     GameConsole(Rectangle area, int fSize = 12);
@@ -65,6 +66,9 @@ public:
 
     void SetCommandCallback(std::function<void(std::string)> callback) {
         commandCallback = callback;
+    }
+    void SetBlockingRenderCallback(std::function<void()> callback) {
+        blockingRenderCallback = callback;
     }
 
     Rectangle getBounds(){return bounds;};

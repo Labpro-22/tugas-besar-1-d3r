@@ -106,18 +106,18 @@ class LoadFailedException : public NimonspoliException {
 
 class FileExistsException : public NimonspoliException {
     private:
-        string& fileName;
+        string fileName;
     public:
-        FileExistsException(string& fileName) : NimonspoliException(13, "FILE_EXISTS"), fileName(fileName)  {}
-        string& getFileName() const { return fileName; }
+        FileExistsException(const string& fileName) : NimonspoliException(13, "FILE_EXISTS"), fileName(fileName)  {}
+        const string& getFileName() const noexcept { return fileName; }
 };
 
 class FileNotExistsException : public NimonspoliException {
     private:
-        string& fileName;
+        string fileName;
     public:
-        FileNotExistsException(string& fileName) : NimonspoliException(14, "FILE_NOT_EXISTS"), fileName(fileName)  {}
-        string& getFileName() const { return fileName; }
+        FileNotExistsException(const string& fileName) : NimonspoliException(14, "FILE_NOT_EXISTS"), fileName(fileName)  {}
+        const string& getFileName() const noexcept { return fileName; }
 };
 
 class SaveProhibitedException : public NimonspoliException { 

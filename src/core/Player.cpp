@@ -54,7 +54,11 @@ bool Player::addSkillCard(SkillCard* card) {
 
     deck.addCard(card);
 
-    if (deck.size() > 3) {
+    try {
+        if (deck.size() > 3) {
+            throw AbilityExceededException();
+        }
+    } catch (const AbilityExceededException&) {
         printSkillCards();
 
         GameManager::getInstance().writeLine(username + " mendapat kartu kemampuan: " + card->getCardName());
@@ -68,7 +72,8 @@ bool Player::addSkillCard(SkillCard* card) {
         }
         return true;
     }
-    else GameManager::getInstance().writeLine(username + " mendapat kartu kemampuan: " + card->getCardName());
+
+    GameManager::getInstance().writeLine(username + " mendapat kartu kemampuan: " + card->getCardName());
     logger.log(username, StateLog::GET_CARD, "Mendapatkan kartu " + card->getCardName());
     return true;
 }
@@ -107,8 +112,7 @@ void Player::printProperties() const {
     }
 
     if (owned.empty()) {
-        game.writeLine("Kamu belum memiliki properti apapun.");
-        return;
+        throw NoPropertyException();
     }
 
     auto formatColorLabel = [](std::string raw) {
@@ -167,28 +171,73 @@ void Player::printProperties() const {
     game.writeLine("Total kekayaan properti: M" + std::to_string(totalAsset));
 }
 
-void Player::moveTo(Tile* destination, bool getPayment) {
-    if (destination != nullptr) {
-        Tile* previousTile = this->currentTile;
-        this->currentTile = destination;
-        if (getPayment && previousTile != nullptr && destination->getIndex() < previousTile->getIndex()) {
-            Tile* go = GameManager::getInstance().getBoard().getTile("GO");
-            if (go != nullptr && go != destination) {
-                go->runTile(this);
+void Player::moveOneStep(const Board& board, bool getPayment, MOVE_DIRECTION direction) {
+    if (currentTile == nullptr) {
+        return;
+    }
+
+    const int stepAmount = direction == FORWARD ? 1 : -1;
+    Tile* nextTile = board.goToTile(*currentTile, stepAmount);
+    if (nextTile == nullptr) {
+        return;
+    }
+
+    Tile* previousTile = currentTile;
+    currentTile = nextTile;
+
+    if (direction == FORWARD && getPayment && previousTile != nullptr && currentTile->getIndex() < previousTile->getIndex()) {
+        Tile* go = board.getTile("GO");
+        if (go != nullptr && go != currentTile) {
+            go->runTile(this);
+            // Show popup if using GUI
+            GameManager& gm = GameManager::getInstance();
+            if (gm.isGuiStreamActive() && gm.getTilePopup() != nullptr) {
+                go->callPopUp(*gm.getTilePopup());
             }
         }
-
-        destination->runTile(this);
     }
+}
+
+void Player::moveTo(Tile* destination, bool getPayment, MOVE_DIRECTION direction) {
+    if (destination == nullptr) {
+        return;
+    }
+
+    if (currentTile == nullptr) {
+        currentTile = destination;
+        destination->runTile(this);
+        // Show popup if using GUI
+        GameManager& gm = GameManager::getInstance();
+        if (gm.isGuiStreamActive() && gm.getTilePopup() != nullptr) {
+            destination->callPopUp(*gm.getTilePopup());
+        }
+        return;
+    }
+
+    Board& board = GameManager::getInstance().getBoard();
+    while (currentTile != destination) {
+        Tile* beforeStep = currentTile;
+        moveOneStep(board, getPayment, direction);
+        if (currentTile == beforeStep) {
+            return;
+        }
+    }
+
+    // Show popup if using GUI
+    GameManager& gm = GameManager::getInstance();
+    if (gm.isGuiStreamActive() && gm.getTilePopup() != nullptr) {
+        destination->callPopUp(*gm.getTilePopup());
+    }
+    destination->runTile(this);
 }
 
 void Player::mortgageProperty(Property* property, Board* board) {
     // Check if property actually points to a property
-    if(property == nullptr) return;
+    if(property == nullptr) throw NoPropertyToMortgageException();
 
     // Check if the property is owned by the player and not mortgaged
-    if(property->getOwner() != this) return;
-    if(property->getPropertyStatus() != OWNED) return;
+    if(property->getOwner() != this) throw NoPropertyToMortgageException();
+    if(property->getPropertyStatus() != OWNED) throw NoPropertyToMortgageException();
 
     // Check if there are buildings exist in the property's color group
     vector<Tile*> colorGroupProperties = board->getColorGroup(property->getColor()); 
@@ -216,11 +265,11 @@ void Player::setToJailed() {
 
 void Player::buyBackMortgaged(Property* mortgaged) {
     // Check if mortgaged actually points to a property
-    if(mortgaged == nullptr) return;
+    if(mortgaged == nullptr) throw NoMortgageException();
 
     // Check if mortgaged property is owned by the player and is currently mortgaged
-    if(mortgaged->getOwner() != this) return;
-    if(mortgaged->getPropertyStatus() != MORTGAGED) return;
+    if(mortgaged->getOwner() != this) throw NoMortgageException();
+    if(mortgaged->getPropertyStatus() != MORTGAGED) throw NoMortgageException();
 
     if(this->currency < mortgaged->getLandCost()) throw NotEnoughMoneyException("menebus " + mortgaged->getName(), mortgaged->getLandCost(), this->currency);
 
@@ -250,16 +299,40 @@ int Player::getTotalWealth(const Board* board) const {
 
 int Player::getMaxLiquidatableValue(const Board* board) const  {
     int maxCash = this->currency;
+    if (board == nullptr){
+        return maxCash;
+    }
+
     for(Tile* tile : board->getTiles()){
         Property* prop = dynamic_cast<Property*>(tile);
         if (prop != nullptr && prop->getOwner() == this){
             if (prop->getPropertyStatus() == OWNED){
-                int propVal = prop->getLandCost();
+                int sellValue = prop->getLandCost();
 
                 Street* street = dynamic_cast<Street*>(prop);
                 if (street != nullptr){
                     int buildingVal = street->getBuildingValue();
-                    propVal += (buildingVal / 2);
+                    sellValue += (buildingVal / 2);
+                }
+
+                bool canMortgage = true;
+                vector<Tile*> colorGroupProperties = board->getColorGroup(prop->getColor());
+                for(Tile* colorTile : colorGroupProperties){
+                    Property* owned = dynamic_cast<Property*>(colorTile);
+                    if (owned == nullptr || owned->getOwner() != this){
+                        continue;
+                    }
+
+                    Street* streetOwned = dynamic_cast<Street*>(owned);
+                    if (streetOwned != nullptr && streetOwned->getCurrentLevel() > 0){
+                        canMortgage = false;
+                        break;
+                    }
+                }
+
+                int propVal = sellValue;
+                if (canMortgage && prop->getMortgageValue() > propVal){
+                    propVal = prop->getMortgageValue();
                 }
 
                 maxCash += propVal;

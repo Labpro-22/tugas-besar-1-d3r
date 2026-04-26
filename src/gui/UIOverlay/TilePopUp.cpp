@@ -136,7 +136,6 @@ void TilePopup::drawPopUp()
              btnX + (BTN_W - closeW) / 2,
              btnY + (BTN_H - FS_FIELD) / 2,
              FS_FIELD, WHITE);
-    handleInput();
 }
 
 void TilePopup::handleInput()
@@ -148,7 +147,7 @@ void TilePopup::handleInput()
         return;
     }
 
-    if (IsMouseButtonPressed(KEY_ENTER)) {
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         Vector2 mouse = GetMousePosition();
         // Klik tombol Tutup
         std::cout << "bisa engga sih? pos " << mouse.x << " " << mouse.y;
