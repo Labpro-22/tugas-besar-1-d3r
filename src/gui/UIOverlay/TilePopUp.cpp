@@ -60,8 +60,7 @@ void TilePopup::drawFields(int x, int &cursorY, int maxW)
 }
 
 void TilePopup::drawPopUp()
-{   
-    setVisible(true);
+{
     const int x = (int)cardRect_.x;
     const int y = (int)cardRect_.y;
     const int w = (int)cardRect_.width;

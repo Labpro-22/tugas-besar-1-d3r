@@ -58,11 +58,11 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
 
     if (order.size() == 1) {
         Player* onlyBidder = order.front();
-        if (onlyBidder != nullptr && onlyBidder->getCurrency() > 0) {
-            transferProperty(property, onlyBidder, 1);
-            game.getLogger().log(onlyBidder->getUsername(), StateLog::AUCTION,
-                "Memenangkan lelang " + property->getName() + " seharga M1");
-            game.writeLine("Winner (only 1) - " + onlyBidder->getUsername() + " price: 1");
+        if (onlyBidder != nullptr) {
+            transferProperty(property, onlyBidder, 0);
+            Logger::getInstance().log(onlyBidder->getUsername(), StateLog::AUCTION,
+                "Memenangkan lelang " + property->getName() + " seharga M0");
+            game.writeLine("Winner (only 1) - " + onlyBidder->getUsername() + " price: 0");
             return true;
         }
 
@@ -75,8 +75,9 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
     int consecutivePasses = 0;
     const int requiredPasses = static_cast<int>(order.size()) - 1;
     size_t currentIndex = 0;
+    bool hasAnyBid = false;
 
-    while (highestBidder == nullptr || consecutivePasses < requiredPasses) {
+    while (true) {
         Player* currentPlayer = order[currentIndex];
         game.writeLine("BID Turn: " + currentPlayer->getUsername());
 
@@ -92,6 +93,13 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
         if (action == "PASS") {
             consecutivePasses++;
             currentIndex = (currentIndex + 1) % order.size();
+
+            if (!hasAnyBid && consecutivePasses >= static_cast<int>(order.size())) {
+                game.writeLine("Semua pemain sempat PASS. Lelang belum bisa selesai sebelum ada minimal satu bid.");
+                consecutivePasses = 0;
+            } else if (hasAnyBid && consecutivePasses >= requiredPasses) {
+                break;
+            }
             continue;
         }
 
@@ -102,11 +110,11 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
                 game.writeLine("Format BID tidak valid. Gunakan: BID <angka>");
                 continue;
             }
-            if (amount < 1) {
-                game.writeLine("Nilai bid minimal adalah 1.");
+            if (amount < 0) {
+                game.writeLine("Nilai bid minimal adalah 0.");
                 continue;
             }
-            if (highestBidder != nullptr && amount <= highestBid) {
+            if (hasAnyBid && amount <= highestBid) {
                 game.writeLine("Bid harus lebih tinggi dari bid saat ini.");
                 continue;
             }
@@ -117,6 +125,7 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
 
             highestBidder = currentPlayer;
             highestBid = amount;
+            hasAnyBid = true;
             consecutivePasses = 0;
             currentIndex = (currentIndex + 1) % order.size();
             continue;
@@ -126,7 +135,7 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
     }
 
     transferProperty(property, highestBidder, highestBid);
-    game.getLogger().log(highestBidder->getUsername(), StateLog::AUCTION,
+    Logger::getInstance().log(highestBidder->getUsername(), StateLog::AUCTION,
         "Memenangkan lelang " + property->getName() + " seharga M" + std::to_string(highestBid));
 
     game.writeLine("Winner - " + highestBidder->getUsername() + " price: " + std::to_string(highestBid));

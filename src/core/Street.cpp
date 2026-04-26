@@ -6,6 +6,32 @@
 
 using namespace std;
 
+static bool isStreetMonopoly(const Street* street)
+{
+    if (street == nullptr || street->getOwner() == nullptr) {
+        return false;
+    }
+
+    const std::vector<Tile*> colorGroup =
+        GameManager::getInstance().getBoard().getColorGroup(street->getColor());
+    bool foundStreet = false;
+
+    for (Tile* tile : colorGroup) {
+        Street* groupStreet = dynamic_cast<Street*>(tile);
+        if (groupStreet == nullptr) {
+            continue;
+        }
+
+        foundStreet = true;
+        if (groupStreet->getOwner() != street->getOwner() ||
+            groupStreet->getPropertyStatus() != OWNED) {
+            return false;
+        }
+    }
+
+    return foundStreet;
+}
+
 Street::Street(int index, const std::string& code, const std::string& color,
     const std::string& name, int landCost, int mortgageValue, 
     int festivalMultiplier, int festivalDuration, 
@@ -137,6 +163,7 @@ void Street::runTile(Player* player) {
         gm.writeLine("");
 
         int rent = getRentCost();
+        const bool monopoly = (currentLevel == 0) && isStreetMonopoly(this);
         string houseCount;
         string mulLog;
 
@@ -148,8 +175,11 @@ void Street::runTile(Player* player) {
             houseCount = "Tanah kosong";
         }
 
+        if (monopoly) {
+            mulLog += ", monopoli";
+        }
         if (festivalMultiplier != 1) {
-            mulLog = ", festival aktif x" + to_string(festivalMultiplier);
+            mulLog += ", festival aktif x" + to_string(festivalMultiplier);
         }
 
         gm.writeLine("Kondisi      : " + houseCount + mulLog);
@@ -179,7 +209,11 @@ void Street::runTile(Player* player) {
 
 int Street::getRentCost() const {
     if (currentLevel >= 0 && currentLevel < (int)rentCost.size()) {
-        return rentCost[currentLevel] * festivalMultiplier;
+        int baseRent = rentCost[currentLevel];
+        if (currentLevel == 0 && isStreetMonopoly(this)) {
+            baseRent *= 2;
+        }
+        return baseRent * festivalMultiplier;
     }
     return 0;
 }

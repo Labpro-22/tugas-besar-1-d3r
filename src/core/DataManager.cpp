@@ -429,7 +429,7 @@ void DataManager::load(string fileName) {
         mapStringToAction[StateLog::actionToString(action)] = action;
     }
 
-    Logger& logger = game.getLogger();
+    Logger& logger = Logger::getInstance();
     for(int i = 0; i < nLog; i++) {
         int turn;
         string username, actionTypeStr, detail;
@@ -461,7 +461,7 @@ void DataManager::load(string fileName) {
 void DataManager::save(string fileName, bool override) {
     GameManager& game = GameManager::getInstance();
     
-    const std::vector<StateLog>& logs = game.getLogger().getLogs();
+    const std::vector<StateLog>& logs = Logger::getInstance().getLogs();
     if(!logs.empty() && logs.back().getTurn() == game.getTurn()) {
         throw SaveProhibitedException();
     }
@@ -573,7 +573,7 @@ void DataManager::save(string fileName, bool override) {
     }
 
     if (game.getCurrentTurnPlayer() != nullptr) {
-        game.getLogger().log(
+        Logger::getInstance().log(
             game.getCurrentTurnPlayer()->getUsername(),
             StateLog::SAVE,
             "Menyimpan permainan ke " + path

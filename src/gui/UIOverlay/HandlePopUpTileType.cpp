@@ -75,7 +75,7 @@ void TilePopup::renderPopUp(Street *s)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(s->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }
 
 void TilePopup::renderPopUp(Railroad *r)
@@ -96,7 +96,7 @@ void TilePopup::renderPopUp(Railroad *r)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(r->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }
 
 void TilePopup::renderPopUp(Utility *u)
@@ -120,7 +120,7 @@ void TilePopup::renderPopUp(Utility *u)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(u->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }
 
 // Taxes
@@ -140,7 +140,7 @@ void TilePopup::renderPopUp(PBM *pbm)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(pbm->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }
 
 void TilePopup::renderPopUp(PPH *pph)
@@ -159,7 +159,7 @@ void TilePopup::renderPopUp(PPH *pph)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(pph->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }
 
 // Special Tiles
@@ -186,7 +186,7 @@ void TilePopup::renderPopUp(CardTile *ct)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(ct->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }
 
 void TilePopup::renderPopUp(Festival *f)
@@ -205,7 +205,7 @@ void TilePopup::renderPopUp(Festival *f)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(f->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }
 
 void TilePopup::renderPopUp(Go *g)
@@ -223,7 +223,7 @@ void TilePopup::renderPopUp(Go *g)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(g->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }
 
 void TilePopup::renderPopUp(Prison *p)
@@ -241,7 +241,7 @@ void TilePopup::renderPopUp(Prison *p)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(p->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }
 
 void TilePopup::renderPopUp(Trap *tr)
@@ -259,7 +259,7 @@ void TilePopup::renderPopUp(Trap *tr)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(tr->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }
 
 void TilePopup::renderPopUp(FreeParking *fp)
@@ -277,5 +277,5 @@ void TilePopup::renderPopUp(FreeParking *fp)
 
     Tile *sTile = GameManager::getInstance().getBoard().getTile(fp->getIndex());
     bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
-    drawPopUp();
+    setVisible(true);
 }

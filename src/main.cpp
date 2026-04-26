@@ -55,6 +55,23 @@ static void runGui(GameManager &gm)
         {
             console.WriteLine("=== GAME ENDED ===");
             gameLoopActive = false;
+            return;
+        }
+
+        if (gm.isGameFinished())
+        {
+            Player* winner = gm.getWinner();
+            if (winner != nullptr)
+            {
+                Logger::getInstance().log(
+                    winner->getUsername(),
+                    StateLog::WIN,
+                    "Menang dengan total uang M" + std::to_string(winner->getCurrency())
+                );
+                console.WriteLine("Pemenang : " + winner->getUsername());
+            }
+            console.WriteLine("=== GAME ENDED ===");
+            gameLoopActive = false;
         }
     });
     CurrentPlayerStats statsCard(0);
