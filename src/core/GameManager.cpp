@@ -231,35 +231,6 @@ void GameManager::rollDice(int dice1, int dice2) {
     } else {
         currentTurnPlayer->setDoubleCount(0);
     }
-
-
-    if (currentTurnPlayer->getStatus() == JAILED) {
-        writeLine("Game Error: Pemain JAILED tidak seharusnya memanggil rollDice secara langsung tanpa melalui Command Handler!");
-        return;
-    }
-
-    if (dice.isDouble()) {
-        currentTurnPlayer->setDoubleCount(currentTurnPlayer->getDoubleCount() + 1);
-        if (currentTurnPlayer->getDoubleCount() >= 3) {
-            writeLine("Dadu: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + ". Tiga kali double berturut-turut! Langsung masuk penjara.");
-            currentTurnPlayer->setDoubleCount(0);
-            Tile* jailTile = board.getJailTile();
-            if (jailTile != nullptr) {
-                currentTurnPlayer->moveTo(jailTile, false, FORWARD);
-                Prison* prison = dynamic_cast<Prison*>(jailTile);
-                if (prison != nullptr) {
-                    prison->setJailed(currentTurnPlayer);
-                } else {
-                    currentTurnPlayer->setToJailed();
-                }
-            }
-            nextTurn();
-            return;
-        }
-    } else {
-        currentTurnPlayer->setDoubleCount(0);
-    }
-
     Tile* destination = board.goToTile(*currentTurnPlayer->getCurrentTile(), total);
 
     currentTurnPlayer->setCanUseCard(false);
