@@ -1,5 +1,8 @@
 #include "../../include/core/CommandHandler.hpp"
 
+#include <algorithm>
+#include <cctype>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -124,6 +127,61 @@ bool CommandHandler::execute(const std::string& line) {
     std::string command;
     iss >> command;
 
+    auto formatMoney = [](int amount) {
+        std::string digits = std::to_string(amount);
+        for (int i = static_cast<int>(digits.length()) - 3; i > 0; i -= 3) {
+            digits.insert(static_cast<size_t>(i), ".");
+        }
+        return std::string("M") + digits;
+    };
+
+    auto formatUpperLabel = [](std::string raw) {
+        std::replace(raw.begin(), raw.end(), '_', ' ');
+        return raw;
+    };
+
+    auto formatPropertyName = [](std::string raw) {
+        const bool shortUpperAcronym =
+            raw.find('_') == std::string::npos &&
+            raw.length() <= 4 &&
+            std::all_of(raw.begin(), raw.end(), [](unsigned char c) {
+                return !std::isalpha(c) || std::isupper(c);
+            });
+
+        if (shortUpperAcronym) {
+            return raw;
+        }
+
+        std::replace(raw.begin(), raw.end(), '_', ' ');
+        bool newWord = true;
+        for (char& c : raw) {
+            unsigned char uc = static_cast<unsigned char>(c);
+            if (c == ' ') {
+                newWord = true;
+                continue;
+            }
+
+            c = static_cast<char>(newWord ? std::toupper(uc) : std::tolower(uc));
+            newWord = false;
+        }
+
+        return raw;
+    };
+
+    auto getPropertyGroupLabel = [&formatUpperLabel](Property* property) {
+        if (dynamic_cast<Railroad*>(property) != nullptr) {
+            return std::string("STASIUN");
+        }
+        if (dynamic_cast<Utility*>(property) != nullptr) {
+            return std::string("UTILITAS");
+        }
+        return formatUpperLabel(property->getColor());
+    };
+
+    auto getPropertyDisplayName = [&formatPropertyName](Property* property) {
+        return formatPropertyName(property->getName()) + " (" + property->getCode() + ")";
+    };
+
     if (command == "CETAK_PAPAN") {
         game.getBoard().printBoard();
     } else if (command == "CETAK_PROPERTI") {
@@ -133,6 +191,196 @@ bool CommandHandler::execute(const std::string& line) {
             return true;
         }
         currentPlayer->printProperties();
+    } else if (command == "GADAI") {
+        Player* currentPlayer = game.getCurrentTurnPlayer();
+        if (currentPlayer == nullptr) {
+            game.writeLine("Game belum diinisialisasi. Current player belum ada.");
+            return true;
+        }
+
+        std::vector<Property*> candidates;
+        for (Tile* tile : game.getBoard().getTiles()) {
+            Property* property = dynamic_cast<Property*>(tile);
+            if (property != nullptr &&
+                property->getOwner() == currentPlayer &&
+                property->getPropertyStatus() == OWNED) {
+                candidates.push_back(property);
+            }
+        }
+
+        if (candidates.empty()) {
+            game.writeLine("Tidak ada properti yang dapat digadaikan saat ini.");
+            return true;
+        }
+
+        game.writeLine("=== Properti yang Dapat Digadaikan ===");
+        for (size_t i = 0; i < candidates.size(); ++i) {
+            std::ostringstream row;
+            row << std::to_string(i + 1) << ". "
+                << std::left << std::setw(27) << getPropertyDisplayName(candidates[i])
+                << std::left << std::setw(12) << ("[" + getPropertyGroupLabel(candidates[i]) + "]")
+                << " Nilai Gadai: " << formatMoney(candidates[i]->getMortgageValue());
+            game.writeLine(row.str());
+        }
+        game.writeLine("");
+
+        const int pick = askInt("Pilih nomor properti (0 untuk batal): ", 0, static_cast<int>(candidates.size()));
+        if (pick == 0) {
+            return true;
+        }
+
+        Property* selected = candidates[static_cast<size_t>(pick - 1)];
+
+        try {
+            currentPlayer->mortgageProperty(selected, &game.getBoard());
+            Logger::getInstance().log(
+                currentPlayer->getUsername(),
+                StateLog::PAY_MORTGAGE,
+                "Menggadaikan " + selected->getName() + " (" + selected->getCode() +
+                ") senilai " + formatMoney(selected->getMortgageValue())
+            );
+
+            game.writeLine(formatPropertyName(selected->getName()) + " berhasil digadaikan.");
+            game.writeLine("Kamu menerima " + formatMoney(selected->getMortgageValue()) + " dari Bank.");
+            game.writeLine("Uang kamu sekarang: " + formatMoney(currentPlayer->getCurrency()));
+            game.writeLine("Catatan: Sewa tidak dapat dipungut dari properti yang digadaikan.");
+        } catch (const FailedMortgageException& e) {
+            game.writeLine(formatPropertyName(selected->getName()) + " tidak dapat digadaikan!");
+            game.writeLine("Masih terdapat bangunan di color group [" + formatUpperLabel(e.getColorGroup()) + "].");
+            game.writeLine("Bangunan harus dijual terlebih dahulu.");
+            game.writeLine("");
+
+            std::vector<Street*> built;
+            for (Tile* tile : game.getBoard().getColorGroup(e.getColorGroup())) {
+                Street* street = dynamic_cast<Street*>(tile);
+                if (street != nullptr &&
+                    street->getOwner() == currentPlayer &&
+                    street->getCurrentLevel() > 0) {
+                    built.push_back(street);
+                }
+            }
+
+            if (built.empty()) {
+                return true;
+            }
+
+            game.writeLine("Daftar bangunan di color group [" + formatUpperLabel(e.getColorGroup()) + "]:");
+            for (size_t i = 0; i < built.size(); ++i) {
+                std::string buildingState = built[i]->getCurrentLevel() == 5
+                    ? "Hotel"
+                    : std::to_string(built[i]->getCurrentLevel()) + " rumah";
+
+                std::ostringstream row;
+                row << std::to_string(i + 1) << ". "
+                    << std::left << std::setw(30) << getPropertyDisplayName(built[i])
+                    << " - " << std::left << std::setw(8) << buildingState
+                    << " -> Nilai jual bangunan: " << formatMoney(built[i]->getBuildingValue() / 2);
+                game.writeLine(row.str());
+            }
+            game.writeLine("");
+
+            const std::string confirmSell = askChoice(
+                "Jual semua bangunan color group [" + formatUpperLabel(e.getColorGroup()) + "]? (y/n): ",
+                {"y", "n"}
+            );
+            if (confirmSell == "n") {
+                return true;
+            }
+
+            for (Street* street : built) {
+                const int gain = street->getBuildingValue() / 2;
+                street->setCurrentLevel(0);
+                *currentPlayer += gain;
+                game.writeLine(
+                    "Bangunan " + formatPropertyName(street->getName()) +
+                    " terjual. Kamu menerima " + formatMoney(gain) + "."
+                );
+            }
+
+            game.writeLine("Uang kamu sekarang: " + formatMoney(currentPlayer->getCurrency()));
+            game.writeLine("");
+
+            const std::string confirmMortgage = askChoice(
+                "Lanjut menggadaikan " + formatPropertyName(selected->getName()) + "? (y/n): ",
+                {"y", "n"}
+            );
+            if (confirmMortgage == "n") {
+                return true;
+            }
+
+            currentPlayer->mortgageProperty(selected, &game.getBoard());
+            Logger::getInstance().log(
+                currentPlayer->getUsername(),
+                StateLog::PAY_MORTGAGE,
+                "Menggadaikan " + selected->getName() + " (" + selected->getCode() +
+                ") senilai " + formatMoney(selected->getMortgageValue())
+            );
+
+            game.writeLine(formatPropertyName(selected->getName()) + " berhasil digadaikan.");
+            game.writeLine("Kamu menerima " + formatMoney(selected->getMortgageValue()) + " dari Bank.");
+            game.writeLine("Uang kamu sekarang: " + formatMoney(currentPlayer->getCurrency()));
+            game.writeLine("Catatan: Sewa tidak dapat dipungut dari properti yang digadaikan.");
+        }
+    } else if (command == "TEBUS") {
+        Player* currentPlayer = game.getCurrentTurnPlayer();
+        if (currentPlayer == nullptr) {
+            game.writeLine("Game belum diinisialisasi. Current player belum ada.");
+            return true;
+        }
+
+        std::vector<Property*> mortgaged;
+        for (Tile* tile : game.getBoard().getTiles()) {
+            Property* property = dynamic_cast<Property*>(tile);
+            if (property != nullptr &&
+                property->getOwner() == currentPlayer &&
+                property->getPropertyStatus() == MORTGAGED) {
+                mortgaged.push_back(property);
+            }
+        }
+
+        if (mortgaged.empty()) {
+            game.writeLine("Tidak ada properti yang sedang digadaikan.");
+            return true;
+        }
+
+        game.writeLine("=== Properti yang Sedang Digadaikan ===");
+        for (size_t i = 0; i < mortgaged.size(); ++i) {
+            std::ostringstream row;
+            row << std::to_string(i + 1) << ". "
+                << std::left << std::setw(27) << getPropertyDisplayName(mortgaged[i])
+                << std::left << std::setw(12) << ("[" + getPropertyGroupLabel(mortgaged[i]) + "]")
+                << " [M]  Harga Tebus: " << formatMoney(mortgaged[i]->getLandCost());
+            game.writeLine(row.str());
+        }
+        game.writeLine("");
+
+        game.writeLine("Uang kamu saat ini: " + formatMoney(currentPlayer->getCurrency()));
+        const int pick = askInt("Pilih nomor properti (0 untuk batal): ", 0, static_cast<int>(mortgaged.size()));
+        if (pick == 0) {
+            return true;
+        }
+
+        Property* selected = mortgaged[static_cast<size_t>(pick - 1)];
+
+        try {
+            currentPlayer->buyBackMortgaged(selected);
+            Logger::getInstance().log(
+                currentPlayer->getUsername(),
+                StateLog::PAY_MORTGAGE,
+                "Menebus " + selected->getName() + " (" + selected->getCode() +
+                ") seharga " + formatMoney(selected->getLandCost())
+            );
+
+            game.writeLine(formatPropertyName(selected->getName()) + " berhasil ditebus!");
+            game.writeLine("Kamu membayar " + formatMoney(selected->getLandCost()) + " ke Bank.");
+            game.writeLine("Uang kamu sekarang: " + formatMoney(currentPlayer->getCurrency()));
+        } catch (const NotEnoughMoneyException&) {
+            game.writeLine("Uang kamu tidak cukup untuk menebus " + formatPropertyName(selected->getName()) + ".");
+            game.writeLine(
+                "Harga tebus: " + formatMoney(selected->getLandCost()) +
+                " | Uang kamu: " + formatMoney(currentPlayer->getCurrency())
+            );
+        }
     } else if (command == "BANGUN") {
         Player* currentPlayer = game.getCurrentTurnPlayer();
         if (currentPlayer == nullptr) {
@@ -278,7 +526,7 @@ bool CommandHandler::execute(const std::string& line) {
     //     // not yet
     // } 
     else if (command == "BANTUAN") {
-        game.writeLine("Commands: CETAK_PAPAN,\nCETAK_PROPERTI,\nBANGUN,\nLEMPAR_DADU,\nATUR_DADU X Y,\nSTATUS,\nCETAK_KARTU,\nGUNAKAN_KEMAMPUAN,\nSIMPAN,\nMUAT,\nKELUAR");
+        game.writeLine("Commands: CETAK_PAPAN,\nCETAK_PROPERTI,\nGADAI,\nTEBUS,\nBANGUN,\nLEMPAR_DADU,\nATUR_DADU X Y,\nSTATUS,\nCETAK_KARTU,\nGUNAKAN_KEMAMPUAN,\nSIMPAN,\nMUAT,\nKELUAR");
     }
     // SAVE/LOAD
     else if (command == "SIMPAN") {
