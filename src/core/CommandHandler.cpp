@@ -74,13 +74,17 @@ int CommandHandler::askInt(const std::string& prompt, int minValue, int maxValue
         char tail = '\0';
 
         if ((iss >> value) && !(iss >> tail)) {
-            if (value < minValue || value > maxValue) {
+            try {
+                if (value < minValue || value > maxValue) {
+                    throw InvalidChoiceException(value, minValue, maxValue);
+                }
+                return value;
+            } catch (const InvalidChoiceException& e) {
                 GameManager::getInstance().writeLine(
-                    "Masukkan angka antara " + std::to_string(minValue) + " dan " + std::to_string(maxValue) + "."
+                    "Masukkan angka antara " + std::to_string(e.getMinChoice()) + " dan " + std::to_string(e.getMaxChoice()) + "."
                 );
                 continue;
             }
-            return value;
         }
 
         GameManager::getInstance().writeLine("Input tidak valid. Masukkan angka.");
@@ -190,7 +194,11 @@ bool CommandHandler::execute(const std::string& line) {
             game.writeLine("Game belum diinisialisasi. Current player belum ada.");
             return true;
         }
-        currentPlayer->printProperties();
+        try {
+            currentPlayer->printProperties();
+        } catch (const NoPropertyException&) {
+            game.writeLine("Kamu belum memiliki properti apapun.");
+        }
     } else if (command == "GADAI") {
         Player* currentPlayer = game.getCurrentTurnPlayer();
         if (currentPlayer == nullptr) {
@@ -208,7 +216,11 @@ bool CommandHandler::execute(const std::string& line) {
             }
         }
 
-        if (candidates.empty()) {
+        try {
+            if (candidates.empty()) {
+                throw NoPropertyToMortgageException();
+            }
+        } catch (const NoPropertyToMortgageException&) {
             game.writeLine("Tidak ada properti yang dapat digadaikan saat ini.");
             return true;
         }
@@ -244,6 +256,8 @@ bool CommandHandler::execute(const std::string& line) {
             game.writeLine("Kamu menerima " + formatMoney(selected->getMortgageValue()) + " dari Bank.");
             game.writeLine("Uang kamu sekarang: " + formatMoney(currentPlayer->getCurrency()));
             game.writeLine("Catatan: Sewa tidak dapat dipungut dari properti yang digadaikan.");
+        } catch (const NoPropertyToMortgageException&) {
+            game.writeLine("Tidak ada properti yang dapat digadaikan saat ini.");
         } catch (const FailedMortgageException& e) {
             game.writeLine(formatPropertyName(selected->getName()) + " tidak dapat digadaikan!");
             game.writeLine("Masih terdapat bangunan di color group [" + formatUpperLabel(e.getColorGroup()) + "].");
@@ -308,18 +322,24 @@ bool CommandHandler::execute(const std::string& line) {
                 return true;
             }
 
-            currentPlayer->mortgageProperty(selected, &game.getBoard());
-            Logger::getInstance().log(
-                currentPlayer->getUsername(),
-                StateLog::PAY_MORTGAGE,
-                "Menggadaikan " + selected->getName() + " (" + selected->getCode() +
-                ") senilai " + formatMoney(selected->getMortgageValue())
-            );
+            try {
+                currentPlayer->mortgageProperty(selected, &game.getBoard());
+                Logger::getInstance().log(
+                    currentPlayer->getUsername(),
+                    StateLog::PAY_MORTGAGE,
+                    "Menggadaikan " + selected->getName() + " (" + selected->getCode() +
+                    ") senilai " + formatMoney(selected->getMortgageValue())
+                );
 
-            game.writeLine(formatPropertyName(selected->getName()) + " berhasil digadaikan.");
-            game.writeLine("Kamu menerima " + formatMoney(selected->getMortgageValue()) + " dari Bank.");
-            game.writeLine("Uang kamu sekarang: " + formatMoney(currentPlayer->getCurrency()));
-            game.writeLine("Catatan: Sewa tidak dapat dipungut dari properti yang digadaikan.");
+                game.writeLine(formatPropertyName(selected->getName()) + " berhasil digadaikan.");
+                game.writeLine("Kamu menerima " + formatMoney(selected->getMortgageValue()) + " dari Bank.");
+                game.writeLine("Uang kamu sekarang: " + formatMoney(currentPlayer->getCurrency()));
+                game.writeLine("Catatan: Sewa tidak dapat dipungut dari properti yang digadaikan.");
+            } catch (const NoPropertyToMortgageException&) {
+                game.writeLine("Tidak ada properti yang dapat digadaikan saat ini.");
+            } catch (const FailedMortgageException&) {
+                game.writeLine(formatPropertyName(selected->getName()) + " tidak dapat digadaikan!");
+            }
         }
     } else if (command == "TEBUS") {
         Player* currentPlayer = game.getCurrentTurnPlayer();
@@ -338,7 +358,11 @@ bool CommandHandler::execute(const std::string& line) {
             }
         }
 
-        if (mortgaged.empty()) {
+        try {
+            if (mortgaged.empty()) {
+                throw NoMortgageException();
+            }
+        } catch (const NoMortgageException&) {
             game.writeLine("Tidak ada properti yang sedang digadaikan.");
             return true;
         }
@@ -374,6 +398,8 @@ bool CommandHandler::execute(const std::string& line) {
             game.writeLine(formatPropertyName(selected->getName()) + " berhasil ditebus!");
             game.writeLine("Kamu membayar " + formatMoney(selected->getLandCost()) + " ke Bank.");
             game.writeLine("Uang kamu sekarang: " + formatMoney(currentPlayer->getCurrency()));
+        } catch (const NoMortgageException&) {
+            game.writeLine("Tidak ada properti yang sedang digadaikan.");
         } catch (const NotEnoughMoneyException&) {
             game.writeLine("Uang kamu tidak cukup untuk menebus " + formatPropertyName(selected->getName()) + ".");
             game.writeLine(
@@ -491,7 +517,11 @@ bool CommandHandler::execute(const std::string& line) {
             return true;
         }
 
-        if (!currentPlayer->getCanUseCard()) {
+        try {
+            if (!currentPlayer->getCanUseCard()) {
+                throw AbilityUsedException();
+            }
+        } catch (const AbilityUsedException&) {
             game.writeLine("Kartu kemampuan hanya bisa digunakan 1 kali dalam 1 giliran.");
             return true;
         }

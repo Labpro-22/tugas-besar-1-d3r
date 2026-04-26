@@ -1,4 +1,5 @@
 #include "../../include/core/Dice.hpp"
+#include "../../include/utils/GameException.hpp"
 
 #include <random>
 
@@ -15,7 +16,7 @@ void Dice::roll() {
 
 bool Dice::setValues(int first, int second) {
     if (!isValidValue(first) || !isValidValue(second)) {
-        return false;
+        throw InvalidDiceException(first, second);
     }
 
     this->first = first;

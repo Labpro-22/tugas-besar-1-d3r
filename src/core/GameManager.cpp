@@ -140,7 +140,9 @@ void GameManager::rollDice(int dice1, int dice2) {
         return;
     }
 
-    if (!dice.setValues(dice1, dice2)) {
+    try {
+        dice.setValues(dice1, dice2);
+    } catch (const InvalidDiceException&) {
         writeLine("Nilai dadu harus 1 sampai 6.");
         return;
     }

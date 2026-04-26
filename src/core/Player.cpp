@@ -54,7 +54,11 @@ bool Player::addSkillCard(SkillCard* card) {
 
     deck.addCard(card);
 
-    if (deck.size() > 3) {
+    try {
+        if (deck.size() > 3) {
+            throw AbilityExceededException();
+        }
+    } catch (const AbilityExceededException&) {
         printSkillCards();
 
         GameManager::getInstance().writeLine(username + " mendapat kartu kemampuan: " + card->getCardName());
@@ -68,7 +72,8 @@ bool Player::addSkillCard(SkillCard* card) {
         }
         return true;
     }
-    else GameManager::getInstance().writeLine(username + " mendapat kartu kemampuan: " + card->getCardName());
+
+    GameManager::getInstance().writeLine(username + " mendapat kartu kemampuan: " + card->getCardName());
     logger.log(username, StateLog::GET_CARD, "Mendapatkan kartu " + card->getCardName());
     return true;
 }
@@ -107,8 +112,7 @@ void Player::printProperties() const {
     }
 
     if (owned.empty()) {
-        game.writeLine("Kamu belum memiliki properti apapun.");
-        return;
+        throw NoPropertyException();
     }
 
     auto formatColorLabel = [](std::string raw) {
@@ -184,11 +188,11 @@ void Player::moveTo(Tile* destination, bool getPayment) {
 
 void Player::mortgageProperty(Property* property, Board* board) {
     // Check if property actually points to a property
-    if(property == nullptr) return;
+    if(property == nullptr) throw NoPropertyToMortgageException();
 
     // Check if the property is owned by the player and not mortgaged
-    if(property->getOwner() != this) return;
-    if(property->getPropertyStatus() != OWNED) return;
+    if(property->getOwner() != this) throw NoPropertyToMortgageException();
+    if(property->getPropertyStatus() != OWNED) throw NoPropertyToMortgageException();
 
     // Check if there are buildings exist in the property's color group
     vector<Tile*> colorGroupProperties = board->getColorGroup(property->getColor()); 
@@ -216,11 +220,11 @@ void Player::setToJailed() {
 
 void Player::buyBackMortgaged(Property* mortgaged) {
     // Check if mortgaged actually points to a property
-    if(mortgaged == nullptr) return;
+    if(mortgaged == nullptr) throw NoMortgageException();
 
     // Check if mortgaged property is owned by the player and is currently mortgaged
-    if(mortgaged->getOwner() != this) return;
-    if(mortgaged->getPropertyStatus() != MORTGAGED) return;
+    if(mortgaged->getOwner() != this) throw NoMortgageException();
+    if(mortgaged->getPropertyStatus() != MORTGAGED) throw NoMortgageException();
 
     if(this->currency < mortgaged->getLandCost()) throw NotEnoughMoneyException("menebus " + mortgaged->getName(), mortgaged->getLandCost(), this->currency);
 

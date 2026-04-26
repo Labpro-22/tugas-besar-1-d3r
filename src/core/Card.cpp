@@ -268,13 +268,17 @@ void TeleportCard::useCard(Player *currentPlayer, std::vector<Player *>)
     CommandHandler &handler = GameManager::getInstance().getCommandHandler();
     std::string targetTile = handler.askInput("Masukkan kode petak tujuan: ");
 
-    Tile *destination = GameManager::getInstance().getBoard().getTile(targetTile);
-    if (destination != nullptr)
-    {   
+    try {
+        Tile *destination = GameManager::getInstance().getBoard().getTile(targetTile);
+        if (destination == nullptr)
+        {
+            throw InvalidTileCodeException(targetTile);
+        }
+
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai TeleportCard → Pindah ke " + destination->getName() + " (" + destination->getCode() + ")");
         currentPlayer->moveTo(destination, false);
-    } else {
+    } catch (const InvalidTileCodeException&) {
         GameManager::getInstance().writeLine("Kode petak tidak valid.");
     }
 }
@@ -309,14 +313,24 @@ void DemolitionCard::useCard(Player *currentPlayer, std::vector<Player *>)
     CommandHandler &handler = GameManager::getInstance().getCommandHandler();
     std::string targetCode = handler.askInput("Masukkan kode properti target: ");
 
-    Street *street = dynamic_cast<Street *>(GameManager::getInstance().getBoard().getTile(targetCode));
-    if (street != nullptr && street->getOwner() != nullptr && street->getOwner() != currentPlayer && street->getCurrentLevel() > 0)
-    {
-        street->setCurrentLevel(street->getCurrentLevel() - 1);
-        Logger &logger = Logger::getInstance();
-        logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai DemolitionCard → Bangunan di " + street->getName() + " dihancurkan.");
-        GameManager::getInstance().writeLine("Bangunan di " + street->getName() + " dihancurkan.");
-    } else {
+    try {
+        Tile *targetTile = GameManager::getInstance().getBoard().getTile(targetCode);
+        if (targetTile == nullptr)
+        {
+            throw InvalidTileCodeException(targetCode);
+        }
+
+        Street *street = dynamic_cast<Street *>(targetTile);
+        if (street != nullptr && street->getOwner() != nullptr && street->getOwner() != currentPlayer && street->getCurrentLevel() > 0)
+        {
+            street->setCurrentLevel(street->getCurrentLevel() - 1);
+            Logger &logger = Logger::getInstance();
+            logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai DemolitionCard → Bangunan di " + street->getName() + " dihancurkan.");
+            GameManager::getInstance().writeLine("Bangunan di " + street->getName() + " dihancurkan.");
+        } else {
+            GameManager::getInstance().writeLine("Target tidak valid atau tidak memiliki bangunan.");
+        }
+    } catch (const InvalidTileCodeException&) {
         GameManager::getInstance().writeLine("Target tidak valid atau tidak memiliki bangunan.");
     }
 }

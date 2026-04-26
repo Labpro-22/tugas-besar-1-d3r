@@ -57,7 +57,12 @@ public:
 	void setDeckChance(CardDeck<AutoUseCard> deckChance) { this->deckChance = std::move(deckChance); };
 	void setDeckCurrency(CardDeck<AutoUseCard> deckCurrency) { this->deckCurrency = std::move(deckCurrency); };
 	void setCurrentTurnPlayer(Player* currentTurnPlayer) { this->currentTurnPlayer = currentTurnPlayer; };
-	static void setDice(std::vector<int> dice) { GameManager::getInstance().dice.setValues(dice); };
+	static void setDice(std::vector<int> dice) {
+		try {
+			GameManager::getInstance().dice.setValues(dice);
+		} catch (const InvalidDiceException&) {
+		}
+	};
 	void setUseGuiStream(bool useGuiStream) { this->useGuiStream = useGuiStream; }
 	void setOutputCallback(std::function<void(const std::string&)> callback) { outputCallback = std::move(callback); }
 	void setInputCallback(std::function<std::string(const std::string&)> callback) { inputCallback = std::move(callback); }
