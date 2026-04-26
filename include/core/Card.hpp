@@ -128,3 +128,9 @@ public:
     DemolitionCard();
     void useCard(Player*, std::vector<Player*>) override;
 };
+
+class FreeJailCard : public SkillCard {
+public:
+    FreeJailCard();
+    void useCard(Player*, std::vector<Player*>) override;
+};

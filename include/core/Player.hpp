@@ -28,6 +28,7 @@ class Player {
         float discountValue;
         int effectTurns;
         int jailTurnCount;
+        int doubleCount;
         bool canUseCard;
         void moveOneStep(const Board& board, bool getPayment, MOVE_DIRECTION direction);
     public:
@@ -46,6 +47,7 @@ class Player {
         int getShieldTurns() const { return activeCardEffect == SHIELD ? effectTurns : 0; };
         bool hasShield() const { return activeCardEffect == SHIELD && effectTurns > 0; };
         int getJailTurn() const { return jailTurnCount; };
+        int getDoubleCount() const { return doubleCount; };
         bool getCanUseCard() const { return canUseCard; };
 
         // setter
@@ -60,6 +62,7 @@ class Player {
         void setDiscountTurns(int discountTurns) { this->effectTurns = discountTurns; this->activeCardEffect = discountTurns > 0 ? DISCOUNT : NOEFFECT; };
         void setShieldTurns(int shieldTurns) { this->effectTurns = shieldTurns; this->activeCardEffect = shieldTurns > 0 ? SHIELD : NOEFFECT; };
         void setJailTurnCount(int jailTurnCount) { this->jailTurnCount = jailTurnCount; };
+        void setDoubleCount(int doubleCount) { this->doubleCount = doubleCount; };
         void setCanUseCard(bool canUseCard) { this->canUseCard = canUseCard; };
         
         // specific method
