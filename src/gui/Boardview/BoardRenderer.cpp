@@ -18,7 +18,7 @@ void renderSingleTile(int index, Board &board)
     // Logika render utama
     std::pair<Color, Color> colorShade = TileRenderer::ParseColor(logicTile);
     TileRenderer::DrawIsometricTile(pos, std::pair<Color, Color>(BOARD_LINE, BOARD_LINE) );
-    TileRenderer::FillTileTypes(pos, index, colorShade.first);
+    TileRenderer::FillTileTypes(pos, index, colorShade);
 
     // Ambil rotasi teks 
     float rotation = TileRenderer::GetTextRotation(index);

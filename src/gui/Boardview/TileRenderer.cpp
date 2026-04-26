@@ -34,7 +34,7 @@ void TileRenderer::DrawIsometricTile(Vector2 centerPos, std::pair<Color, Color> 
     DrawLineEx(lowerBottom, lowerRight, 1.5f, BOARD_COKLAT);
 }
 
-void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
+void TileRenderer::FillTileTypes(Vector2 tilePos, int index, std::pair<Color, Color>tileColors)
 {
     Vector2 top = {tilePos.x, tilePos.y - (RenderConfig::TILE_HEIGHT / 2.0f)};
     Vector2 bottom = {tilePos.x, tilePos.y + (RenderConfig::TILE_HEIGHT / 2.0f)};
@@ -56,49 +56,49 @@ void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
     int base = TileRenderer::getBoardSize() / 4;
     index = index - 1;
     if (index % base == 0) {
-        DrawTriangle(top, left, bottom, tileColor);
-        DrawTriangle(top, bottom, right, tileColor);
+        DrawTriangle(top, left, bottom, tileColors.first);
+        DrawTriangle(top, bottom, right, tileColors.first);
     }
     else if (index > 0 && index < base) {
         // Kasus untuk render 0 - 11
-        DrawTriangle(midRightBottom, right, mid, tileColor);
-        DrawTriangle(right, midRightTop, mid, tileColor);
+        DrawTriangle(midRightBottom, right, mid, tileColors.first);
+        DrawTriangle(right, midRightTop, mid, tileColors.first);
 
-        DrawTriangle(top, midLeftTop, mid, tileColor);
-        DrawTriangle(top, mid, midRightTop, tileColor);
+        DrawTriangle(top, midLeftTop, mid, tileColors.first);
+        DrawTriangle(top, mid, midRightTop, tileColors.first);
     }
     else if (index > base && index < base*2) {
-        DrawTriangle(midRightBottom, right, mid, tileColor);
-        DrawTriangle(right, midRightTop, mid, tileColor);
-        DrawTriangle(mid, midLeftBottom, midRightBottom, tileColor);
-        DrawTriangle(midLeftBottom, bottom, midRightBottom, tileColor);
+        DrawTriangle(midRightBottom, right, mid, tileColors.first);
+        DrawTriangle(right, midRightTop, mid, tileColors.first);
+        DrawTriangle(mid, midLeftBottom, midRightBottom, tileColors.first);
+        DrawTriangle(midLeftBottom, bottom, midRightBottom, tileColors.first);
 
-        DrawTriangle(bottom, lowerBottom, lowerRight, tileColor);
-        DrawTriangle(bottom, lowerRight, right, tileColor);
+        DrawTriangle(bottom, lowerBottom, lowerRight, tileColors.second);
+        DrawTriangle(bottom, lowerRight, right, tileColors.second);
 
         DrawLineEx(bottom, right, 1.5f, BOARD_COKLAT);
     }
     else if (index > base*2 && index <= base*3) {
-        DrawTriangle(mid, midLeftBottom, midRightBottom, tileColor);
-        DrawTriangle(midLeftBottom, bottom, midRightBottom, tileColor);
+        DrawTriangle(mid, midLeftBottom, midRightBottom, tileColors.first);
+        DrawTriangle(midLeftBottom, bottom, midRightBottom, tileColors.first);
 
-        DrawTriangle(left, midLeftBottom, mid, tileColor);
-        DrawTriangle(left, mid, midLeftTop, tileColor);
+        DrawTriangle(left, midLeftBottom, mid, tileColors.first);
+        DrawTriangle(left, mid, midLeftTop, tileColors.first);
 
-        DrawTriangle(left, lowerLeft, lowerBottom, tileColor);
-        DrawTriangle(left, lowerBottom, bottom, tileColor);
+        DrawTriangle(left, lowerLeft, lowerBottom, tileColors.second);
+        DrawTriangle(left, lowerBottom, bottom, tileColors.second);
         DrawLineEx(left, bottom, 1.5f, BOARD_COKLAT);
     }
     else if (index > base*3 && index <= base*4) {
-        DrawTriangle(left, midLeftBottom, mid, tileColor);
-        DrawTriangle(left, mid, midLeftTop, tileColor);
+        DrawTriangle(left, midLeftBottom, mid, tileColors.first);
+        DrawTriangle(left, mid, midLeftTop, tileColors.first);
 
-        DrawTriangle(midLeftTop, midRightTop, top, tileColor);
-        DrawTriangle(midLeftTop, mid, midRightTop, tileColor);
+        DrawTriangle(midLeftTop, midRightTop, top, tileColors.first);
+        DrawTriangle(midLeftTop, mid, midRightTop, tileColors.first);
     }
     else if (index == 0 || index == base || index == base*2 || index == base*3) {
-        DrawTriangle(top, left, bottom, tileColor);
-        DrawTriangle(top, bottom, right, tileColor);
+        DrawTriangle(top, left, bottom, tileColors.first);
+        DrawTriangle(top, bottom, right, tileColors.first);
     }
 }
 
@@ -106,37 +106,37 @@ std::pair<Color, Color> TileRenderer::ParseColor(Tile *tile)
 {  
     // return dari compare adalah 0 jadi biar 1 di-negasi
     if (!tile->getColor().compare("BIRU_MUDA")) {
-        return {BIRU_MUDA, BIRU_MUDA_SHADE};
+        return std::pair<Color, Color>{BIRU_MUDA, BIRU_MUDA_SHADE};
     }
     else if (!tile->getColor().compare("COKLAT")) {
-        return {COKLAT, COKLAT_SHADE};
+        return std::pair<Color, Color>{COKLAT, COKLAT_SHADE};
     }
     else if (!tile->getColor().compare("MERAH_MUDA")) {
-        return {MERAH_MUDA, MERAH_MUDA_SHADE};
+        return std::pair<Color, Color>{MERAH_MUDA, MERAH_MUDA_SHADE};
     }
     else if (!tile->getColor().compare("ORANGE")) {
-        return {JERUK, JERUK_SHADE};
+        return std::pair<Color, Color>{JERUK, JERUK_SHADE};
     }
     else if (!tile->getColor().compare("MERAH")) {
-        return {MERAH, MERAH_SHADE};
+        return std::pair<Color, Color>{MERAH, MERAH_SHADE};
     }
     else if (!tile->getColor().compare("KUNING")) {
-        return {KUNING, KUNING_SHADE};
+        return std::pair<Color, Color>{KUNING, KUNING_SHADE};
     }
     else if (!tile->getColor().compare("HIJAU")) {
-        return {HIJAU, HIJAU_SHADE};
+        return std::pair<Color, Color>{HIJAU, HIJAU_SHADE};
     }
     else if (!tile->getColor().compare("BIRU_TUA")) {
-        return {BIRU_TUA, BIRU_TUA_SHADE};
+        return std::pair<Color, Color>{BIRU_TUA, BIRU_TUA_SHADE};
     }
     else if (!tile->getColor().compare("ABU")) {
-        return {ABU, ABU_SHADE};
+        return std::pair<Color, Color>{ABU, ABU_SHADE};
     }
     else if (!tile->getCode().compare("GO")) {
-        return {GOLD, GOLD};
+        return std::pair<Color, Color>{GOLD, GOLD};
     }
     else {
-        return {BOARD_BASE, BOARD_BASE};
+        return std::pair<Color, Color>{BOARD_BASE, BOARD_BASE};
     }
 }
 
