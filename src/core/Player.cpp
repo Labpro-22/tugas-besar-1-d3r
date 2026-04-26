@@ -254,16 +254,40 @@ int Player::getTotalWealth(const Board* board) const {
 
 int Player::getMaxLiquidatableValue(const Board* board) const  {
     int maxCash = this->currency;
+    if (board == nullptr){
+        return maxCash;
+    }
+
     for(Tile* tile : board->getTiles()){
         Property* prop = dynamic_cast<Property*>(tile);
         if (prop != nullptr && prop->getOwner() == this){
             if (prop->getPropertyStatus() == OWNED){
-                int propVal = prop->getLandCost();
+                int sellValue = prop->getLandCost();
 
                 Street* street = dynamic_cast<Street*>(prop);
                 if (street != nullptr){
                     int buildingVal = street->getBuildingValue();
-                    propVal += (buildingVal / 2);
+                    sellValue += (buildingVal / 2);
+                }
+
+                bool canMortgage = true;
+                vector<Tile*> colorGroupProperties = board->getColorGroup(prop->getColor());
+                for(Tile* colorTile : colorGroupProperties){
+                    Property* owned = dynamic_cast<Property*>(colorTile);
+                    if (owned == nullptr || owned->getOwner() != this){
+                        continue;
+                    }
+
+                    Street* streetOwned = dynamic_cast<Street*>(owned);
+                    if (streetOwned != nullptr && streetOwned->getCurrentLevel() > 0){
+                        canMortgage = false;
+                        break;
+                    }
+                }
+
+                int propVal = sellValue;
+                if (canMortgage && prop->getMortgageValue() > propVal){
+                    propVal = prop->getMortgageValue();
                 }
 
                 maxCash += propVal;

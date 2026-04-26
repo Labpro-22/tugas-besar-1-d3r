@@ -287,16 +287,7 @@ void GameManager::pay(Player *debtor, int amount, Player* creditor) {
 
     try{
         if (debtor->getCurrency() < amount) {
-            string errorMsg;
-            if (creditor){
-                errorMsg = "Tidak bisa membayar sewa kepada" + creditor->getUsername();
-            } else {
-                errorMsg = "Tidak bisa membayar sewa kepada Bank";                
-            }
-            GameManager::getInstance().writeLine("Kamu tidak mampu membayar pajak!");
-            GameManager::getInstance().writeLine("Uang kamu saat ini: M" + to_string(debtor->getCurrency()));            
-            
-            throw NotEnoughMoneyException(errorMsg, amount, debtor->getCurrency());
+            throw NotEnoughMoneyException("", amount, debtor->getCurrency());
         }
 
         *debtor -= amount;
@@ -335,23 +326,36 @@ void GameManager::sellPropertyToBank(Player* player, Property* property) {
 }
 
 void GameManager::handleBankruptcy(Player *debtor, int amount, Player* creditor) {
+    if (debtor == nullptr || amount <= 0) {
+        return;
+    }
+
     GameManager::getInstance().writeLine("");
     string target = creditor ? (" kepada " + creditor->getUsername()) : "";
-    string reason = creditor ? "sewa M" : "Pajak/Tagihan M";
+    string reason = creditor ? "sewa M" : "tagihan M";
+    if (!creditor && debtor->getCurrentTile() != nullptr) {
+        reason = debtor->getCurrentTile()->getName() + " M";
+    }
     
     GameManager::getInstance().writeLine("Kamu tidak dapat membayar " + reason + to_string(amount) + target + "!");
     GameManager::getInstance().writeLine("");
 
     GameManager::getInstance().writeLine("Uang kamu       : M" + to_string(debtor->getCurrency()));
     GameManager::getInstance().writeLine("Total kewajiban : M" + to_string(amount));
+    if (debtor->getCurrency() < amount) {
+        GameManager::getInstance().writeLine("Kekurangan      : M" + to_string(amount - debtor->getCurrency()));
+    }
 
-    int maxLiq = debtor->getMaxLiquidatableValue(&board);
-    int totalAsetUang = debtor->getCurrency() + maxLiq;
+    int totalAsetUang = debtor->getMaxLiquidatableValue(&board);
+    int totalPotensiLikuidasi = totalAsetUang - debtor->getCurrency();
+    if (totalPotensiLikuidasi < 0) {
+        totalPotensiLikuidasi = 0;
+    }
 
     if (totalAsetUang < amount) {
         GameManager::getInstance().writeLine("");
         GameManager::getInstance().writeLine("Estimasi dana maksimum dari likuidasi:");
-        GameManager::getInstance().writeLine("  Jual semua properti + bangunan -> M" + to_string(maxLiq));
+        GameManager::getInstance().writeLine("  Total potensi likuidasi       -> M" + to_string(totalPotensiLikuidasi));
         GameManager::getInstance().writeLine("Total aset + uang tunai          : M" + to_string(totalAsetUang));
         GameManager::getInstance().writeLine("Tidak cukup untuk menutup kewajiban M" + to_string(amount) + ".");
         GameManager::getInstance().writeLine("");
@@ -361,27 +365,50 @@ void GameManager::handleBankruptcy(Player *debtor, int amount, Player* creditor)
         return;
     }
 
-    GameManager::getInstance().writeLine("Kekurangan      : M" + to_string(amount - debtor->getCurrency()));
     GameManager::getInstance().writeLine("");
     GameManager::getInstance().writeLine("Estimasi dana maksimum dari likuidasi:");
 
     int totalPotensiDisplay = 0;
-    vector<Property*> debtorProps;
-    for (Tile* t : board.getTiles()) {
-        Property* p = dynamic_cast<Property*>(t);
-        if (p != nullptr && p->getOwner() == debtor) {
-            debtorProps.push_back(p);
-            
-            if (p->getPropertyStatus() == OWNED) {
-                int propSellVal = p->getLandCost();
-                Street* street = dynamic_cast<Street*>(p);
-                if (street) propSellVal += (street->getBuildingValue() / 2);
-                
-                GameManager::getInstance().writeLine("  Jual " + p->getName() + " (" + p->getCode() + ")   [" + p->getColor() + "]   -> M" + to_string(propSellVal));
-                totalPotensiDisplay += propSellVal;
-            } else if (p->getPropertyStatus() == MORTGAGED) {
-                GameManager::getInstance().writeLine("  Gadai " + p->getName() + "  (" + p->getCode() + ")  [" + p->getColor() + "]    -> M" + to_string(p->getMortgageValue()));
+    vector<Property*> debtorProps = debtor->getOwnedProperties();
+    for (Property* p : debtorProps) {
+        if (p == nullptr || p->getPropertyStatus() != OWNED) {
+            continue;
+        }
+
+        int propSellVal = p->getLandCost();
+        Street* street = dynamic_cast<Street*>(p);
+        if (street != nullptr) {
+            propSellVal += (street->getBuildingValue() / 2);
+        }
+
+        bool canMortgage = true;
+        vector<Tile*> colorGroupProperties = board.getColorGroup(p->getColor());
+        for (Tile* colorTile : colorGroupProperties) {
+            Property* owned = dynamic_cast<Property*>(colorTile);
+            if (owned == nullptr || owned->getOwner() != debtor) {
+                continue;
             }
+
+            Street* streetOwned = dynamic_cast<Street*>(owned);
+            if (streetOwned != nullptr && streetOwned->getCurrentLevel() > 0) {
+                canMortgage = false;
+                break;
+            }
+        }
+
+        string group = p->getColor();
+        if (dynamic_cast<Railroad*>(p) != nullptr) {
+            group = "STASIUN";
+        } else if (dynamic_cast<Utility*>(p) != nullptr) {
+            group = "UTILITAS";
+        }
+
+        if (canMortgage && p->getMortgageValue() > propSellVal) {
+            GameManager::getInstance().writeLine("  Gadai " + p->getName() + " (" + p->getCode() + ") [" + group + "] -> M" + to_string(p->getMortgageValue()));
+            totalPotensiDisplay += p->getMortgageValue();
+        } else {
+            GameManager::getInstance().writeLine("  Jual " + p->getName() + " (" + p->getCode() + ") [" + group + "] -> M" + to_string(propSellVal));
+            totalPotensiDisplay += propSellVal;
         }
     }
     
@@ -391,6 +418,152 @@ void GameManager::handleBankruptcy(Player *debtor, int amount, Player* creditor)
     GameManager::getInstance().writeLine("Dana likuidasi dapat menutup kewajiban.");
     GameManager::getInstance().writeLine("Kamu wajib melikuidasi aset untuk membayar.");
 
+    CommandHandler& handler = GameManager::getInstance().getCommandHandler();
+    while (debtor->getCurrency() < amount) {
+        vector<Property*> sellOptions;
+        vector<Property*> mortgageOptions;
+        debtorProps = debtor->getOwnedProperties();
+
+        for (Property* p : debtorProps) {
+            if (p == nullptr || p->getPropertyStatus() != OWNED) {
+                continue;
+            }
+
+            int propSellVal = p->getLandCost();
+            Street* street = dynamic_cast<Street*>(p);
+            if (street != nullptr) {
+                propSellVal += (street->getBuildingValue() / 2);
+            }
+
+            bool canMortgage = true;
+            vector<Tile*> colorGroupProperties = board.getColorGroup(p->getColor());
+            for (Tile* colorTile : colorGroupProperties) {
+                Property* owned = dynamic_cast<Property*>(colorTile);
+                if (owned == nullptr || owned->getOwner() != debtor) {
+                    continue;
+                }
+
+                Street* streetOwned = dynamic_cast<Street*>(owned);
+                if (streetOwned != nullptr && streetOwned->getCurrentLevel() > 0) {
+                    canMortgage = false;
+                    break;
+                }
+            }
+
+            if (canMortgage && p->getMortgageValue() > propSellVal) {
+                mortgageOptions.push_back(p);
+            } else {
+                sellOptions.push_back(p);
+            }
+        }
+
+        if (sellOptions.empty() && mortgageOptions.empty()) {
+            break;
+        }
+
+        GameManager::getInstance().writeLine("");
+        GameManager::getInstance().writeLine("=== Panel Likuidasi ===");
+        GameManager::getInstance().writeLine("Uang kamu saat ini: M" + to_string(debtor->getCurrency()) + "  |  Kewajiban: M" + to_string(amount));
+        GameManager::getInstance().writeLine("");
+
+        int optionCount = 0;
+        if (!sellOptions.empty()) {
+            GameManager::getInstance().writeLine("[Jual ke Bank]");
+            for (size_t i = 0; i < sellOptions.size(); ++i) {
+                Property* p = sellOptions[i];
+                string group = p->getColor();
+                if (dynamic_cast<Railroad*>(p) != nullptr) {
+                    group = "STASIUN";
+                } else if (dynamic_cast<Utility*>(p) != nullptr) {
+                    group = "UTILITAS";
+                }
+
+                int propSellVal = p->getLandCost();
+                Street* street = dynamic_cast<Street*>(p);
+                string extraInfo = "";
+                if (street != nullptr) {
+                    int buildingValue = street->getBuildingValue() / 2;
+                    propSellVal += buildingValue;
+                    if (street->getCurrentLevel() > 0) {
+                        extraInfo = " (termasuk " + to_string(street->getCurrentLevel());
+                        extraInfo += street->getCurrentLevel() == 5 ? " hotel: M" : " rumah: M";
+                        extraInfo += to_string(buildingValue) + ")";
+                    }
+                }
+
+                GameManager::getInstance().writeLine(
+                    to_string(optionCount + 1) + ". " + p->getName() + " (" + p->getCode() + ") [" + group + "] Harga Jual: M" +
+                    to_string(propSellVal) + extraInfo
+                );
+                optionCount++;
+            }
+            GameManager::getInstance().writeLine("");
+        }
+
+        if (!mortgageOptions.empty()) {
+            GameManager::getInstance().writeLine("[Gadaikan]");
+            for (size_t i = 0; i < mortgageOptions.size(); ++i) {
+                Property* p = mortgageOptions[i];
+                string group = p->getColor();
+                if (dynamic_cast<Railroad*>(p) != nullptr) {
+                    group = "STASIUN";
+                } else if (dynamic_cast<Utility*>(p) != nullptr) {
+                    group = "UTILITAS";
+                }
+
+                GameManager::getInstance().writeLine(
+                    to_string(optionCount + 1) + ". " + p->getName() + " (" + p->getCode() + ") [" + group + "] Nilai Gadai: M" +
+                    to_string(p->getMortgageValue())
+                );
+                optionCount++;
+            }
+            GameManager::getInstance().writeLine("");
+        }
+
+        int pick = handler.askInt("Pilih aksi (0 jika sudah cukup): ", 0, optionCount);
+        if (pick == 0) {
+            if (debtor->getCurrency() >= amount) {
+                break;
+            }
+
+            GameManager::getInstance().writeLine("Dana kamu masih belum cukup. Likuidasi harus dilanjutkan.");
+            continue;
+        }
+
+        if (pick <= static_cast<int>(sellOptions.size())) {
+            Property* selected = sellOptions[static_cast<size_t>(pick - 1)];
+            int received = selected->getLandCost();
+            Street* street = dynamic_cast<Street*>(selected);
+            if (street != nullptr) {
+                received += street->getBuildingValue() / 2;
+            }
+
+            sellPropertyToBank(debtor, selected);
+            GameManager::getInstance().writeLine("");
+            GameManager::getInstance().writeLine(selected->getName() + " terjual ke Bank. Kamu menerima M" + to_string(received) + ".");
+            GameManager::getInstance().writeLine("Uang kamu sekarang: M" + to_string(debtor->getCurrency()));
+        } else {
+            Property* selected = mortgageOptions[static_cast<size_t>(pick - static_cast<int>(sellOptions.size()) - 1)];
+            try {
+                debtor->mortgageProperty(selected, &board);
+                GameManager::getInstance().writeLine("");
+                GameManager::getInstance().writeLine(selected->getName() + " berhasil digadaikan.");
+                GameManager::getInstance().writeLine("Kamu menerima M" + to_string(selected->getMortgageValue()) + " dari Bank.");
+                GameManager::getInstance().writeLine("Uang kamu sekarang: M" + to_string(debtor->getCurrency()));
+                GameManager::getInstance().writeLine("Catatan: Sewa tidak dapat dipungut dari properti yang digadaikan.");
+            } catch (const NimonspoliException&) {
+                GameManager::getInstance().writeLine("Properti tidak dapat digadaikan saat ini.");
+            }
+        }
+    }
+
+    if (debtor->getCurrency() < amount) {
+        GameManager::getInstance().writeLine("");
+        GameManager::getInstance().writeLine("Seluruh opsi likuidasi telah habis, tetapi dana masih belum cukup.");
+        GameManager::getInstance().writeLine(debtor->getUsername() + " dinyatakan BANGKRUT!");
+        assetAcquisition(debtor, creditor);
+        return;
+    }
 
     string dest = creditor ? creditor->getUsername() : "Bank";
     GameManager::getInstance().writeLine("");
@@ -411,13 +584,8 @@ void GameManager::handleBankruptcy(Player *debtor, int amount, Player* creditor)
 void GameManager::assetAcquisition(Player* debtor, Player* creditor) {
     if (debtor == nullptr) return;
 
-    vector<Property*> debtorProps;
-    for (Tile* t : board.getTiles()) {
-        Property* p = dynamic_cast<Property*>(t);
-        if (p != nullptr && p->getOwner() == debtor) {
-            debtorProps.push_back(p);
-        }
-    }
+    vector<Property*> debtorProps = debtor->getOwnedProperties();
+    debtor->setCurrentStatus(BANKRUPT);
 
     string kreditorName = creditor ? creditor->getUsername() : "Bank";
     GameManager::getInstance().writeLine("Kreditor: " + kreditorName);
@@ -475,8 +643,6 @@ void GameManager::assetAcquisition(Player* debtor, Player* creditor) {
             }
         }
     }
-
-    debtor->setCurrentStatus(BANKRUPT);
     
     int activePlayerCount = 0;
     for (Player* p : players) {
