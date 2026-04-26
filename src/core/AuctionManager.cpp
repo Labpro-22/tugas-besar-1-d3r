@@ -1,6 +1,7 @@
 #include "../../include/core/AuctionManager.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <sstream>
 #include <string>
 
@@ -56,9 +57,15 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
     }
 
     if (order.size() == 1) {
-        transferProperty(property, order.front(), 0);
-        game.writeLine("Winner (only 1) - " + order.front()->getUsername());
-        return true;
+        Player* onlyBidder = order.front();
+        if (onlyBidder != nullptr && onlyBidder->getCurrency() > 0) {
+            transferProperty(property, onlyBidder, 1);
+            game.writeLine("Winner (only 1) - " + onlyBidder->getUsername() + " price: 1");
+            return true;
+        }
+
+        game.writeLine("Lelang dibatalkan. Tidak ada peserta yang bisa melakukan bid.");
+        return false;
     }
 
     Player* highestBidder = nullptr;
@@ -81,12 +88,6 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
         iss >> action;
 
         if (action == "PASS") {
-            // when there is already a bidder, poker like
-            if (highestBidder == nullptr && consecutivePasses + 1 >= requiredPasses) {
-                game.writeLine("Must bid");
-                continue;
-            }
-
             consecutivePasses++;
             currentIndex = (currentIndex + 1) % order.size();
             continue;
@@ -96,15 +97,19 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
         if (action == "BID") {
             int amount;
             if (!(iss >> amount)) {
+                game.writeLine("Format BID tidak valid. Gunakan: BID <angka>");
                 continue;
             }
-            if (amount < 0) {
+            if (amount < 1) {
+                game.writeLine("Nilai bid minimal adalah 1.");
                 continue;
             }
             if (highestBidder != nullptr && amount <= highestBid) {
+                game.writeLine("Bid harus lebih tinggi dari bid saat ini.");
                 continue;
             }
             if (amount > currentPlayer->getCurrency()) {
+                game.writeLine("Uang tidak cukup untuk bid tersebut.");
                 continue;
             }
 
@@ -114,6 +119,8 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
             currentIndex = (currentIndex + 1) % order.size();
             continue;
         }
+
+        game.writeLine("Perintah tidak valid. Gunakan PASS atau BID <angka>.");
     }
 
     transferProperty(property, highestBidder, highestBid);

@@ -297,7 +297,8 @@ void LassoCard::useCard(Player *currentPlayer, std::vector<Player *>)
     {
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai LassoCard -> Pemain " + target->getUsername() + " pindah ke petak " + currentPlayer->getCurrentTile()->getName() + " (" + currentPlayer->getCurrentTile()->getCode() + ")");
-        target->moveTo(currentPlayer->getCurrentTile(), false, FORWARD);
+        target->setCurrentTile(currentPlayer->getCurrentTile());
+        GameManager::getInstance().writeLine("Pemain " + target->getUsername() + " ditarik ke petak " + currentPlayer->getCurrentTile()->getName() + ".");
     }
 }
 

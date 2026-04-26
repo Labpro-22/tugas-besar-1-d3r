@@ -1,6 +1,7 @@
 #include "../../include/core/Board.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -179,17 +180,40 @@ int Board::getUtilityLevel(Tile* tile) {
 }
 
 Player* Board::getNextPlayer(Player* player) {
-    std::vector<Player*> players = GameManager::getInstance().getPlayer();
-    auto closest = std::min_element(players.begin(), players.end(), [&](const Player* a, const Player* b){
-        if(a == player) return false;
-        if(b == player) return false;
-        int posA = a->getCurrentTile()->getIndex();
-        int posB = b->getCurrentTile()->getIndex();
-        int posX = player->getCurrentTile()->getIndex();
-        return ((posA - posX + tiles.size()) % tiles.size()) < ((posB - posX + tiles.size()) % tiles.size());
-    });
-    // TODO: Implement get next player logic
-    return *closest;
+    if (player == nullptr || player->getCurrentTile() == nullptr || tiles.empty()) {
+        return nullptr;
+    }
+
+    const std::vector<Player*> players = GameManager::getInstance().getPlayer();
+    const int boardSize = static_cast<int>(tiles.size());
+    const int currentPos = player->getCurrentTile()->getIndex();
+
+    Player* bestTarget = nullptr;
+    int bestDistance = std::numeric_limits<int>::max();
+
+    for (Player* candidate : players) {
+        if (candidate == nullptr || candidate == player) {
+            continue;
+        }
+
+        if (candidate->getStatus() == BANKRUPT || candidate->getCurrentTile() == nullptr) {
+            continue;
+        }
+
+        const int candidatePos = candidate->getCurrentTile()->getIndex();
+        const int distance = (candidatePos - currentPos + boardSize) % boardSize;
+
+        if (distance == 0) {
+            continue;
+        }
+
+        if (distance < bestDistance) {
+            bestDistance = distance;
+            bestTarget = candidate;
+        }
+    }
+
+    return bestTarget;
 }
 
 int Board::stringToIndex(const std::string& str) {
