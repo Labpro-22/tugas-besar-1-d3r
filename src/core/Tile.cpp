@@ -158,6 +158,7 @@ void Prison::setJailed(Player* player) {
 void Prison::freeFromJailed(Player* player) {
     if (player != nullptr) {
         player->setCurrentStatus(ACTIVE);
+        player->setJailTurnCount(0);
     }
 }
 

@@ -97,6 +97,7 @@ void GameManager::runGame() {
     }
 
     writeLine("[INFO] Game ready.");
+    commandHandler.handleJailTurn(currentTurnPlayer);
 }
 
 void GameManager::auction(Tile* tile) {
@@ -149,6 +150,34 @@ void GameManager::rollDice(int dice1, int dice2) {
     }
 
     int total = dice.getTotal();
+
+    if (currentTurnPlayer->getStatus() == JAILED) {
+        writeLine("Game Error: Pemain JAILED tidak seharusnya memanggil rollDice secara langsung tanpa melalui Command Handler!");
+        return;
+    }
+
+    if (dice.isDouble()) {
+        currentTurnPlayer->setDoubleCount(currentTurnPlayer->getDoubleCount() + 1);
+        if (currentTurnPlayer->getDoubleCount() >= 3) {
+            writeLine("Dadu: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + ". Tiga kali double berturut-turut! Langsung masuk penjara.");
+            currentTurnPlayer->setDoubleCount(0);
+            Tile* jailTile = board.getJailTile();
+            if (jailTile != nullptr) {
+                currentTurnPlayer->moveTo(jailTile, false, FORWARD);
+                Prison* prison = dynamic_cast<Prison*>(jailTile);
+                if (prison != nullptr) {
+                    prison->setJailed(currentTurnPlayer);
+                } else {
+                    currentTurnPlayer->setToJailed();
+                }
+            }
+            nextTurn();
+            return;
+        }
+    } else {
+        currentTurnPlayer->setDoubleCount(0);
+    }
+
     Tile* destination = board.goToTile(*currentTurnPlayer->getCurrentTile(), total);
 
     writeLine("Hasil: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + " = " + std::to_string(total));
@@ -161,11 +190,17 @@ void GameManager::rollDice(int dice1, int dice2) {
     TilePopup popUpcaller;
     destination->callPopUp(popUpcaller);
     // writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
-    
-    if (!dice.isDouble()) {
-        nextTurn();
+
+    if (currentTurnPlayer->getStatus() != JAILED) {
+        if (!dice.isDouble()) {
+            nextTurn();
+        } else {
+            writeLine("Double. Pemain mendapat giliran tambahan.");
+        }
     } else {
-        writeLine("Double. Pemain mendapat giliran tambahan.");
+        // Jika berstatus JAILED setelah movement (misal masuk dari Pergi ke Penjara)
+        currentTurnPlayer->setDoubleCount(0);
+        nextTurn();
     }
 }
 
@@ -220,10 +255,7 @@ void GameManager::nextTurn() {
     if (currentTurnPlayer != nullptr) {
         currentTurnPlayer->resetCardUse();
         drawSkillCard(currentTurnPlayer);
-        // drawSkillCard(currentTurnPlayer);
-        // drawSkillCard(currentTurnPlayer);
-        // drawSkillCard(currentTurnPlayer);
-
+        commandHandler.handleJailTurn(currentTurnPlayer);
     }
 }
 
@@ -275,6 +307,7 @@ void GameManager::initSkillDeck() {
         deckSkill.addCard(new TeleportCard());
         deckSkill.addCard(new LassoCard());
         deckSkill.addCard(new DemolitionCard());
+        deckSkill.addCard(new FreeJailCard());
     }
 
     deckSkill.shuffleDeck();
