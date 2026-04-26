@@ -34,7 +34,7 @@ class Player {
     public:
         Player();
         Player(const string& username, int currency, Tile* currentTile, PLAYER_STATUS status, CardDeck<SkillCard> deck):
-            username(username), currency(currency), currentTile(currentTile), currentStatus(status), deck(std::move(deck)) {}
+            username(username), currency(currency), currentTile(currentTile), currentStatus(status), deck(std::move(deck)), activeCardEffect(NOEFFECT), discountValue(0.0f), effectTurns(0), jailTurnCount(0), doubleCount(0), canUseCard(true) {}
 
         // getter
 
