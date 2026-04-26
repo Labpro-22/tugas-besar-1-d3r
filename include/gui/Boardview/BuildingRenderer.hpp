@@ -4,11 +4,11 @@ class BuildingRenderer : public PropertyRenderCall {
 private:
     Vector2 currentPos;
     int currentIndex;
-    void printHeader(std::string owner, PROPERTY_STATUS propertyStatus, int landCost);
     void drawHouses(int count);
     void drawStation();
     void drawIsometricHouse(Vector2 IsoPos);
     void drawIsometricStation(Vector2 isoPos);
+    void drawIsometricHotel(Vector2 IsoPos);
     
 
 public:

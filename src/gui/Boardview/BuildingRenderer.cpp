@@ -22,8 +22,6 @@ void BuildingRenderer::drawHouses(int count)
     int base = BoardSize / 4;
 
     // Titik-titik referensi ubin
-    Vector2 top = {currentPos.x, currentPos.y - height / 2.0f};
-    Vector2 bottom = {currentPos.x, currentPos.y + height / 2.0f};
     Vector2 left = {currentPos.x - width / 2.0f, currentPos.y};
     Vector2 right = {currentPos.x + width / 2.0f, currentPos.y};
     Vector2 mid = currentPos; // Pusat ubin
@@ -73,39 +71,72 @@ void BuildingRenderer::drawIsometricHouse(Vector2 IsoPos)
     DrawTriangleLines(v1, v2, v3, BLACK);
 }
 
+void BuildingRenderer::drawIsometricHotel(Vector2 IsoPos)
+{
+    float sizeHotel = 12.0f; // lebih besar dari rumah
+    float sizeFloor = 8.0f;  // lantai dasar lebih lebar
+    GameManager &game = GameManager::getInstance();
+    Tile *currentTile = game.getBoard().getTiles().at(currentIndex);
+    std::pair<Color, Color> colorsPair = TileRenderer::ParseColor(currentTile);
+
+    // Lantai dasar
+    Rectangle base = {
+        IsoPos.x - sizeFloor / 2,
+        IsoPos.y - sizeHotel * 0.4f,
+        sizeFloor,
+        sizeHotel * 0.4f};
+    DrawRectangleRounded(base, 0.2f, 4, colorsPair.first);
+    DrawRectangleRoundedLines(base, 0.2f, 4, BLACK);
+
+    // Badan utama
+    Rectangle body = {
+        IsoPos.x - sizeHotel / 2,
+        IsoPos.y - sizeHotel * 1.1f,
+        sizeHotel,
+        sizeHotel * 0.7f};
+    DrawRectangleRounded(body, 0.15f, 4, colorsPair.first);
+    DrawRectangleRoundedLines(body, 0.15f, 4, BLACK);
+
+    // Atap datar
+    Rectangle roof = {
+        IsoPos.x - sizeHotel / 2 - 1,
+        IsoPos.y - sizeHotel * 1.1f - 3,
+        sizeHotel + 2,
+        4.0f};
+    DrawRectangleRounded(roof, 0.3f, 4, colorsPair.second);
+    DrawRectangleRoundedLines(roof, 0.3f, 4, BLACK);
+}
+
 void BuildingRenderer::drawIsometricStation(Vector2 IsoPos)
 {
     float size = 20.0f; // Ukuran dasar
     GameManager &game = GameManager::getInstance();
     Tile *currentTile = game.getBoard().getTiles().at(currentIndex);
     std::pair<Color, Color> colorsPair = TileRenderer::ParseColor(currentTile);
-    
-    Color detailColor = ColorBrightness(colorsPair.first, -0.3f);
 
     // Platform Dasar
     // Membuat alas tipis agar gedung tidak melayang
     Rectangle platform = {IsoPos.x - (size + 4) / 2, IsoPos.y - 4, size + 4, 4};
     DrawRectangleRounded(platform, 0.5f, 4, GRAY);
-    DrawRectangleRoundedLines(platform, 0.5f, 4,  BLACK);
+    DrawRectangleRoundedLines(platform, 0.5f, 4, BLACK);
 
-    // Gedung Utama 
+    // Gedung Utama
     Rectangle terminal = {IsoPos.x - size / 2, IsoPos.y - size - 2, size * 0.7f, size};
     DrawRectangleRounded(terminal, 0.1f, 4, colorsPair.first);
-    DrawRectangleRoundedLines(terminal, 0.1f, 4,  BLACK);
-    
+    DrawRectangleRoundedLines(terminal, 0.1f, 4, BLACK);
+
     // Menara lagi sure
     float towerSize = size * 0.4f;
     Rectangle tower = {IsoPos.x + 2, IsoPos.y - size - 8, towerSize, size + 6};
     DrawRectangleRounded(tower, 0.2f, 4, colorsPair.second);
-    DrawRectangleRoundedLines(tower, 0.2f, 4,  BLACK);
+    DrawRectangleRoundedLines(tower, 0.2f, 4, BLACK);
 
-    // Kaca Depan 
+    // Kaca Depan
     Rectangle window = {IsoPos.x - (size / 2) + 2, IsoPos.y - size + 2, (size * 0.7f) - 4, 6};
     DrawRectangle(window.x, window.y, window.width, window.height, SKYBLUE);
 
     // Atap Menara
     DrawLineEx({tower.x - 1, tower.y}, {tower.x + towerSize + 1, tower.y}, 2.0f, BLACK);
-
 }
 
 void BuildingRenderer::drawStation()
@@ -147,20 +178,28 @@ void BuildingRenderer::render(Street *s)
     Vector2 originOffset = {0, 40};
     Vector2 originOffset1 = {-15, 20};
     Player *owner = s->getOwner();
-    drawHouses(s->getCurrentLevel());
+    Vector2 isopos = IsoTransformer::GetScreenPosition(s->getIndex());
+    float rotation = TileRenderer::GetTextRotation(s->getIndex());
+    if (s->getCurrentLevel() == 5) {
+        drawIsometricHouse(isopos);
+    }
+    else {
+        drawHouses(s->getCurrentLevel());
+    }
     if (owner != nullptr) {
-        TileRenderer::DrawTextIsometric(owner->getUsername(), originOffset, IsoTransformer::GetScreenPosition(s->getIndex()), TileRenderer::GetTextRotation(s->getIndex()));
+        TileRenderer::DrawTextIsometric(owner->getUsername(), originOffset, isopos, rotation);
     }
 
-    TileRenderer::DrawTextIsometric("M" + to_string(s->getLandCost()), originOffset1, IsoTransformer::GetScreenPosition(s->getIndex()), TileRenderer::GetTextRotation(s->getIndex()));
+    TileRenderer::DrawTextIsometric("M" + to_string(s->getRentCost()), originOffset1, isopos, rotation);
 }
 
 void BuildingRenderer::render(Utility *u)
 {
-    return;
+    TileRenderer::DrawIsometricTile(IsoTransformer::GetScreenPosition(u->getIndex()), {BOARD_BASE, BOARD_BASE});
 }
 void BuildingRenderer::render(Railroad *r)
-{
+{   
+    TileRenderer::DrawIsometricTile(IsoTransformer::GetScreenPosition(r->getIndex()), {BOARD_BASE, BOARD_BASE});
     Vector2 originOffset = {0, 40};
     Vector2 originOffset1 = {-15, 20};
     Vector2 originOffset2 = {-10, 60};

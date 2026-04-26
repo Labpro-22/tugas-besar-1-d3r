@@ -12,7 +12,7 @@ using namespace std;
 
 GameManager::GameManager() 
     : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), initialCurrency(0),
-      board(45), currentTurnPlayer(nullptr), useGuiStream(false), tilePopup(nullptr) {
+      board(41), currentTurnPlayer(nullptr), useGuiStream(false), tilePopup(nullptr) {
     // Board initialized with 40 tiles (standard Monopoly)
 }
 

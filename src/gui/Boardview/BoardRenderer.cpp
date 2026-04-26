@@ -11,27 +11,29 @@ void renderSingleTile(int index, Board &board)
 
     // Kasus tile kosong
     if (logicTile == nullptr) {
-        TileRenderer::DrawIsometricTile(pos, LIGHTGRAY);
+        TileRenderer::DrawIsometricTile(pos, std::pair<Color, Color>(LIGHTGRAY, RED));
         return;
     }
 
     // Logika render utama
-    std::pair<Color, Color> c = TileRenderer::ParseColor(logicTile);
-    TileRenderer::DrawIsometricTile(pos, c.first);
-    TileRenderer::FillTileTypes(pos, index, c.first);
+    std::pair<Color, Color> colorShade = TileRenderer::ParseColor(logicTile);
+    TileRenderer::DrawIsometricTile(pos, std::pair<Color, Color>(BOARD_LINE, BOARD_LINE) );
+    TileRenderer::FillTileTypes(pos, index, colorShade.first);
 
-    // Ambil rotasi teks (asumsi index untuk rotasi sama dengan index posisi)
+    // Ambil rotasi teks 
     float rotation = TileRenderer::GetTextRotation(index);
-    TileRenderer::DrawTextIsometric(logicTile->getCode(), {0, 0}, pos, rotation);
-
+    
     BuildingRenderer br;
     br.setContext(index);
     Tile *tile = board.getTile(index);
     Property *prop = dynamic_cast<Property *>(tile);
     if (prop) {
-
         prop->callViewer(br);
+    }else{
+        TileRenderer::DrawIsometricTile(pos, colorShade);
     }
+    TileRenderer::DrawTextIsometric(logicTile->getCode(), {0, 0}, pos, rotation);
+    
 }
 
 void BoardRenderer::RenderBoard(Board board)

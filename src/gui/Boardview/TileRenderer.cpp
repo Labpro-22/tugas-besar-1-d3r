@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 
-void TileRenderer::DrawIsometricTile(Vector2 centerPos, Color tileColor)
+void TileRenderer::DrawIsometricTile(Vector2 centerPos, std::pair<Color, Color> tileColors)
 {
     Vector2 top = {centerPos.x, centerPos.y - (RenderConfig::TILE_HEIGHT / 2.0f)};
     Vector2 bottom = {centerPos.x, centerPos.y + (RenderConfig::TILE_HEIGHT / 2.0f)};
@@ -14,13 +14,13 @@ void TileRenderer::DrawIsometricTile(Vector2 centerPos, Color tileColor)
     Vector2 lowerRight = {right.x, right.y + RenderConfig::TILE_HEIGHT / 2.0f};
     Vector2 lowerBottom = {bottom.x, bottom.y + RenderConfig::TILE_HEIGHT / 2.0f};
 
-    DrawTriangle(left, lowerLeft, lowerBottom, BOARD_LINE);
-    DrawTriangle(left, lowerBottom, bottom, BOARD_LINE);
-    DrawTriangle(bottom, lowerBottom, lowerRight, BOARD_LINE);
-    DrawTriangle(bottom, lowerRight, right, BOARD_LINE);
+    DrawTriangle(left, lowerLeft, lowerBottom, tileColors.second);
+    DrawTriangle(left, lowerBottom, bottom, tileColors.second);
+    DrawTriangle(bottom, lowerBottom, lowerRight, tileColors.second);
+    DrawTriangle(bottom, lowerRight, right, tileColors.second);
 
-    DrawTriangle(top, left, bottom, BOARD_LINE);
-    DrawTriangle(top, bottom, right, BOARD_LINE);
+    DrawTriangle(top, left, bottom, tileColors.first);
+    DrawTriangle(top, bottom, right, tileColors.first);
 
     DrawLineEx(top, right, 1.5f, BOARD_COKLAT);
     DrawLineEx(right, bottom, 1.5f, BOARD_COKLAT);
@@ -51,6 +51,7 @@ void TileRenderer::FillTileTypes(Vector2 tilePos, int index, Color tileColor)
     Vector2 lowerRight = {right.x, right.y + RenderConfig::TILE_HEIGHT / 2.0f};
     Vector2 lowerBottom = {bottom.x, bottom.y + RenderConfig::TILE_HEIGHT / 2.0f};
 
+    
     
     int base = TileRenderer::getBoardSize() / 4;
     index = index - 1;
