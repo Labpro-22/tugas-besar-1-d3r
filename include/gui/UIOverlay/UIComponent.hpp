@@ -1,5 +1,6 @@
 #pragma once
 #include "../include/core/Tile.hpp"
+#include "../include/core/PlayerEnums.hpp"
 
 #include "raylib.h"
 
@@ -15,7 +16,7 @@ class Go;
 class Prison;
 class Trap;
 class FreeParking;
-
+class Player;
 class PopUpField {
 private:
     std::string label_;
@@ -80,6 +81,43 @@ public:
     bool isVisible() const { return visible; }
 };
 
+class CurrentPlayerStats : public UIComponent {
+private:
+    static constexpr int CARD_W = 200;
+    static constexpr int CARD_H = 130;
+    static constexpr int PADDING = 12;
+    static constexpr int MARGIN = 16;
+
+    static constexpr float FS_NAME = 18.0f;
+    static constexpr float FS_FIELD = 14.0f;
+    static constexpr float SPACING = 1.0f;
+
+    Font font_;
+    Rectangle cardRect_;
+    PopUpData data_;
+    int playerIndex_;
+
+    // Helper — build data_ dari Player
+    void syncFromPlayer(const Player &player);
+    void drawCard();
+
+    // reuse helper dari TilePopup
+    Vector2 measure(const std::string &text, float fontSize) const;
+    std::string truncateToFit(const std::string &text,
+                              float fontSize, int maxWidth) const;
+
+    static std::string statusToString(PLAYER_STATUS s);
+    static std::string effectToString(CARD_EFFECT e, int turns);
+
+public:
+    CurrentPlayerStats(int playerIndex);
+
+    void setFont(Font font) { font_ = font; }
+
+    void update(const Player *player);
+    void render() override;
+    void handleInput() override {}
+};
 class TilePopUpCall {
 public:
     virtual ~TilePopUpCall() = default;
@@ -159,5 +197,4 @@ public:
     void renderPopUp(FreeParking *fp) override;
 
     void setFont(Font font) { font_ = font; }
-
 };

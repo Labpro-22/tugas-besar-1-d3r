@@ -15,7 +15,6 @@ void BuildingRenderer::drawHouses(int count)
     if (count > 3) count = 3;
 
     float width = RenderConfig::TILE_WIDTH;
-    float height = RenderConfig::TILE_HEIGHT;
 
     GameManager &game = GameManager::getInstance();
     int BoardSize = game.getBoard().getTiles().size();

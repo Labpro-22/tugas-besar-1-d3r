@@ -48,18 +48,18 @@ static void runGui(GameManager &gm)
 
     gm.setUseGuiStream(true);
     gm.setOutputCallback([&console](const std::string &text)
-                         { console.WriteLine(text); });
+    { console.WriteLine(text); });
     gm.setInputCallback([&console](const std::string &prompt)
-                        { return console.ReadLineBlocking(prompt); });
+    { return console.ReadLineBlocking(prompt); });
     console.SetBlockingRenderCallback(renderScene);
-
+    
     gm.writeLine("=== NIMONPOLI SYSTEM READY ===");
     gm.writeLine("Ketik command seperti CLI di console.");
     gm.writeLine("Contoh: CETAK_PAPAN, LEMPAR_DADU, STATUS");
-
+    
     gm.getBoard().printBoard();
     gm.runGame();
-
+    
     // Game loop state management
     bool gameLoopActive = true;
     
@@ -71,7 +71,9 @@ static void runGui(GameManager &gm)
             gameLoopActive = false;
         }
     });
+    CurrentPlayerStats statsCard(0);
 
+    
     while (!WindowShouldClose() && gameLoopActive)
     {
         Vector2 mousePos = GetMousePosition();
@@ -90,12 +92,14 @@ static void runGui(GameManager &gm)
                 camera.zoom = 3.0f;
             }
         }
-
+        
         tilePopup.handleInput();
         console.Update();
-
+        statsCard.update(gm.getCurrentTurnPlayer());
+        
         BeginDrawing();
         renderScene();
+        statsCard.render();
         tilePopup.render();
         console.Render();
         EndDrawing();

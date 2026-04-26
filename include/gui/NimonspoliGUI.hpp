@@ -14,5 +14,6 @@
 #include "MathCore/IsoTransformer.hpp"
 
 #include "UIOverlay/GameConsole.hpp"
+#include "UIOverlay/UIComponent.hpp"
 
 #include "RenderConfig.hpp"

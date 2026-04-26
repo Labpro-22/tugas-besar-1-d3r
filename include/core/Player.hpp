@@ -8,14 +8,13 @@
 #include "Deck.hpp"
 #include "Board.hpp"
 #include "../utils/GameException.hpp"
+#include "PlayerEnums.hpp"
 
 using namespace std;
 
 class Board;
 
-enum PLAYER_STATUS { ACTIVE, BANKRUPT, JAILED };
-enum CARD_EFFECT { NOEFFECT, DISCOUNT, SHIELD };
-enum MOVE_DIRECTION { FORWARD, BACKWARD };
+
 
 class Player {
     private:
@@ -49,6 +48,7 @@ class Player {
         int getJailTurn() const { return jailTurnCount; };
         int getDoubleCount() const { return doubleCount; };
         bool getCanUseCard() const { return canUseCard; };
+        int getEffectTurns() const {return effectTurns;};
 
         // setter
 
