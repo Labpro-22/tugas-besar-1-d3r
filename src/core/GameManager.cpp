@@ -233,7 +233,7 @@ void GameManager::rollDice(int dice1, int dice2) {
     }
     Tile* destination = board.goToTile(*currentTurnPlayer->getCurrentTile(), total);
 
-    currentTurnPlayer->setCanUseCard(false);
+    //currentTurnPlayer->setCanUseCard(false);
 
     writeLine("Hasil: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + " = " + std::to_string(total));
     if (destination == nullptr) {
