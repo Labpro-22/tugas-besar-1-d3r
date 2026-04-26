@@ -37,6 +37,22 @@ static std::string joinOptions(const std::vector<std::string>& options)
     return result;
 }
 
+static int findFreeJailCardIndex(const Player* player)
+{
+    if (player == nullptr) {
+        return -1;
+    }
+
+    const std::vector<SkillCard*>& cards = player->getDeck().getCards();
+    for (size_t i = 0; i < cards.size(); ++i) {
+        if (dynamic_cast<FreeJailCard*>(cards[i]) != nullptr) {
+            return static_cast<int>(i);
+        }
+    }
+
+    return -1;
+}
+
 std::string CommandHandler::askInput(const std::string& prompt, bool allowEmpty) const {
     while (true) {
         const std::string line = GameManager::getInstance().readLine(prompt);
@@ -89,6 +105,89 @@ int CommandHandler::askInt(const std::string& prompt, int minValue, int maxValue
 
         GameManager::getInstance().writeLine("Input tidak valid. Masukkan angka.");
     }
+}
+
+bool CommandHandler::handleJailTurn(Player* currentPlayer) const {
+    GameManager& game = GameManager::getInstance();
+    if (currentPlayer == nullptr || currentPlayer->getStatus() != JAILED) {
+        return false;
+    }
+
+    Prison* prison = dynamic_cast<Prison*>(game.getBoard().getJailTile());
+    const int fee = prison != nullptr ? prison->getFee() : 0;
+    const int jailTurn = currentPlayer->getJailTurn();
+    const int freeJailCardIndex = findFreeJailCardIndex(currentPlayer);
+    const bool hasFreeCard = freeJailCardIndex >= 0;
+    auto freeCurrentPlayer = [&]() {
+        if (prison != nullptr) {
+            prison->freeFromJailed(currentPlayer);
+        } else {
+            currentPlayer->setCurrentStatus(ACTIVE);
+            currentPlayer->setJailTurnCount(0);
+        }
+    };
+
+    if (jailTurn <= 1) {
+        game.writeLine("Ini giliran ke-4 di penjara! Kamu harus membayar denda (M" + std::to_string(fee) + ") untuk keluar.");
+        if (prison != nullptr) {
+            prison->payFee(currentPlayer);
+        }
+        freeCurrentPlayer();
+        game.writeLine("Kamu sudah bebas dari penjara. Lanjutkan giliranmu dengan command biasa seperti LEMPAR_DADU, ATUR_DADU, atau CETAK_AKTA.");
+        return true;
+    }
+
+    game.writeLine("Kamu sedang berada di penjara. Pilih aksi (Giliran tersisa: " + std::to_string(jailTurn) + ") :");
+    game.writeLine("1. Bayar denda penjara (M" + std::to_string(fee) + ")");
+    game.writeLine("2. Lempar dadu (harus dapat double untuk keluar)");
+    int maxOptions = 2;
+    if (hasFreeCard) {
+        game.writeLine("3. Gunakan kartu Bebas Penjara");
+        maxOptions = 3;
+    }
+
+    const int choice = askInt("Pilihan: ", 1, maxOptions);
+    if (choice == 1) {
+        if (prison != nullptr) {
+            prison->payFee(currentPlayer);
+        }
+        freeCurrentPlayer();
+        game.writeLine("Kamu berhasil membayar denda dan bebas dari penjara!");
+        // game.writeLine("Sekarang kamu bisa lanjut dengan command biasa seperti LEMPAR_DADU, ATUR_DADU, atau CETAK_AKTA.");
+        return true;
+    }
+
+    if (choice == 3 && hasFreeCard) {
+        SkillCard* card = currentPlayer->removeSkillCard(freeJailCardIndex);
+        if (card != nullptr) {
+            card->useCard(currentPlayer, game.getPlayers());
+            if (currentPlayer->getStatus() == JAILED) {
+                freeCurrentPlayer();
+            }
+            delete card;
+        }
+        // game.writeLine("Sekarang kamu bisa lanjut dengan command biasa seperti LEMPAR_DADU, ATUR_DADU, atau CETAK_AKTA.");
+        return true;
+    }
+
+    game.getDice().roll();
+    const int d1 = game.getDice().getFirst();
+    const int d2 = game.getDice().getSecond();
+    game.writeLine("Hasil lemparan: " + std::to_string(d1) + " + " + std::to_string(d2));
+
+    if (d1 == d2) {
+        game.writeLine("Double! Kamu bebas dari penjara.");
+        currentPlayer->setDoubleCount(0);
+        freeCurrentPlayer();
+        // game.writeLine("Sekarang kamu bisa lanjut dengan command biasa seperti LEMPAR_DADU, ATUR_DADU, atau CETAK_AKTA.");
+    } else {
+        game.writeLine("Sayang sekali, bukan double! Kamu masih di penjara.");
+        currentPlayer->setDoubleCount(0);
+        currentPlayer->setJailTurnCount(jailTurn - 1);
+        game.nextTurn();
+    }
+
+    return true;
 }
 
 void CommandHandler::commands() {
@@ -471,9 +570,22 @@ bool CommandHandler::execute(const std::string& line) {
         game.writeLine("Biaya: M" + std::to_string(cost));
         game.writeLine("Uang tersisa: M" + std::to_string(currentPlayer->getCurrency()));
     } else if (command == "LEMPAR_DADU") {
-        game.getDice().roll();
-        game.rollDice(game.getDice().getFirst(), game.getDice().getSecond());
+        Player* currentPlayer = game.getCurrentTurnPlayer();
+        if (currentPlayer == nullptr) return true;
+
+        if (currentPlayer->getStatus() == JAILED) {
+            handleJailTurn(currentPlayer);
+        } else {
+            game.getDice().roll();
+            game.rollDice(game.getDice().getFirst(), game.getDice().getSecond());
+        }
     } else if (command == "ATUR_DADU") {
+        Player* currentPlayer = game.getCurrentTurnPlayer();
+        if (currentPlayer != nullptr && currentPlayer->getStatus() == JAILED) {
+            game.writeLine("Kamu tidak bisa menggunakan ATUR_DADU saat berada di dalam penjara.");
+            return true;
+        }
+
         int first, second;
         if (iss >> first >> second) {
             game.rollDice(first, second);
@@ -596,9 +708,14 @@ bool CommandHandler::execute(const std::string& line) {
     
     else if (command == "KELUAR") {
         return false;
+    }
+    else if (command == "CETAK_AKTA") {
+        const std::string code = askInput("Masukkan kode petak: ");
+        game.getBoard().cetakAkta(code);
+    
     } else if (!command.empty()) {
         game.writeLine("Command tidak dikenali. Ketik BANTUAN untuk melihat command yang dikenali.");
-    }
+    } 
     
 
     return true;

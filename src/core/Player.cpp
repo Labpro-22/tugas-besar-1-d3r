@@ -7,7 +7,7 @@
 
 Player::Player()
     : username(""), currency(0), currentStatus(ACTIVE), currentTile(nullptr),
-    activeCardEffect(NOEFFECT), discountValue(0.0f), effectTurns(0), jailTurnCount(0),
+    activeCardEffect(NOEFFECT), discountValue(0.0f), effectTurns(0), jailTurnCount(0), doubleCount(0),
       canUseCard(true) {}
 
 Player* Player::operator+=(int money) {
@@ -43,6 +43,31 @@ void Player::endTurnEffects() {
             activeCardEffect = NOEFFECT;
             discountValue = 0.0f;
         }
+    }
+}
+
+void Player::pay(int amount, Player* creditor) {
+    if (amount <= 0) {
+        return;
+    }
+
+    if (hasShield()) {
+        GameManager& game = GameManager::getInstance();
+        if (creditor != nullptr) {
+            game.writeLine("[SHIELD ACTIVE] " + username + " kebal. Pembayaran " + std::to_string(amount) + " dibatalkan.");
+        } else {
+            game.writeLine("[SHIELD ACTIVE] " + username + " kebal. Tagihan " + std::to_string(amount) + " dibatalkan.");
+        }
+        return;
+    }
+
+    if (currency < amount) {
+        throw NotEnoughMoneyException("", amount, currency);
+    }
+
+    *this -= amount;
+    if (creditor != nullptr) {
+        *creditor += amount;
     }
 }
 
@@ -171,19 +196,49 @@ void Player::printProperties() const {
     game.writeLine("Total kekayaan properti: M" + std::to_string(totalAsset));
 }
 
-void Player::moveTo(Tile* destination, bool getPayment) {
-    if (destination != nullptr) {
-        Tile* previousTile = this->currentTile;
-        this->currentTile = destination;
-        if (getPayment && previousTile != nullptr && destination->getIndex() < previousTile->getIndex()) {
-            Tile* go = GameManager::getInstance().getBoard().getTile("GO");
-            if (go != nullptr && go != destination) {
-                go->runTile(this);
-            }
-        }
-
-        destination->runTile(this);
+void Player::moveOneStep(const Board& board, bool getPayment, MOVE_DIRECTION direction) {
+    if (currentTile == nullptr) {
+        return;
     }
+
+    const int stepAmount = direction == FORWARD ? 1 : -1;
+    Tile* nextTile = board.goToTile(*currentTile, stepAmount);
+    if (nextTile == nullptr) {
+        return;
+    }
+
+    Tile* previousTile = currentTile;
+    currentTile = nextTile;
+
+    if (direction == FORWARD && getPayment && previousTile != nullptr && currentTile->getIndex() < previousTile->getIndex()) {
+        Tile* go = board.getTile("GO");
+        if (go != nullptr && go != currentTile) {
+            go->runTile(this);
+        }
+    }
+}
+
+void Player::moveTo(Tile* destination, bool getPayment, MOVE_DIRECTION direction) {
+    if (destination == nullptr) {
+        return;
+    }
+
+    if (currentTile == nullptr) {
+        currentTile = destination;
+        destination->runTile(this);
+        return;
+    }
+
+    Board& board = GameManager::getInstance().getBoard();
+    while (currentTile != destination) {
+        Tile* beforeStep = currentTile;
+        moveOneStep(board, getPayment, direction);
+        if (currentTile == beforeStep) {
+            return;
+        }
+    }
+
+    destination->runTile(this);
 }
 
 void Player::mortgageProperty(Property* property, Board* board) {

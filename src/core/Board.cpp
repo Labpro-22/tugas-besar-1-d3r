@@ -39,9 +39,13 @@ Tile* Board::goToTile(Tile& current, int moveAmount) const {
         return tile != nullptr && tile->getCode().compare(current.getCode()) == 0;
     });
     if (it != tiles.end()) {
-        size_t index = distance(tiles.begin(), it);
-        index = (index + moveAmount) % tiles.size();
-        return tiles[index];
+        int index = static_cast<int>(distance(tiles.begin(), it));
+        int boardSize = static_cast<int>(tiles.size());
+        int nextIndex = (index + moveAmount) % boardSize;
+        if (nextIndex < 0) {
+            nextIndex += boardSize;
+        }
+        return tiles[static_cast<size_t>(nextIndex)];
     } else {
         return nullptr;
     }
@@ -104,6 +108,30 @@ std::vector<Utility*> Board::getAllUtility() const {
 void Board::addTile(Tile* newTile){
     if (newTile != nullptr && newTile->getIndex() < (int)tiles.size()) {
         tiles[newTile->getIndex()] = newTile;
+    }
+}
+
+void Board::advanceFestivalEffects(Player* owner) {
+    if (owner == nullptr) {
+        return;
+    }
+
+    for (Tile* tile : tiles) {
+        Property* property = dynamic_cast<Property*>(tile);
+        if (property == nullptr || property->getOwner() != owner) {
+            continue;
+        }
+
+        if (property->getFestivalMultiplier() <= 1 || property->getFestivalDuration() <= 0) {
+            continue;
+        }
+
+        const int nextDuration = property->getFestivalDuration() - 1;
+        property->setFestivalDuration(nextDuration);
+        if (nextDuration <= 0) {
+            property->setFestivalMultiplier(1);
+            property->setFestivalDuration(0);
+        }
     }
 }
 
@@ -175,5 +203,59 @@ void Board::printBoard() const {
         if (tiles[i] != nullptr) {
             GameManager::getInstance().writeLine(std::to_string(i + 1) + ": " + tiles[i]->getCode() + " - " + tiles[i]->getName());
         }
+    }
+}
+
+void Board::cetakAkta(std::string code) {
+    Tile* tile = getTile(code);
+    if (tile == nullptr) {
+        GameManager::getInstance().writeLine("Tile dengan kode " + code + " tidak ditemukan.");
+        return;
+    }
+
+    Property* property = dynamic_cast<Property*>(tile);
+    if (property == nullptr) {
+        GameManager::getInstance().writeLine("Tile dengan kode " + code + " bukan properti.");
+        return;
+    }
+
+    std::string ownerName = (property->getOwner() != nullptr) ? property->getOwner()->getUsername() : "BANK";
+    GameManager::getInstance().writeLine("=== Akta Properti: " + property->getName() + " (" + property->getCode() + ") ===");
+    GameManager::getInstance().writeLine("Pemilik: " + ownerName);
+    GameManager::getInstance().writeLine("Harga Tanah: M" + std::to_string(property->getLandCost()));
+    std::string statusLabel = "BANK";
+    if (property->getPropertyStatus() == OWNED) {
+        statusLabel = "OWNED";
+    } else if (property->getPropertyStatus() == MORTGAGED) {
+        statusLabel = "MORTGAGED";
+    }
+    GameManager::getInstance().writeLine("Status Properti: " + statusLabel);
+    GameManager::getInstance().writeLine("Nilai Gadai: M" + std::to_string(property->getMortgageValue()));
+
+    Street* street = dynamic_cast<Street*>(property);
+    if (street != nullptr) {
+        GameManager::getInstance().writeLine("Harga Sewa (L0): M" + std::to_string(street->getRentCostLevel(0)));
+        GameManager::getInstance().writeLine("Harga Sewa (1 rumah): M" + std::to_string(street->getRentCostLevel(1)));
+        GameManager::getInstance().writeLine("Harga Sewa (2 rumah): M" + std::to_string(street->getRentCostLevel(2)));
+        GameManager::getInstance().writeLine("Harga Sewa (3 rumah): M" + std::to_string(street->getRentCostLevel(3)));
+        GameManager::getInstance().writeLine("Harga Sewa (4 rumah): M" + std::to_string(street->getRentCostLevel(4)));
+        GameManager::getInstance().writeLine("Harga Sewa (Hotel): M" + std::to_string(street->getRentCostLevel(5)));
+        GameManager::getInstance().writeLine("Harga Rumah: M" + std::to_string(street->getHouseCost()));
+        GameManager::getInstance().writeLine("Harga Hotel: M" + std::to_string(street->getHotelCost()));
+        GameManager::getInstance().writeLine("Level Rumah: " + std::to_string(street->getCurrentLevel()));
+        return;
+    }
+
+    Railroad* railroad = dynamic_cast<Railroad*>(property);
+    if (railroad != nullptr) {
+        GameManager::getInstance().writeLine("Jenis: RAILROAD");
+        GameManager::getInstance().writeLine("Harga Sewa Saat Ini: M" + std::to_string(railroad->getRentCost()));
+        return;
+    }
+
+    Utility* utility = dynamic_cast<Utility*>(property);
+    if (utility != nullptr) {
+        GameManager::getInstance().writeLine("Jenis: UTILITY");
+        GameManager::getInstance().writeLine("Harga Sewa Saat Ini: M" + std::to_string(utility->getRentCost()));
     }
 }

@@ -38,6 +38,10 @@ void Property::setFestivalDuration(int duration) { this->festivalDuration = dura
 void Property::setOwner(Player* newOwner) { this->owner = newOwner; }
 void Property::setPropertyStatus(PROPERTY_STATUS status) { this->propertyStatus = status; }
 
+int Property::getRentCostLevel(int) const {
+    return getRentCost();
+}
+
 int Property::getAssetValue() const {
     return landCost;
 }
@@ -105,7 +109,7 @@ bool Prison::checkJailed(Player* player) const {
 
 void Prison::payFee(Player* player) {
     if (player != nullptr) {
-        *player -= fee;
+        GameManager::getInstance().pay(player, fee, nullptr);
     }
 }
 
@@ -118,6 +122,7 @@ void Prison::setJailed(Player* player) {
 void Prison::freeFromJailed(Player* player) {
     if (player != nullptr) {
         player->setCurrentStatus(ACTIVE);
+        player->setJailTurnCount(0);
     }
 }
 
@@ -139,7 +144,7 @@ void Trap::runTile(Player* player){
         return;
     }
     player->setToJailed();
-    player->moveTo(prison, false);
+    player->moveTo(prison, false, FORWARD);
 }
 
 FreeParking::FreeParking(int index, const std::string& code, const std::string& name, const std::string& color)

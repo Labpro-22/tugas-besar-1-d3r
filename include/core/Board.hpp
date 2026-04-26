@@ -39,5 +39,7 @@ public:
 	Player* getNextPlayer(Player* player);
 	int stringToIndex(const std::string&);
 	void addTile(Tile* newTile); // done
+	void advanceFestivalEffects(Player* owner);
 	void printBoard() const;
+	void cetakAkta(std::string code);
 };
