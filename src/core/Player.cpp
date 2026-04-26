@@ -6,7 +6,7 @@
 #include <map>
 
 Player::Player()
-    : username(""), currency(0), currentStatus(ACTIVE), currentTile(nullptr),
+    : username(""), currency(0), currentTile(nullptr), currentStatus(ACTIVE), 
     activeCardEffect(NOEFFECT), discountValue(0.0f), effectTurns(0), jailTurnCount(0), doubleCount(0),
       canUseCard(true) {}
 

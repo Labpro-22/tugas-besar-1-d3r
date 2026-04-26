@@ -21,9 +21,9 @@ class Player {
     private:
         string username;
         int currency;
+        Tile* currentTile;
         PLAYER_STATUS currentStatus;
         CardDeck<SkillCard> deck;
-        Tile* currentTile;
         CARD_EFFECT activeCardEffect;
         float discountValue;
         int effectTurns;

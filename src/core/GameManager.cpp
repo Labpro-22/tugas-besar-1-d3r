@@ -7,6 +7,7 @@
 
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
+#include "../../include/core/DataManager.hpp"
 
 using namespace std;
 
@@ -72,46 +73,61 @@ bool GameManager::isGameValid() {
 void GameManager::runGame() {
     if (players.empty()) {
         CommandHandler& handler = getCommandHandler();
-        writeLine("=== Inisialisasi Game ===");
-        writeLine("1. New Game");
-        writeLine("2. Load Game");
+        while(true) {
+            writeLine("=== Inisialisasi Game ===");
+            writeLine("1. New Game");
+            writeLine("2. Load Game");
 
-        const int mode = handler.askInt("Pilih mode (1-2): ", 1, 2);
-        if (mode == 2) {
-            // loadGame disini
-        }
-
-        const int count = handler.askInt("Jumlah pemain (2-4): ", 2, 4);
-
-        std::vector<Player*> newPlayers;
-        for (int i = 0; i < count; i++) {
-            const std::string username = handler.askInput("Username pemain " + std::to_string(i + 1) + ": ");
-
-            Player* player = new Player();
-            player->setUsername(username);
-            player->setCurrency(initialCurrency);
-            newPlayers.push_back(player);
-        }
-
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::shuffle(newPlayers.begin(), newPlayers.end(), gen);
-
-        setPlayers(newPlayers);
-        initPlayers();
-        initSkillDeck();
-        initAutoUseDecks();
-        drawSkillCard(currentTurnPlayer);
-        if (!newPlayers.empty()) {
-            std::string order = "Urutan giliran: ";
-            for (size_t i = 0; i < newPlayers.size(); ++i) {
-                if (i > 0) {
-                    order += " -> ";
+            const int mode = handler.askInt("Pilih mode (1-2): ", 1, 2);
+            if (mode == 2) {
+                const string fileName = handler.askInput("Nama file (data/<nama file.txt>): ");
+                try {
+                    DataManager dm;
+                    dm.load(fileName);
+                    writeLine("Permainan berhasil dimuat. Melanjutkan giliran " + currentTurnPlayer->getUsername() + "...");
+                    break;
+                } catch(FileNotExistsException& e) {
+                    writeLine("File \"" + fileName + "\" tidak ditemukan.");
+                } catch(LoadFailedException& e) {
+                    writeLine("Gagal memuat file! File rusak atau format tidak dikenali.");
+                } catch (...) {
+                    writeLine("[ERROR] Unknown exception occurred!");
                 }
-                order += newPlayers[i]->getUsername();
+            } else {
+                const int count = handler.askInt("Jumlah pemain (2-4): ", 2, 4);
+
+                std::vector<Player*> newPlayers;
+                for (int i = 0; i < count; i++) {
+                    const std::string username = handler.askInput("Username pemain " + std::to_string(i + 1) + ": ");
+
+                    Player* player = new Player();
+                    player->setUsername(username);
+                    player->setCurrency(initialCurrency);
+                    newPlayers.push_back(player);
+                }
+
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::shuffle(newPlayers.begin(), newPlayers.end(), gen);
+
+                setPlayers(newPlayers);
+                initPlayers();
+                initSkillDeck();
+                initAutoUseDecks();
+                drawSkillCard(currentTurnPlayer);
+                if (!newPlayers.empty()) {
+                    std::string order = "Urutan giliran: ";
+                    for (size_t i = 0; i < newPlayers.size(); ++i) {
+                        if (i > 0) {
+                            order += " -> ";
+                        }
+                        order += newPlayers[i]->getUsername();
+                    }
+                    writeLine(order);
+                    writeLine("Giliran pertama: " + newPlayers.front()->getUsername());
+                    break;
+                }
             }
-            writeLine(order);
-            writeLine("Giliran pertama: " + newPlayers.front()->getUsername());
         }
     }
 

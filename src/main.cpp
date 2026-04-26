@@ -50,7 +50,7 @@ static void runGui(GameManager &gm)
 
     gm.writeLine("=== NIMONPOLI SYSTEM READY ===");
     gm.writeLine("Ketik command seperti CLI di console.");
-    gm.writeLine("Contoh: CETAK_PAPAN, LEMPAR_DADU, STATUS");
+    gm.writeLine("Contoh: BANTUAN, LEMPAR_DADU, STATUS");
 
     gm.runGame();
 

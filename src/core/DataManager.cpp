@@ -234,6 +234,8 @@ void DataManager::loadConfig() {
 void DataManager::load(string fileName) {
     GameManager& game = GameManager::getInstance();
 
+    game.writeLine("Memuat permainan...");
+
     if(game.getIsGameLoaded()) {
         throw LoadProhibitedException();
     }
@@ -253,7 +255,9 @@ void DataManager::load(string fileName) {
     game.setMaxTurn(maxTurn);
     game.setPlayerCount(playerCount);
 
-    int countMove(4), countDiscount(3), countShield(2), countTeleport(2), countLasso(2), countDemolition(2);
+    int countMove(4), countDiscount(3), countShield(2), countTeleport(2), countLasso(2), countDemolition(2), countFreeJail(2);
+
+    game.writeLine("\tMemuat pemain...");
 
     // State Pemain
     vector<Player*> players;
@@ -279,39 +283,46 @@ void DataManager::load(string fileName) {
         CardDeck<SkillCard> deck;
         for(int j = 0; j < deckCount; j++) {
             string cardName;
-            int cardValue, cardDuration;
+            int cardValue;
             if(!(file >> cardName)) throw LoadFailedException();
 
-            if(cardName == "MoveCard") {
+            if(cardName == "MOVE_CARD") {
                 if(!(file >> cardValue)) throw LoadFailedException();
                 deck.addCard(new MoveCard(cardValue));
                 countMove--;
-            } else if(cardName == "DiscountCard") {
-                if(!(file >> cardValue >> cardDuration)) throw LoadFailedException();
+            } else if(cardName == "DISCOUNT_CARD") {
+                if(!(file >> cardValue)) throw LoadFailedException();
                 deck.addCard(new DiscountCard(cardValue));
                 countDiscount--;
-            } else if(cardName == "ShieldCard") {
-                if(!(file >> cardDuration)) throw LoadFailedException();
+            } else if(cardName == "SHIELD_CARD") {
                 deck.addCard(new ShieldCard());
                 countShield--;
-            } else if(cardName == "TeleportCard") {
+            } else if(cardName == "TELEPORT_CARD") {
                 deck.addCard(new TeleportCard());
                 countTeleport--;
-            } else if(cardName == "LassoCard") {
+            } else if(cardName == "LASSO_CARD") {
                 deck.addCard(new LassoCard());
                 countLasso--;
-            } else if(cardName == "DemolitionCard") {
+            } else if(cardName == "DEMOLITION_CARD") {
                 deck.addCard(new DemolitionCard());
                 countDemolition--;
+            } else if(cardName == "FREE_JAIL_CARD") {
+                deck.addCard(new FreeJailCard());
+                countFreeJail--;
             } else {
                 throw LoadFailedException();
             }
         }
 
         players.push_back(new Player(username, currency, currentTile, status, std::move(deck)));
+
+        game.writeLine("\t\tPemain " + players.at(players.size()-1)->getUsername() + " dimuat.");
     }
 
     game.setPlayers(players);
+    game.setCurrentTurnPlayer(players.at(1));
+
+    game.writeLine("\tMemuat properti...");
 
     // State Property
     int nProperty;
@@ -323,14 +334,16 @@ void DataManager::load(string fileName) {
         if(!(file >> code >> type >> ownerStr >> statusStr >> fmult >> fdur >> nBangunan)) throw LoadFailedException();
         
         Player* owner = nullptr;
-        vector<Player*> gamePlayers = game.getPlayers();
-        for(int i = 0; i < gamePlayers.size(); i++) {
-            if(gamePlayers.at(i)->getUsername() == ownerStr) {
-                owner = gamePlayers.at(i);
-                break;
+        if (ownerStr != "BANK") {
+            const vector<Player*>& gamePlayers = game.getPlayers();
+            for (Player* p : gamePlayers) {
+                if (p->getUsername() == ownerStr) {
+                    owner = p;
+                    break;
+                }
             }
+            if (owner == nullptr) throw LoadFailedException();
         }
-        if(owner == nullptr) throw LoadFailedException();
 
         PROPERTY_STATUS status;
         if(statusStr == "BANK") status = BANK;
@@ -338,7 +351,9 @@ void DataManager::load(string fileName) {
         else if (statusStr == "MORTGAGED") status = MORTGAGED;
         else throw LoadFailedException();
         
-        Property* property = dynamic_cast<Property*>(game.getBoard().getTile(code));
+        Tile* tile = game.getBoard().getTile(code);
+        if(tile == nullptr) throw LoadFailedException();
+        Property* property = dynamic_cast<Property*>(tile);
         if(property == nullptr) throw LoadFailedException();
 
         property->setOwner(owner);
@@ -353,6 +368,8 @@ void DataManager::load(string fileName) {
         }
     }
 
+    game.writeLine("\tMemuat deck kartu...");
+
     // State Deck
     int nSkillCard;
     if(!(file >> nSkillCard)) throw LoadFailedException();
@@ -362,28 +379,33 @@ void DataManager::load(string fileName) {
         string cardName;
         if(!(file >> cardName)) throw LoadFailedException(); 
 
-        if(cardName == "MoveCard") {
+        if(cardName == "MOVE_CARD") {
             skillDeck.addCard(new MoveCard());
             countMove--;
-        } else if(cardName == "DiscountCard") {
+        } else if(cardName == "DISCOUNT_CARD") {
             skillDeck.addCard(new DiscountCard());
             countDiscount--;
-        } else if(cardName == "ShieldCard") {
+        } else if(cardName == "SHIELD_CARD") {
             skillDeck.addCard(new ShieldCard());
             countShield--;
-        } else if(cardName == "TeleportCard") {
+        } else if(cardName == "TELEPORT_CARD") {
             skillDeck.addCard(new TeleportCard());
             countTeleport--;
-        } else if(cardName == "LassoCard") {
+        } else if(cardName == "LASSO_CARD") {
             skillDeck.addCard(new LassoCard());
             countLasso--;
-        } else if(cardName == "DemolitionCard") {
+        } else if(cardName == "DEMOLITION_CARD") {
             skillDeck.addCard(new DemolitionCard());
             countDemolition--;
-        } else throw LoadFailedException();
+        } else if(cardName == "FREE_JAIL_CARD") {
+            skillDeck.addCard(new FreeJailCard());
+            countFreeJail--;
+        } else {
+            throw LoadFailedException();
+        }
     }
 
-    if(countMove < 0 || countDiscount < 0 || countShield < 0 || countTeleport < 0 || countLasso < 0 || countDemolition < 0) throw LoadFailedException();
+    if(countMove < 0 || countDiscount < 0 || countShield < 0 || countTeleport < 0 || countLasso < 0 || countDemolition < 0 || countFreeJail < 0) throw LoadFailedException();
 
     for(int j = 0; j < countMove; j++) skillDeck.addUsedCard(new MoveCard());
     for(int j = 0; j < countDiscount; j++) skillDeck.addUsedCard(new DiscountCard());
@@ -391,6 +413,9 @@ void DataManager::load(string fileName) {
     for(int j = 0; j < countTeleport; j++) skillDeck.addUsedCard(new TeleportCard());
     for(int j = 0; j < countLasso; j++) skillDeck.addUsedCard(new LassoCard());
     for(int j = 0; j < countDemolition; j++) skillDeck.addUsedCard(new DemolitionCard());
+    for(int j = 0; j < countFreeJail; j++) skillDeck.addUsedCard(new FreeJailCard());
+
+    game.writeLine("\tMemuat log...");
 
     // State Log
     int nLog;
@@ -421,6 +446,8 @@ void DataManager::load(string fileName) {
 
         logger.log(turn, username, action, detail);
     }
+
+    file.close();
 }
 
 void DataManager::save(string fileName, bool override) {
@@ -456,6 +483,7 @@ void DataManager::save(string fileName, bool override) {
         else throw SaveFailedException();
         
         const vector<SkillCard*>& skillCards = player->getDeck().getCards();
+        file << skillCards.size() << "\n";
         for(size_t i = 0; i < skillCards.size(); i++) {
             const SkillCard* skillCard = skillCards.at(i);
             file << skillCard->getCardName();

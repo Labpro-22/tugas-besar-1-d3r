@@ -333,7 +333,7 @@ void DemolitionCard::useCard(Player *currentPlayer, std::vector<Player *>)
     }
 }
 
-FreeJailCard::FreeJailCard() : SkillCard("Bebas Penjara", "Bebas dari Penjara", 0, 0) {}
+FreeJailCard::FreeJailCard() : SkillCard("FREE_JAIL_CARD", "Bebas dari Penjara", 0, 0) {}
 
 void FreeJailCard::useCard(Player *currentPlayer, std::vector<Player *>)
 {
