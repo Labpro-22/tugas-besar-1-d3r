@@ -34,12 +34,12 @@ void GameManager::writeLine(const std::string& text) const {
 }
 
 std::string GameManager::readLine(const std::string& prompt) const {
-    if (!prompt.empty()) {
-        write(prompt);
-    }
-
     if (useGuiStream && inputCallback) {
         return inputCallback(prompt);
+    }
+
+    if (!prompt.empty()) {
+        write(prompt);
     }
 
     std::string line;
@@ -156,7 +156,7 @@ void GameManager::rollDice(int dice1, int dice2) {
         return;
     }
 
-    currentTurnPlayer->moveTo(destination, true);
+    currentTurnPlayer->moveTo(destination, true, FORWARD);
     // writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
 
     if (!dice.isDouble()) {
@@ -200,6 +200,7 @@ void GameManager::nextTurn() {
     }
 
     if (currentTurnPlayer != nullptr) {
+        board.advanceFestivalEffects(currentTurnPlayer);
         currentTurnPlayer->endTurnEffects();
     }
 

@@ -139,7 +139,7 @@ void Trap::runTile(Player* player){
         return;
     }
     player->setToJailed();
-    player->moveTo(prison, false);
+    player->moveTo(prison, false, FORWARD);
 }
 
 FreeParking::FreeParking(int index, const std::string& code, const std::string& name, const std::string& color)

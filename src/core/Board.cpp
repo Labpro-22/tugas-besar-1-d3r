@@ -39,9 +39,13 @@ Tile* Board::goToTile(Tile& current, int moveAmount) const {
         return tile != nullptr && tile->getCode().compare(current.getCode()) == 0;
     });
     if (it != tiles.end()) {
-        size_t index = distance(tiles.begin(), it);
-        index = (index + moveAmount) % tiles.size();
-        return tiles[index];
+        int index = static_cast<int>(distance(tiles.begin(), it));
+        int boardSize = static_cast<int>(tiles.size());
+        int nextIndex = (index + moveAmount) % boardSize;
+        if (nextIndex < 0) {
+            nextIndex += boardSize;
+        }
+        return tiles[static_cast<size_t>(nextIndex)];
     } else {
         return nullptr;
     }
@@ -104,6 +108,30 @@ std::vector<Utility*> Board::getAllUtility() const {
 void Board::addTile(Tile* newTile){
     if (newTile != nullptr && newTile->getIndex() < (int)tiles.size()) {
         tiles[newTile->getIndex()] = newTile;
+    }
+}
+
+void Board::advanceFestivalEffects(Player* owner) {
+    if (owner == nullptr) {
+        return;
+    }
+
+    for (Tile* tile : tiles) {
+        Property* property = dynamic_cast<Property*>(tile);
+        if (property == nullptr || property->getOwner() != owner) {
+            continue;
+        }
+
+        if (property->getFestivalMultiplier() <= 1 || property->getFestivalDuration() <= 0) {
+            continue;
+        }
+
+        const int nextDuration = property->getFestivalDuration() - 1;
+        property->setFestivalDuration(nextDuration);
+        if (nextDuration <= 0) {
+            property->setFestivalMultiplier(1);
+            property->setFestivalDuration(0);
+        }
     }
 }
 

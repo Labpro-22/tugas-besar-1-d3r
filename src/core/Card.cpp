@@ -125,7 +125,7 @@ void NearestStationCard::useCard(Player *currentPlayer, std::vector<Player *>)
     {
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Pergi ke stasiun terdekat (" + nearestStation->getName() + ")");
-        currentPlayer->moveTo(nearestStation, true);
+        currentPlayer->moveTo(nearestStation, true, FORWARD);
     }
 }
 
@@ -143,7 +143,7 @@ void MoveBackCard::useCard(Player *currentPlayer, std::vector<Player *>)
     {
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Mundur 3 petak (" + destination->getName() + ")");
-        currentPlayer->moveTo(destination, false);
+        currentPlayer->moveTo(destination, false, BACKWARD);
     }
 }
 
@@ -164,7 +164,7 @@ void ToJailCard::useCard(Player *currentPlayer, std::vector<Player *>)
 
     Logger &logger = Logger::getInstance();
     logger.log(currentPlayer->getUsername(), StateLog::CHANCE_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " → Masuk penjara");
-    currentPlayer->moveTo(jailTile, false);
+    currentPlayer->moveTo(jailTile, false, FORWARD);
     currentPlayer->setToJailed();
 }
 
@@ -219,7 +219,7 @@ void MoveCard::useCard(Player *currentPlayer, std::vector<Player *>)
     Tile *destination = GameManager::getInstance().getBoard().goToTile(*currentPlayer->getCurrentTile(), getTileCount());
     if (destination != nullptr)
     {
-        currentPlayer->moveTo(destination, true);
+        currentPlayer->moveTo(destination, true, FORWARD);
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai MoveCard → Maju sejauh " + to_string(getTileCount()) + " petak, mendarat di " + destination->getName() + " (" + destination->getCode() + ")");
     }
@@ -277,7 +277,7 @@ void TeleportCard::useCard(Player *currentPlayer, std::vector<Player *>)
 
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai TeleportCard → Pindah ke " + destination->getName() + " (" + destination->getCode() + ")");
-        currentPlayer->moveTo(destination, false);
+        currentPlayer->moveTo(destination, false, FORWARD);
     } catch (const InvalidTileCodeException&) {
         GameManager::getInstance().writeLine("Kode petak tidak valid.");
     }
@@ -297,7 +297,7 @@ void LassoCard::useCard(Player *currentPlayer, std::vector<Player *>)
     {
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::SKILL_CARD, "Pakai LassoCard → Pemain " + target->getUsername() + " pindah ke petak " + currentPlayer->getCurrentTile()->getName() + " (" + currentPlayer->getCurrentTile()->getCode() + ")");
-        target->moveTo(currentPlayer->getCurrentTile(), false);
+        target->moveTo(currentPlayer->getCurrentTile(), false, FORWARD);
     }
 }
 
