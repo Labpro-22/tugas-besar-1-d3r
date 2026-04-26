@@ -65,6 +65,7 @@ void CardTile::runTile(Player* player) {
     }
 
     GameManager& game = GameManager::getInstance();
+    Tile* initialTile = player->getCurrentTile();
     AutoUseCard* card = nullptr;
 
     // seems like its save to be hardcoded...
@@ -76,6 +77,14 @@ void CardTile::runTile(Player* player) {
 
     if (card != nullptr) {
         card->useCard(player, game.getPlayers());
+
+        if (player->getStatus() == BANKRUPT || player->getStatus() == JAILED) {
+            return;
+        }
+
+        if (player->getCurrentTile() != initialTile) {
+            return;
+        }
     }
 }
 
@@ -149,4 +158,8 @@ void Trap::runTile(Player* player){
 
 FreeParking::FreeParking(int index, const std::string& code, const std::string& name, const std::string& color)
 : Tile(index, code, name, color){}
-void FreeParking::runTile(Player*){}
+void FreeParking::runTile(Player* player){
+    if (player == nullptr) {
+        return;
+    }
+}

@@ -152,6 +152,11 @@ void Street::runTile(Player* player) {
 
         gm.writeLine("Kondisi      : " + houseCount + mulLog);
         gm.writeLine("Sewa         : M" + to_string(rent));
+        gm.writeLine("Diskon       : " + to_string(player->getDiscount()) + "%");
+        if (player->getDiscount() > 0.0f) {
+            gm.writeLine("Sewa setelah diskon: M" + to_string(rent - static_cast<int>(rent * player->getDiscount() / 100.0f)));
+            //rent = rent - static_cast<int>(rent * player->getDiscount() / 100.0f);
+        }
         gm.writeLine("");
 
         string rentLog = "Bayar " + to_string(rent) + " ke " + owner->getUsername() + " (" + code + ", " + houseCount + mulLog + ")";

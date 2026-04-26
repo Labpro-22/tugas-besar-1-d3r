@@ -48,6 +48,7 @@ class Player {
         int getDiscountTurns() const { return activeCardEffect == DISCOUNT ? effectTurns : 0; };
         int getShieldTurns() const { return activeCardEffect == SHIELD ? effectTurns : 0; };
         bool hasShield() const { return activeCardEffect == SHIELD && effectTurns > 0; };
+        bool hasDiscount() const { return activeCardEffect == DISCOUNT && discountValue > 0.0f && effectTurns > 0; };
         int getJailTurn() const { return jailTurnCount; };
         int getDoubleCount() const { return doubleCount; };
         bool getCanUseCard() const { return canUseCard; };

@@ -231,6 +231,12 @@ void GameManager::rollDice(int dice1, int dice2) {
     currentTurnPlayer->moveTo(destination, true, FORWARD);
     // writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
 
+    if (currentTurnPlayer->getStatus() == BANKRUPT) {
+        currentTurnPlayer->setDoubleCount(0);
+        nextTurn();
+        return;
+    }
+
     if (currentTurnPlayer->getStatus() != JAILED) {
         if (!dice.isDouble()) {
             nextTurn();
@@ -291,11 +297,25 @@ void GameManager::nextTurn() {
         }
     }
 
-    currentTurnPlayer = players[nextIndex];
+    size_t searched = 0;
+    currentTurnPlayer = nullptr;
+    while (searched < players.size()) {
+        Player* candidate = players[nextIndex];
+        if (candidate != nullptr && candidate->getStatus() != BANKRUPT) {
+            currentTurnPlayer = candidate;
+            break;
+        }
+
+        nextIndex = (nextIndex + 1) % players.size();
+        if (nextIndex == 0) {
+            turn++;
+        }
+        searched++;
+    }
+
     if (currentTurnPlayer != nullptr) {
         currentTurnPlayer->resetCardUse();
         drawSkillCard(currentTurnPlayer);
-        commandHandler.handleJailTurn(currentTurnPlayer);
     }
 }
 

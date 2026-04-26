@@ -97,7 +97,9 @@ void NearestStationCard::useCard(Player *currentPlayer, std::vector<Player *>)
     Board &board = GameManager::getInstance().getBoard();
     const int currentIndex = currentPlayer->getCurrentTile()->getIndex();
     Tile *nearestStation = nullptr;
-    int nearestDistance = static_cast<int>(board.getTiles().size()) + 1;
+    const int boardOffset = (!board.getTiles().empty() && board.getTiles()[0] == nullptr) ? 1 : 0;
+    const int boardSize = static_cast<int>(board.getTiles().size()) - boardOffset;
+    int nearestDistance = boardSize + 1;
 
     for (Railroad *railroad : board.getAllRailroad())
     {
@@ -109,7 +111,7 @@ void NearestStationCard::useCard(Player *currentPlayer, std::vector<Player *>)
         int distance = railroad->getIndex() - currentIndex;
         if (distance <= 0)
         {
-            distance += static_cast<int>(board.getTiles().size());
+            distance += boardSize;
         }
 
         if (distance < nearestDistance)

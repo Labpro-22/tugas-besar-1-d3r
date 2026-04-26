@@ -36,16 +36,23 @@ Tile* Board::getJailTile() const {
 
 Tile* Board::goToTile(Tile& current, int moveAmount) const {
     auto it = std::find_if(tiles.begin(), tiles.end(), [&current](const Tile* tile){
-        return tile != nullptr && tile->getCode().compare(current.getCode()) == 0;
+        return tile == &current;
     });
     if (it != tiles.end()) {
         int index = static_cast<int>(distance(tiles.begin(), it));
-        int boardSize = static_cast<int>(tiles.size());
-        int nextIndex = (index + moveAmount) % boardSize;
+        const int boardStart = (!tiles.empty() && tiles[0] == nullptr) ? 1 : 0;
+        const int boardSize = static_cast<int>(tiles.size()) - boardStart;
+        if (boardSize <= 0) {
+            return nullptr;
+        }
+
+        int normalizedIndex = index - boardStart;
+        int nextIndex = (normalizedIndex + moveAmount) % boardSize;
         if (nextIndex < 0) {
             nextIndex += boardSize;
         }
-        return tiles[static_cast<size_t>(nextIndex)];
+
+        return tiles[static_cast<size_t>(nextIndex + boardStart)];
     } else {
         return nullptr;
     }

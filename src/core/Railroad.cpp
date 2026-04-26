@@ -57,6 +57,11 @@ void Railroad::runTile(Player *player){
 
         gm.writeLine("Kondisi      : " + condition);
         gm.writeLine("Sewa         : M" + std::to_string(rent));
+        gm.writeLine("Diskon       : " + std::to_string(player->getDiscount()) + "%");
+        if (player->getDiscount() > 0.0f) {
+            gm.writeLine("Sewa setelah diskon: M" + std::to_string(rent - static_cast<int>(rent * player->getDiscount() / 100.0f)));
+            //rent = rent - static_cast<int>(rent * player->getDiscount() / 100);
+        }
         gm.writeLine("");
 
         std::string rentLog = "Bayar " + std::to_string(rent) + " ke " + owner->getUsername() +
