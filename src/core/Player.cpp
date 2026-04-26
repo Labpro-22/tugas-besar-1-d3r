@@ -221,11 +221,12 @@ void Player::moveOneStep(const Board& board, bool getPayment, MOVE_DIRECTION dir
         return;
     }
 
+    Tile* previousTile = currentTile;
     currentTile = nextTile;
 
-    if (direction == FORWARD && getPayment) {
+    if (direction == FORWARD && getPayment && previousTile != nullptr && currentTile->getIndex() < previousTile->getIndex()) {
         Tile* go = board.getTile("GO");
-        if (go != nullptr && go == currentTile) {
+        if (go != nullptr && go != currentTile) {
             GameManager& gm = GameManager::getInstance();
             go->runTile(this);
             if (gm.getTilePopup() != nullptr) {
