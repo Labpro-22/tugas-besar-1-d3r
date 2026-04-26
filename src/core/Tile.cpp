@@ -145,7 +145,7 @@ bool Prison::checkJailed(Player* player) const {
 
 void Prison::payFee(Player* player) {
     if (player != nullptr) {
-        *player -= fee;
+        GameManager::getInstance().pay(player, fee, nullptr);
     }
 }
 
