@@ -85,6 +85,7 @@ public:
 	int getMaxTurn() const { return maxTurn; }
 	int getPlayerCount() const { return playerCount; }
 	Player* getCurrentTurnPlayer() const { return currentTurnPlayer; }
+	TilePopup* getTilePopup() const { return tilePopup; }
 	Dice& getDice() { return dice; }
 	const Dice& getDice() const { return dice; }
 	CardDeck<SkillCard>& getSkillDeck() { return deckSkill; }

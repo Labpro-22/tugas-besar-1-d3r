@@ -192,6 +192,13 @@ void GameManager::rollDice(int dice1, int dice2) {
     }
 
     int total = dice.getTotal();
+    Logger& logger = Logger::getInstance();
+    logger.log(
+        currentTurnPlayer->getUsername(),
+        StateLog::DICE,
+        "Melempar dadu " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) +
+        " = " + std::to_string(total)
+    );
 
     if (currentTurnPlayer->getStatus() == JAILED) {
         writeLine("Game Error: Pemain JAILED tidak seharusnya memanggil rollDice secara langsung tanpa melalui Command Handler!");
@@ -199,6 +206,11 @@ void GameManager::rollDice(int dice1, int dice2) {
     }
 
     if (dice.isDouble()) {
+        logger.log(
+            currentTurnPlayer->getUsername(),
+            StateLog::DOUBLE,
+            "Mendapat double " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond())
+        );
         currentTurnPlayer->setDoubleCount(currentTurnPlayer->getDoubleCount() + 1);
         if (currentTurnPlayer->getDoubleCount() >= 3) {
             writeLine("Dadu: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + ". Tiga kali double berturut-turut! Langsung masuk penjara.");
@@ -711,6 +723,11 @@ void GameManager::assetAcquisition(Player* debtor, Player* creditor) {
 
     vector<Property*> debtorProps = debtor->getOwnedProperties();
     debtor->setCurrentStatus(BANKRUPT);
+    Logger::getInstance().log(
+        debtor->getUsername(),
+        StateLog::BANKRUPT,
+        "Dinyatakan bangkrut"
+    );
 
     string kreditorName = creditor ? creditor->getUsername() : "Bank";
     GameManager::getInstance().writeLine("Kreditor: " + kreditorName);

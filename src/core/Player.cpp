@@ -227,12 +227,12 @@ void Player::moveOneStep(const Board& board, bool getPayment, MOVE_DIRECTION dir
     if (direction == FORWARD && getPayment && previousTile != nullptr && currentTile->getIndex() < previousTile->getIndex()) {
         Tile* go = board.getTile("GO");
         if (go != nullptr && go != currentTile) {
-            go->runTile(this);
-            // Show popup if using GUI
             GameManager& gm = GameManager::getInstance();
-            if (gm.isGuiStreamActive() && gm.getTilePopup() != nullptr) {
+            if (gm.getTilePopup() != nullptr) {
                 go->callPopUp(*gm.getTilePopup());
             }
+            go->runTile(this);
+            // Show popup if using GUI
         }
     }
 }
@@ -244,12 +244,12 @@ void Player::moveTo(Tile* destination, bool getPayment, MOVE_DIRECTION direction
 
     if (currentTile == nullptr) {
         currentTile = destination;
-        destination->runTile(this);
-        // Show popup if using GUI
         GameManager& gm = GameManager::getInstance();
-        if (gm.isGuiStreamActive() && gm.getTilePopup() != nullptr) {
+        if (gm.getTilePopup() != nullptr) {
             destination->callPopUp(*gm.getTilePopup());
         }
+        destination->runTile(this);
+        // Show popup if using GUI
         return;
     }
 
@@ -262,12 +262,12 @@ void Player::moveTo(Tile* destination, bool getPayment, MOVE_DIRECTION direction
         }
     }
 
-    // Show popup if using GUI
     GameManager& gm = GameManager::getInstance();
-    if (gm.isGuiStreamActive() && gm.getTilePopup() != nullptr) {
+    if (gm.getTilePopup() != nullptr) {
         destination->callPopUp(*gm.getTilePopup());
     }
     destination->runTile(this);
+    // Show popup if using GUI
 }
 
 void Player::mortgageProperty(Property* property, Board* board) {

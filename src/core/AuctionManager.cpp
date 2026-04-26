@@ -60,6 +60,8 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
         Player* onlyBidder = order.front();
         if (onlyBidder != nullptr && onlyBidder->getCurrency() > 0) {
             transferProperty(property, onlyBidder, 1);
+            game.getLogger().log(onlyBidder->getUsername(), StateLog::AUCTION,
+                "Memenangkan lelang " + property->getName() + " seharga M1");
             game.writeLine("Winner (only 1) - " + onlyBidder->getUsername() + " price: 1");
             return true;
         }
@@ -124,6 +126,8 @@ bool AuctionManager::runAuction(Property* property, Player* excludedPlayer) cons
     }
 
     transferProperty(property, highestBidder, highestBid);
+    game.getLogger().log(highestBidder->getUsername(), StateLog::AUCTION,
+        "Memenangkan lelang " + property->getName() + " seharga M" + std::to_string(highestBid));
 
     game.writeLine("Winner - " + highestBidder->getUsername() + " price: " + std::to_string(highestBid));
 

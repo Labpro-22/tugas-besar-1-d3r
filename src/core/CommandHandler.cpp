@@ -174,9 +174,21 @@ bool CommandHandler::handleJailTurn(Player* currentPlayer) const {
     const int d1 = game.getDice().getFirst();
     const int d2 = game.getDice().getSecond();
     game.writeLine("Hasil lemparan: " + std::to_string(d1) + " + " + std::to_string(d2));
+    Logger& logger = Logger::getInstance();
+    logger.log(
+        currentPlayer->getUsername(),
+        StateLog::DICE,
+        "Melempar dadu saat di penjara " + std::to_string(d1) + " + " + std::to_string(d2) +
+        " = " + std::to_string(d1 + d2)
+    );
 
     if (d1 == d2) {
         game.writeLine("Double! Kamu bebas dari penjara.");
+        logger.log(
+            currentPlayer->getUsername(),
+            StateLog::DOUBLE,
+            "Mendapat double saat di penjara " + std::to_string(d1) + " + " + std::to_string(d2)
+        );
         currentPlayer->setDoubleCount(0);
         freeCurrentPlayer();
         // game.writeLine("Sekarang kamu bisa lanjut dengan command biasa seperti LEMPAR_DADU, ATUR_DADU, atau CETAK_AKTA.");
@@ -220,7 +232,12 @@ void CommandHandler::commands() {
     }
 
     Player* winner = game.getWinner();
-    if (winner != nullptr) {
+    if (winner != nullptr && game.isGameFinished()) {
+        Logger::getInstance().log(
+            winner->getUsername(),
+            StateLog::WIN,
+            "Menang dengan total uang M" + std::to_string(winner->getCurrency())
+        );
         game.writeLine("Pemenang sementara: " + winner->getUsername());
     }
 }

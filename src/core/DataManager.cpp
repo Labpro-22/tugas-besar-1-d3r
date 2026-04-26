@@ -447,6 +447,14 @@ void DataManager::load(string fileName) {
         logger.log(turn, username, action, detail);
     }
 
+    if (game.getCurrentTurnPlayer() != nullptr) {
+        logger.log(
+            game.getCurrentTurnPlayer()->getUsername(),
+            StateLog::LOAD,
+            "Memuat permainan dari " + path
+        );
+    }
+
     file.close();
 }
 
@@ -562,6 +570,14 @@ void DataManager::save(string fileName, bool override) {
     for(size_t i = 0; i < logs.size(); i++) {
         const StateLog& log = logs.at(i);
         file << log.getTurn() << " " << log.getUsername() << " " << log.actionToString(log.getAction()) << " " << log.getDetail() << "\n";
+    }
+
+    if (game.getCurrentTurnPlayer() != nullptr) {
+        game.getLogger().log(
+            game.getCurrentTurnPlayer()->getUsername(),
+            StateLog::SAVE,
+            "Menyimpan permainan ke " + path
+        );
     }
 
     file.close();

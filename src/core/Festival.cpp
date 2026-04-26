@@ -1,5 +1,6 @@
 #include "../../include/core/Tile.hpp"
 #include "../../include/core/GameManager.hpp"
+#include "../../include/core/Logger.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -10,6 +11,7 @@ Festival::Festival(int index, const string& code, const string& name, const stri
 
 void Festival::addMultiplier(const string& propertyCode) {
     GameManager& gm = GameManager::getInstance();
+    Player* currentPlayer = gm.getCurrentTurnPlayer();
     Property* selected = nullptr;
     
     for (Tile* tile : gm.getBoard().getTiles()){
@@ -32,6 +34,13 @@ void Festival::addMultiplier(const string& propertyCode) {
     if (currentMulti == 1){
         selected->setFestivalMultiplier(2);
         selected->setFestivalDuration(3);
+        if (currentPlayer != nullptr) {
+            Logger::getInstance().log(
+                currentPlayer->getUsername(),
+                StateLog::FESTIVAL,
+                "Mengaktifkan festival pada " + selected->getName() + " (" + selected->getCode() + ") menjadi x2 selama 3 giliran"
+            );
+        }
         gm.writeLine("");
         gm.writeLine("Efek festival aktif!");
         gm.writeLine("");
@@ -41,6 +50,14 @@ void Festival::addMultiplier(const string& propertyCode) {
     } else if (currentMulti < 8){
         selected->setFestivalMultiplier(currentMulti * 2);
         selected->setFestivalDuration(3);
+        if (currentPlayer != nullptr) {
+            Logger::getInstance().log(
+                currentPlayer->getUsername(),
+                StateLog::FESTIVAL,
+                "Memperkuat festival pada " + selected->getName() + " (" + selected->getCode() + ") menjadi x" +
+                to_string(selected->getFestivalMultiplier()) + " selama 3 giliran"
+            );
+        }
         gm.writeLine("");
         gm.writeLine("Efek diperkuat!");
         gm.writeLine("");
@@ -49,6 +66,13 @@ void Festival::addMultiplier(const string& propertyCode) {
         gm.writeLine("Durasi di-reset menjadi: 3 giliran");
     } else{
         selected->setFestivalDuration(3);
+        if (currentPlayer != nullptr) {
+            Logger::getInstance().log(
+                currentPlayer->getUsername(),
+                StateLog::FESTIVAL,
+                "Me-reset durasi festival pada " + selected->getName() + " (" + selected->getCode() + ") selama 3 giliran"
+            );
+        }
         gm.writeLine("");
         gm.writeLine("Efek sudah maksimum (harga sewa sudah digandakan tiga kali)");
         gm.writeLine("");
@@ -111,4 +135,3 @@ void Festival::runTile(Player* player) {
 
     addMultiplier(selectedCode);
 }
-

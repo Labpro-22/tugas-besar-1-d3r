@@ -6,19 +6,19 @@
 class StateLog {
 public:
 	enum ACTION_TYPE {
-		AUCTION,
+		AUCTION, // done
 		BANKRUPT, // done
-		BUILD_HOTEL, // BELUM IMPLEMENT
-		BUILD_HOUSE, // BELUM IMPLEMENT
+		BUILD_HOTEL, // done
+		BUILD_HOUSE, // done
 		BUY_TILE, // done
 		CHANCE_CARD, // done
 		DICE, // done
 		DOUBLE, // done
-		FESTIVAL, // BELUM IMPLEMENT
+		FESTIVAL, // done
 		FUND_CARD, // done
 		GET_CARD, // done
 		GO_JAIL, // done
-		LOAD,
+		LOAD, // done
 		PAY_MORTGAGE,
 		PAY_RENT, // half done, sisa UTILITY
 		PAY_TAX, // done
@@ -26,7 +26,7 @@ public:
 		SAVE,
 		UTILITY, // done
 		SKILL_CARD, // done
-		WIN
+		WIN 
 	};
 
 private:
