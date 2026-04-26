@@ -74,6 +74,7 @@ class Player {
         void activateShield(int turns = 1);
         void resetCardUse();
         void endTurnEffects();
+        void pay(int amount, Player* creditor = nullptr);
         bool addSkillCard(SkillCard* card);
         SkillCard* removeSkillCard(int index);
         void printSkillCards() const;

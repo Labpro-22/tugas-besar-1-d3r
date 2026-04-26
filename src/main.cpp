@@ -11,7 +11,6 @@ static void runCli(GameManager &gm)
     gm.setUseGuiStream(false);
     gm.setOutputCallback(nullptr);
     gm.setInputCallback(nullptr);
-    gm.getBoard().printBoard();
     gm.runGame();
     if (!gm.getPlayer().empty()) {
         gm.getCommandHandler().commands();

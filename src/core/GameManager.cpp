@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <random>
 #include <string>
 
 #include "../../include/core/Player.hpp"
@@ -72,6 +73,15 @@ bool GameManager::isGameValid() {
 void GameManager::runGame() {
     if (players.empty()) {
         CommandHandler& handler = getCommandHandler();
+        writeLine("=== Inisialisasi Game ===");
+        writeLine("1. New Game");
+        writeLine("2. Load Game");
+
+        const int mode = handler.askInt("Pilih mode (1-2): ", 1, 2);
+        if (mode == 2) {
+            // loadGame disini
+        }
+
         const int count = handler.askInt("Jumlah pemain (2-4): ", 2, 4);
 
         std::vector<Player*> newPlayers;
@@ -84,11 +94,26 @@ void GameManager::runGame() {
             newPlayers.push_back(player);
         }
 
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::shuffle(newPlayers.begin(), newPlayers.end(), gen);
+
         setPlayers(newPlayers);
         initPlayers();
         initSkillDeck();
         initAutoUseDecks();
         drawSkillCard(currentTurnPlayer);
+        if (!newPlayers.empty()) {
+            std::string order = "Urutan giliran: ";
+            for (size_t i = 0; i < newPlayers.size(); ++i) {
+                if (i > 0) {
+                    order += " -> ";
+                }
+                order += newPlayers[i]->getUsername();
+            }
+            writeLine(order);
+            writeLine("Giliran pertama: " + newPlayers.front()->getUsername());
+        }
     }
 
     if (!isGameValid()) {
@@ -97,6 +122,7 @@ void GameManager::runGame() {
     }
 
     writeLine("[INFO] Game ready.");
+    commandHandler.handleJailTurn(currentTurnPlayer);
     commandHandler.handleJailTurn(currentTurnPlayer);
 }
 
@@ -178,7 +204,37 @@ void GameManager::rollDice(int dice1, int dice2) {
         currentTurnPlayer->setDoubleCount(0);
     }
 
+
+    if (currentTurnPlayer->getStatus() == JAILED) {
+        writeLine("Game Error: Pemain JAILED tidak seharusnya memanggil rollDice secara langsung tanpa melalui Command Handler!");
+        return;
+    }
+
+    if (dice.isDouble()) {
+        currentTurnPlayer->setDoubleCount(currentTurnPlayer->getDoubleCount() + 1);
+        if (currentTurnPlayer->getDoubleCount() >= 3) {
+            writeLine("Dadu: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + ". Tiga kali double berturut-turut! Langsung masuk penjara.");
+            currentTurnPlayer->setDoubleCount(0);
+            Tile* jailTile = board.getJailTile();
+            if (jailTile != nullptr) {
+                currentTurnPlayer->moveTo(jailTile, false, FORWARD);
+                Prison* prison = dynamic_cast<Prison*>(jailTile);
+                if (prison != nullptr) {
+                    prison->setJailed(currentTurnPlayer);
+                } else {
+                    currentTurnPlayer->setToJailed();
+                }
+            }
+            nextTurn();
+            return;
+        }
+    } else {
+        currentTurnPlayer->setDoubleCount(0);
+    }
+
     Tile* destination = board.goToTile(*currentTurnPlayer->getCurrentTile(), total);
+
+    currentTurnPlayer->setCanUseCard(false);
 
     writeLine("Hasil: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + " = " + std::to_string(total));
     if (destination == nullptr) {
@@ -190,6 +246,12 @@ void GameManager::rollDice(int dice1, int dice2) {
     TilePopup popUpcaller;
     destination->callPopUp(popUpcaller);
     // writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
+
+    if (currentTurnPlayer->getStatus() == BANKRUPT) {
+        currentTurnPlayer->setDoubleCount(0);
+        nextTurn();
+        return;
+    }
 
     if (currentTurnPlayer->getStatus() != JAILED) {
         if (!dice.isDouble()) {
@@ -251,7 +313,22 @@ void GameManager::nextTurn() {
         }
     }
 
-    currentTurnPlayer = players[nextIndex];
+    size_t searched = 0;
+    currentTurnPlayer = nullptr;
+    while (searched < players.size()) {
+        Player* candidate = players[nextIndex];
+        if (candidate != nullptr && candidate->getStatus() != BANKRUPT) {
+            currentTurnPlayer = candidate;
+            break;
+        }
+
+        nextIndex = (nextIndex + 1) % players.size();
+        if (nextIndex == 0) {
+            turn++;
+        }
+        searched++;
+    }
+
     if (currentTurnPlayer != nullptr) {
         currentTurnPlayer->resetCardUse();
         drawSkillCard(currentTurnPlayer);
@@ -308,6 +385,7 @@ void GameManager::initSkillDeck() {
         deckSkill.addCard(new LassoCard());
         deckSkill.addCard(new DemolitionCard());
         deckSkill.addCard(new FreeJailCard());
+        deckSkill.addCard(new FreeJailCard());
     }
 
     deckSkill.shuffleDeck();
@@ -323,14 +401,7 @@ void GameManager::pay(Player *debtor, int amount, Player* creditor) {
     }
 
     try{
-        if (debtor->getCurrency() < amount) {
-            throw NotEnoughMoneyException("", amount, debtor->getCurrency());
-        }
-
-        *debtor -= amount;
-        if (creditor){
-            *creditor += amount;
-        }
+        debtor->pay(amount, creditor);
     }
     catch(const NotEnoughMoneyException& e) {
         handleBankruptcy(debtor, amount, creditor);
