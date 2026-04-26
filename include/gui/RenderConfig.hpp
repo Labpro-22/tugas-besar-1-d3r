@@ -9,10 +9,10 @@
 #define COKLAT_SHADE Color{101, 63, 35, 255}
 #define BIRU_MUDA Color{126, 200, 227, 255}
 #define BIRU_MUDA_SHADE Color{78, 155, 185, 255}
-#define PINK Color{244, 167, 185, 255}
-#define PINK_SHADE Color{204, 112, 138, 255}
-#define ORANGE Color{242, 145, 74, 255}
-#define ORANGE_SHADE Color{193, 99, 35, 255}
+#define MERAH_MUDA Color{244, 167, 185, 255}
+#define MERAH_MUDA_SHADE Color{204, 112, 138, 255}
+#define JERUK Color{242, 145, 74, 255}
+#define JERUK_SHADE Color{193, 99, 35, 255}
 #define MERAH Color{224, 85, 85, 255}
 #define MERAH_SHADE Color{168, 45, 45, 255}
 #define KUNING Color{245, 208, 96, 255}

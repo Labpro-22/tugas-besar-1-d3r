@@ -6,6 +6,7 @@
 
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
+#include "../../include/gui/UIOverlay/UIComponent.hpp"
 
 using namespace std;
 
@@ -156,7 +157,7 @@ void GameManager::rollDice(int dice1, int dice2) {
 
     currentTurnPlayer->moveTo(destination, true);
     // writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
-
+    
     if (!dice.isDouble()) {
         nextTurn();
     } else {

@@ -120,4 +120,5 @@ public:
 	void sellPropertyToBank(Player* player, Property* property);
 	void handleBankruptcy(Player *debtor, int amount, Player* creditor);
 	void assetAcquisition(Player* debtor, Player* creditor);
+
 };

@@ -13,6 +13,42 @@ void Railroad::callViewer(PropertyRenderCall& other) {
     other.render(this);
 }
 
+void Street::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Utility::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Railroad::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void PBM::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void PPH::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void CardTile::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Festival::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Go::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Prison::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Trap::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void FreeParking::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+
+
+TilePopup popUpcaller;
 // ============== Tile Base Class ==============
 Tile::Tile(int index, const std::string& code, const std::string& name, const std::string& color)
     : index(index), code(code), name(name), color(color) {}
@@ -49,7 +85,9 @@ Tax::Tax(int index, const std::string& code, const std::string& name, const std:
 void Tax::runTile(Player* player) {
     if (player != nullptr) {
         payTax(player);
+        
     }
+    callPopUp(popUpcaller);
 }
 
 CardTile::CardTile(int index, const std::string& code, const std::string& name, const std::string& color)
@@ -87,6 +125,7 @@ void Go::givePayments(Player* player) {
 
 void Go::runTile(Player* player) {
     givePayments(player);
+    callPopUp(popUpcaller);
 }
 
 
@@ -126,6 +165,7 @@ void Prison::runTile(Player* player) {
         payFee(player);
         freeFromJailed(player);
     }
+    callPopUp(popUpcaller);
 }
 
 Trap::Trap(int index, const std::string& code, const std::string& name, const std::string& color)
@@ -140,8 +180,11 @@ void Trap::runTile(Player* player){
     }
     player->setToJailed();
     player->moveTo(prison, false);
+    callPopUp(popUpcaller);
 }
 
 FreeParking::FreeParking(int index, const std::string& code, const std::string& name, const std::string& color)
 : Tile(index, code, name, color){}
-void FreeParking::runTile(Player*){}
+void FreeParking::runTile(Player*){
+    callPopUp(popUpcaller);
+}

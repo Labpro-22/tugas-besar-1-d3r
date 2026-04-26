@@ -111,10 +111,10 @@ std::pair<Color, Color> TileRenderer::ParseColor(Tile *tile)
         return {COKLAT, COKLAT_SHADE};
     }
     else if (!tile->getColor().compare("MERAH_MUDA")) {
-        return {PINK, PINK_SHADE};
+        return {MERAH_MUDA, MERAH_MUDA_SHADE};
     }
     else if (!tile->getColor().compare("ORANGE")) {
-        return {ORANGE, ORANGE_SHADE};
+        return {JERUK, JERUK_SHADE};
     }
     else if (!tile->getColor().compare("MERAH")) {
         return {MERAH, MERAH_SHADE};

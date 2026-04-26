@@ -79,7 +79,6 @@ void Street::runTile(Player* player) {
     Logger &logger = Logger::getInstance();
     GameManager& gm = GameManager::getInstance();
 
-
     // buy mechanism
     if (propertyStatus == BANK) {
         int price = landCost;
@@ -120,6 +119,8 @@ void Street::runTile(Player* player) {
             gm.writeLine("Properti ini akan masuk ke sistem lelang...");
             gm.auction(this);
         }
+        TilePopup popUpcaller;
+        callPopUp(popUpcaller);
         return;
     }
 

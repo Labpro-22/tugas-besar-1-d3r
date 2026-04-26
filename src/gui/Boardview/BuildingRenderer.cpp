@@ -122,7 +122,6 @@ void BuildingRenderer::drawStation()
     Vector2 bottom = {currentPos.x, currentPos.y + height / 2.0f};
     Vector2 left = {currentPos.x - width / 2.0f, currentPos.y};
     Vector2 right = {currentPos.x + width / 2.0f, currentPos.y};
-    Vector2 mid = currentPos; // Pusat ubin
 
     Vector2 leftTopMid = (top + left) / 2;
     Vector2 leftBottomMid = (left + bottom) / 2;

@@ -18,7 +18,6 @@ void Railroad::runTile(Player *player){
     if (player == nullptr) {
         return;
     }
-
     // buy mechanism
     if (propertyStatus == BANK) {
         gm.writeLine("Kamu mendarat di " + name + " (" + code + ")!");
