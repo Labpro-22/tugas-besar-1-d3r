@@ -1,125 +1,281 @@
 #include "../include/gui/Boardview/TileRenderer.hpp"
 #include "../include/gui/UIOverlay/UIComponent.hpp"
-#include <iostream>
+
+namespace {
+
+std::string money(int value)
+{
+    return "M" + std::to_string(value);
+}
+
+std::string propertyStatusLabel(PROPERTY_STATUS status)
+{
+    switch (status) {
+    case BANK:
+        return "BANK";
+    case OWNED:
+        return "OWNED";
+    case MORTGAGED:
+        return "MORTGAGED";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+std::string ownerLabel(Player* owner)
+{
+    if (owner == nullptr) {
+        return "BANK";
+    }
+    return owner->getUsername();
+}
+
+std::string aktaStatusLabel(PROPERTY_STATUS status, Player* owner)
+{
+    if (status == BANK) {
+        return "BANK";
+    }
+
+    return propertyStatusLabel(status) + " (" + ownerLabel(owner) + ")";
+}
+
+} // namespace
 
 void TilePopup::renderPopUp(Street *s)
 {
-    data_.setTitle("AKTA PEMILIKAN");
-    data_.setSubtitle("[" + s->getColor() + "] " + s->getName() + "(" + s->getCode() + ")");
-    data_.setDescription("");
+    if (s == nullptr) {
+        return;
+    }
+
+    data_.setTitle("AKTA KEPEMILIKAN");
+    data_.setSubtitle("[" + s->getColor() + "] " + s->getName() + " (" + s->getCode() + ")");
+    data_.setDescription("Lihat rincian lengkap properti ini sebelum beli, bangun, atau gadai.");
+
+    const int level = s->getCurrentLevel();
+    std::string kondisiBangunan = "Tanah kosong";
+    if (level >= 1 && level <= 4) {
+        kondisiBangunan = std::to_string(level) + " rumah";
+    } else if (level == 5) {
+        kondisiBangunan = "Hotel";
+    }
+
     data_.setFields({
-        PopUpField("Harga Beli", std::to_string(s->getLandCost())),
-        PopUpField("Harga Gadai", std::to_string(s->getMortgageValue())),
-        PopUpField("Sewa", std::to_string(s->getRentCost()))
+        PopUpField("Harga Beli", money(s->getLandCost())),
+        PopUpField("Nilai Gadai", money(s->getMortgageValue())),
+        PopUpField("Sewa L0", money(s->getRentCostLevel(0))),
+        PopUpField("Sewa L1", money(s->getRentCostLevel(1))),
+        PopUpField("Sewa L2", money(s->getRentCostLevel(2))),
+        PopUpField("Sewa L3", money(s->getRentCostLevel(3))),
+        PopUpField("Sewa L4", money(s->getRentCostLevel(4))),
+        PopUpField("Sewa Hotel", money(s->getRentCostLevel(5))),
+        PopUpField("Harga Rumah", money(s->getHouseCost())),
+        PopUpField("Harga Hotel", money(s->getHotelCost())),
+        PopUpField("Status", aktaStatusLabel(s->getPropertyStatus(), s->getOwner()))
     });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(s->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
+
 void TilePopup::renderPopUp(Railroad *r)
 {
-    data_.setTitle("Kamu datang di " + r->getName());
-    data_.setSubtitle("");
-    data_.setDescription("");
-    data_.setFields({});
+    if (r == nullptr) {
+        return;
+    }
+
+    data_.setTitle("AKTA STASIUN");
+    data_.setSubtitle("[" + r->getCode() + "] " + r->getName());
+    data_.setDescription("Stasiun menambah kekuatan sewa berdasarkan jumlah stasiun yang dimiliki.");
+    data_.setFields({
+        PopUpField("Sewa Saat Ini", money(r->getRentCost())),
+        PopUpField("Nilai Gadai", money(r->getMortgageValue())),
+        PopUpField("Festival", "x" + std::to_string(r->getFestivalMultiplier())),
+        PopUpField("Status", aktaStatusLabel(r->getPropertyStatus(), r->getOwner()))
+    });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(r->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
+
 void TilePopup::renderPopUp(Utility *u)
 {
-    data_.setTitle("Kamu datang di " + u->getName());
-    data_.setSubtitle("");
-    data_.setDescription("");
-    data_.setFields({});
+    if (u == nullptr) {
+        return;
+    }
+
+    const int totalDice = GameManager::getInstance().getDice().getTotal();
+
+    data_.setTitle("AKTA UTILITAS");
+    data_.setSubtitle("[" + u->getCode() + "] " + u->getName());
+    data_.setDescription("Sewa utilitas dihitung dari total dadu x pengali sesuai jumlah utilitas pemilik.");
+    data_.setFields({
+        PopUpField("Total Dadu", std::to_string(totalDice)),
+        PopUpField("Sewa Saat Ini", money(u->getRentCost())),
+        PopUpField("Nilai Gadai", money(u->getMortgageValue())),
+        PopUpField("Festival", "x" + std::to_string(u->getFestivalMultiplier())),
+        PopUpField("Status", aktaStatusLabel(u->getPropertyStatus(), u->getOwner()))
+    });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(u->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
 
 // Taxes
 void TilePopup::renderPopUp(PBM *pbm)
 {
-    data_.setTitle("Kamu datang di " + pbm->getName());
-    data_.setSubtitle("");
-    data_.setDescription("");
-    data_.setFields({});
+    if (pbm == nullptr) {
+        return;
+    }
+
+    data_.setTitle("PAJAK BARANG MEWAH");
+    data_.setSubtitle("[" + pbm->getCode() + "] " + pbm->getName());
+    data_.setDescription("Pajak langsung dipotong ke Bank saat mendarat.");
+    data_.setFields({
+        PopUpField("Nominal Pajak", money(pbm->getFixedTax())),
+        PopUpField("Jenis", "Flat")
+    });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(pbm->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
+
 void TilePopup::renderPopUp(PPH *pph)
 {
-    data_.setTitle("Kamu datang di " + pph->getName());
-    data_.setSubtitle("Kamu harus bayar pajak");
-    data_.setDescription("");
+    if (pph == nullptr) {
+        return;
+    }
+
+    data_.setTitle("PAJAK PENGHASILAN");
+    data_.setSubtitle("[" + pph->getCode() + "] Pilih metode pembayaran");
+    data_.setDescription("Sesuai aturan, pemain memilih dulu: flat atau persentase kekayaan.");
     data_.setFields({
-        PopUpField("1. Bayar flat M", std::to_string(pph->getFlatTax())),
-        PopUpField("2. Bayar " + std::to_string(pph->getTaxPercentage()) + "dari total kekayaan", ""),
+        PopUpField("Opsi 1 (Flat)", money(pph->getFlatTax())),
+        PopUpField("Opsi 2 (Persentase)", std::to_string(pph->getTaxPercentage()) + "% dari total kekayaan")
     });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(pph->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
 
 // Special Tiles
 void TilePopup::renderPopUp(CardTile *ct)
 {
-    data_.setTitle("Kamu datang di " + ct->getName());
-    data_.setSubtitle("");
-    data_.setDescription("");
-    data_.setFields({});
+    if (ct == nullptr) {
+        return;
+    }
+
+    std::string deckType = "Kartu Acak";
+    if (ct->getCode() == "KSP") {
+        deckType = "Kesempatan";
+    } else if (ct->getCode() == "DNU") {
+        deckType = "Dana Umum";
+    }
+
+    data_.setTitle("PETAK KARTU");
+    data_.setSubtitle("[" + ct->getCode() + "] " + ct->getName());
+    data_.setDescription("Ambil kartu teratas dan jalankan efeknya sekarang juga.");
+    data_.setFields({
+        PopUpField("Jenis Deck", deckType),
+        PopUpField("Eksekusi", "Otomatis")
+    });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(ct->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
+
 void TilePopup::renderPopUp(Festival *f)
 {
-    data_.setTitle("Kamu datang di " + f->getName());
-    data_.setSubtitle("");
-    data_.setDescription("");
-    data_.setFields({});
+    if (f == nullptr) {
+        return;
+    }
+
+    data_.setTitle("PETAK FESTIVAL");
+    data_.setSubtitle("[" + f->getCode() + "] " + f->getName());
+    data_.setDescription("Pilih properti milikmu untuk melipatgandakan sewa selama 3 giliran.");
+    data_.setFields({
+        PopUpField("Efek Awal", "Sewa x2"),
+        PopUpField("Durasi", "3 giliran")
+    });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(f->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
+
 void TilePopup::renderPopUp(Go *g)
 {
-    data_.setTitle("Kamu Baru Mulai");
-    data_.setSubtitle("Kamu mendapatkan M" + std::to_string(g->getPayment()));
-    data_.setDescription("");
-    data_.setFields({});
+    if (g == nullptr) {
+        return;
+    }
+
+    data_.setTitle("PETAK MULAI");
+    data_.setSubtitle("Selamat datang di GO");
+    data_.setDescription("Setiap berhenti atau melewati GO, pemain mendapat gaji dari Bank.");
+    data_.setFields({
+        PopUpField("Gaji GO", money(g->getPayment()))
+    });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(g->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
+
 void TilePopup::renderPopUp(Prison *p)
 {
-    data_.setTitle("Kamu datang di " + p->getName());
-    data_.setSubtitle("");
-    data_.setDescription("");
-    data_.setFields({});
+    if (p == nullptr) {
+        return;
+    }
+
+    data_.setTitle("PETAK PENJARA");
+    data_.setSubtitle("[" + p->getCode() + "] " + p->getName());
+    data_.setDescription("Bisa sekadar mampir atau jadi tahanan tergantung cara tiba di petak ini.");
+    data_.setFields({
+        PopUpField("Denda Keluar", money(p->getFee()))
+    });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(p->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
+
 void TilePopup::renderPopUp(Trap *tr)
 {
-    data_.setTitle("Kamu datang di " + tr->getName());
-    data_.setSubtitle("");
-    data_.setDescription("");
-    data_.setFields({});
+    if (tr == nullptr) {
+        return;
+    }
+
+    data_.setTitle("PERGI KE PENJARA");
+    data_.setSubtitle("[" + tr->getCode() + "] " + tr->getName());
+    data_.setDescription("Mendarat di sini membuat pemain langsung dipindahkan ke penjara.");
+    data_.setFields({
+        PopUpField("Efek", "Langsung masuk penjara")
+    });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(tr->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
+
 void TilePopup::renderPopUp(FreeParking *fp)
 {
-    data_.setTitle("Kamu datang di " + fp->getName());
-    data_.setSubtitle("");
-    data_.setDescription("");
-    data_.setFields({});
+    if (fp == nullptr) {
+        return;
+    }
+
+    data_.setTitle("BEBAS PARKIR");
+    data_.setSubtitle("[" + fp->getCode() + "] " + fp->getName());
+    data_.setDescription("Petak istirahat. Tidak ada aksi khusus saat berhenti di sini.");
+    data_.setFields({
+        PopUpField("Efek", "Tidak ada")
+    });
+
     Tile *sTile = GameManager::getInstance().getBoard().getTile(fp->getIndex());
-    bgColor = TileRenderer::ParseColor(sTile).first;
+    bgColor = (sTile != nullptr) ? TileRenderer::ParseColor(sTile).first : BOARD_BASE;
     drawPopUp();
-};
+}
