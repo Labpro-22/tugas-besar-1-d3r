@@ -15,6 +15,13 @@ void CardDeck<T>::addCard(T* card) {
 }
 
 template <typename T>
+void CardDeck<T>::addUsedCard(T* card) {
+	if (card != nullptr) {
+		usedCard.push_back(card);
+	}
+}
+
+template <typename T>
 void CardDeck<T>::shuffleDeck() {
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -38,7 +45,7 @@ T* CardDeck<T>::topDeck() {
 
 	T* topCard = availableCards.back();
 	availableCards.pop_back();
-	usedCard.push_back(topCard);
+	
 	return topCard;
 }
 

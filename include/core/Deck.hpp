@@ -20,6 +20,7 @@ public:
 	virtual ~CardDeck() = default;
 
 	void addCard(T* card);
+	void addUsedCard(T* card);
 	void shuffleDeck();
 	void printDeck() const;
 	T* topDeck();

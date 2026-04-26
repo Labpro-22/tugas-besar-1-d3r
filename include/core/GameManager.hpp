@@ -19,6 +19,7 @@ class CardTile;
 
 class GameManager {
 private:
+	bool isGameLoaded;
 	int turn;
 	int maxTurn;
 	int activePlayerCount;
@@ -74,12 +75,14 @@ public:
 			}
 		}
 	}
+	void setIsGameLoaded(bool isGameLoaded) { this->isGameLoaded = isGameLoaded; }
 	void addTile(Tile* tile) {
 	    board.addTile(tile);
 	}	
 
 	int getTurn() const { return turn; }
 	int getMaxTurn() const { return maxTurn; }
+	int getPlayerCount() const { return playerCount; }
 	Player* getCurrentTurnPlayer() const { return currentTurnPlayer; }
 	bool isGuiStreamActive() const { return useGuiStream; }
 	Dice& getDice() { return dice; }
@@ -94,6 +97,8 @@ public:
 	const std::vector<Player*>& getPlayers() const { return players; }
 	CommandHandler& getCommandHandler() { return commandHandler; }
 	AuctionManager& getAuctionManager() { return auctionManager; }
+	bool getIsGameLoaded() { return isGameLoaded; }
+
 	bool isGameValid();
 	void runGame();
 	void auction(Tile*);

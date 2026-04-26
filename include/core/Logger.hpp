@@ -4,7 +4,7 @@
 #include <vector>
 
 class StateLog {
-	public:
+public:
 	enum ACTION_TYPE {
 		AUCTION,
 		BANKRUPT, // done

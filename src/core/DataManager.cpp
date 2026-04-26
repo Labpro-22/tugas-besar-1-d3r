@@ -219,7 +219,7 @@ void DataManager::loadActions(const vector<int>& taxConfig, const vector<int>& s
     }
 }
 
-void DataManager::load() {
+void DataManager::loadConfig() {
     loadMisc();
 
     vector<int> utilityRent = loadUtilityConfig();
@@ -229,6 +229,198 @@ void DataManager::load() {
 
     loadProperties(utilityRent, railroadRent);
     loadActions(taxConfig, specialConfig);
+}
+
+void DataManager::load(string fileName) {
+    GameManager& game = GameManager::getInstance();
+
+    if(game.getIsGameLoaded()) {
+        throw LoadProhibitedException();
+    }
+    
+    string path = "data/" + fileName;
+    if(!isFileExists(path)) {
+        throw FileNotExistsException(path);
+    }
+    ifstream file(path);
+    if(!file.is_open()) {
+        throw LoadFailedException();
+    }
+
+    int turn, maxTurn, playerCount;
+    if(!(file >> turn >> maxTurn >> playerCount)) throw LoadFailedException();
+    game.setTurn(turn);
+    game.setMaxTurn(maxTurn);
+    game.setPlayerCount(playerCount);
+
+    int countMove(4), countDiscount(3), countShield(2), countTeleport(2), countLasso(2), countDemolition(2);
+
+    // State Pemain
+    vector<Player*> players;
+    for(int i = 0; i < game.getPlayerCount(); i++) {
+        string username;
+        int currency;
+        string position;
+        string statusStr;
+        int deckCount;
+
+        if(!(file >> username >> currency >> position >> statusStr >> deckCount)) throw LoadFailedException();
+        
+        Tile* currentTile = game.getBoard().getTile(position);
+        if(currentTile == nullptr) throw LoadFailedException();
+        
+        PLAYER_STATUS status;
+        if(statusStr == "ACTIVE") status = ACTIVE;
+        else if(statusStr == "BANKRUPT") status = BANKRUPT;
+        else if(statusStr == "JAILED") status = JAILED;
+        else throw LoadFailedException();
+        
+        // Deck
+        CardDeck<SkillCard> deck;
+        for(int j = 0; j < deckCount; j++) {
+            string cardName;
+            int cardValue, cardDuration;
+            if(!(file >> cardName)) throw LoadFailedException();
+
+            if(cardName == "MoveCard") {
+                if(!(file >> cardValue)) throw LoadFailedException();
+                deck.addCard(new MoveCard(cardValue));
+                countMove--;
+            } else if(cardName == "DiscountCard") {
+                if(!(file >> cardValue >> cardDuration)) throw LoadFailedException();
+                deck.addCard(new DiscountCard(cardValue));
+                countDiscount--;
+            } else if(cardName == "ShieldCard") {
+                if(!(file >> cardDuration)) throw LoadFailedException();
+                deck.addCard(new ShieldCard());
+                countShield--;
+            } else if(cardName == "TeleportCard") {
+                deck.addCard(new TeleportCard());
+                countTeleport--;
+            } else if(cardName == "LassoCard") {
+                deck.addCard(new LassoCard());
+                countLasso--;
+            } else if(cardName == "DemolitionCard") {
+                deck.addCard(new DemolitionCard());
+                countDemolition--;
+            } else {
+                throw LoadFailedException();
+            }
+        }
+
+        players.push_back(new Player(username, currency, currentTile, status, std::move(deck)));
+    }
+
+    game.setPlayers(players);
+
+    // State Property
+    int nProperty;
+    if(!(file >> nProperty)) throw LoadFailedException();
+
+    for(int i = 0; i < nProperty; i++) {
+        string code, type, ownerStr, statusStr;
+        int fmult, fdur, nBangunan;
+        if(!(file >> code >> type >> ownerStr >> statusStr >> fmult >> fdur >> nBangunan)) throw LoadFailedException();
+        
+        Player* owner = nullptr;
+        vector<Player*> gamePlayers = game.getPlayers();
+        for(int i = 0; i < gamePlayers.size(); i++) {
+            if(gamePlayers.at(i)->getUsername() == ownerStr) {
+                owner = gamePlayers.at(i);
+                break;
+            }
+        }
+        if(owner == nullptr) throw LoadFailedException();
+
+        PROPERTY_STATUS status;
+        if(statusStr == "BANK") status = BANK;
+        else if (statusStr == "OWNED") status = OWNED;
+        else if (statusStr == "MORTGAGED") status = MORTGAGED;
+        else throw LoadFailedException();
+        
+        Property* property = dynamic_cast<Property*>(game.getBoard().getTile(code));
+        if(property == nullptr) throw LoadFailedException();
+
+        property->setOwner(owner);
+        property->setPropertyStatus(status);
+        property->setFestivalMultiplier(fmult);
+        property->setFestivalDuration(fdur);
+        
+        if(type == "street") {
+            Street* streetTile = dynamic_cast<Street*>(property);
+            if(streetTile == nullptr) throw LoadFailedException();
+            streetTile->setCurrentLevel(nBangunan);
+        }
+    }
+
+    // State Deck
+    int nSkillCard;
+    if(!(file >> nSkillCard)) throw LoadFailedException();
+
+    CardDeck<SkillCard>& skillDeck = game.getSkillDeck();
+    for(int i = 0; i < nSkillCard; i++) {
+        string cardName;
+        if(!(file >> cardName)) throw LoadFailedException(); 
+
+        if(cardName == "MoveCard") {
+            skillDeck.addCard(new MoveCard());
+            countMove--;
+        } else if(cardName == "DiscountCard") {
+            skillDeck.addCard(new DiscountCard());
+            countDiscount--;
+        } else if(cardName == "ShieldCard") {
+            skillDeck.addCard(new ShieldCard());
+            countShield--;
+        } else if(cardName == "TeleportCard") {
+            skillDeck.addCard(new TeleportCard());
+            countTeleport--;
+        } else if(cardName == "LassoCard") {
+            skillDeck.addCard(new LassoCard());
+            countLasso--;
+        } else if(cardName == "DemolitionCard") {
+            skillDeck.addCard(new DemolitionCard());
+            countDemolition--;
+        } else throw LoadFailedException();
+    }
+
+    if(countMove < 0 || countDiscount < 0 || countShield < 0 || countTeleport < 0 || countLasso < 0 || countDemolition < 0) throw LoadFailedException();
+
+    for(int j = 0; j < countMove; j++) skillDeck.addUsedCard(new MoveCard());
+    for(int j = 0; j < countDiscount; j++) skillDeck.addUsedCard(new DiscountCard());
+    for(int j = 0; j < countShield; j++) skillDeck.addUsedCard(new ShieldCard());
+    for(int j = 0; j < countTeleport; j++) skillDeck.addUsedCard(new TeleportCard());
+    for(int j = 0; j < countLasso; j++) skillDeck.addUsedCard(new LassoCard());
+    for(int j = 0; j < countDemolition; j++) skillDeck.addUsedCard(new DemolitionCard());
+
+    // State Log
+    int nLog;
+    if(!(file >> nLog)) throw LoadFailedException();
+
+    if(nLog <= 0) return;
+
+    std::unordered_map<std::string, StateLog::ACTION_TYPE> mapStringToAction;
+    for (int i = 0; i < 21; i++) {
+        StateLog::ACTION_TYPE action = static_cast<StateLog::ACTION_TYPE>(i);
+        mapStringToAction[StateLog::actionToString(action)] = action;
+    }
+
+    Logger& logger = game.getLogger();
+    for(int i = 0; i < nLog; i++) {
+        int turn;
+        string username, actionTypeStr, detail;
+        if(!(file >> turn >> username >> actionTypeStr)) throw LoadFailedException();
+        getline(file, detail);
+
+        if(!detail.empty() && detail[0] == ' ') detail.erase(0, 1);
+        
+        auto it = mapStringToAction.find(actionTypeStr);
+        if(it == mapStringToAction.end()) {
+            throw LoadFailedException();
+        }
+        StateLog::ACTION_TYPE action = it->second;
+
+        logger.log(turn, username, action, detail);
+    }
 }
 
 void DataManager::save(string fileName, bool override) {
@@ -249,22 +441,26 @@ void DataManager::save(string fileName, bool override) {
     }
 
     file << game.getTurn() << " " << game.getMaxTurn() << "\n";
-    const vector<Player*>& players = game.getPlayers();
-
+    
     // State Player
+    const vector<Player*>& players = game.getPlayers();
     file << players.size() << "\n";
     for(size_t i = 0; i < players.size(); i++) {
         const Player* player = players.at(i);
-        file << player->getUsername() << " " << player->getCurrency() << " " << player->getCurrentTile()->getCode() << " " << player->getStatus() << "\n";
+        file << player->getUsername() << " " << player->getCurrency() << " " << player->getCurrentTile()->getCode() << " ";
+        
+        PLAYER_STATUS status = player->getStatus();
+        if(status == ACTIVE) file << "ACTIVE\n";
+        else if(status == BANKRUPT) file << "BANKRUPT\n";
+        else if(status == JAILED) file << "JAILED\n";
+        else throw SaveFailedException();
+        
         const vector<SkillCard*>& skillCards = player->getDeck().getCards();
         for(size_t i = 0; i < skillCards.size(); i++) {
             const SkillCard* skillCard = skillCards.at(i);
             file << skillCard->getCardName();
             if(skillCard->getCardValue() != 0) {
                 file << " " << skillCard->getCardValue();
-            }
-            if(skillCard->getCardDuration() != 0) {
-                file << " " << skillCard->getCardDuration();
             }
             file << "\n";
         }
@@ -282,7 +478,14 @@ void DataManager::save(string fileName, bool override) {
         file << street->getCode() << " " << "street" << " ";
         if(street->getOwner() == nullptr) file << "BANK" << " ";
         else file << street->getOwner()->getUsername() << " ";
-        file << street->getPropertyStatus() << " " << street->getFestivalMultiplier() << " " << street->getFestivalDuration() << " " << street->getCurrentLevel() << "\n";
+        
+        PROPERTY_STATUS status = street->getPropertyStatus();
+        if(status == BANK) file << "BANK";
+        else if(status == OWNED) file << "OWNED";
+        else if(status == MORTGAGED) file << "MORTGAGED";
+        else throw SaveFailedException();
+        
+        file << " " << street->getFestivalMultiplier() << " " << street->getFestivalDuration() << " " << street->getCurrentLevel() << "\n";
     }
 
     for(size_t i = 0; i < railroads.size(); i++) {
@@ -290,7 +493,14 @@ void DataManager::save(string fileName, bool override) {
         file << railroad->getCode() << " " << "railroad" << " ";
         if(railroad->getOwner() == nullptr) file << "BANK" << " ";
         else file << railroad->getOwner()->getUsername() << " ";
-        file << railroad->getPropertyStatus() << " " << railroad->getFestivalMultiplier() << " " << railroad->getFestivalDuration() << " " << 0 << "\n";
+
+        PROPERTY_STATUS status = railroad->getPropertyStatus();
+        if(status == BANK) file << "BANK";
+        else if(status == OWNED) file << "OWNED";
+        else if(status == MORTGAGED) file << "MORTGAGED";
+        else throw SaveFailedException();
+
+        file << " " << railroad->getFestivalMultiplier() << " " << railroad->getFestivalDuration() << " " << 0 << "\n";
     }
 
     for(size_t i = 0; i < utilities.size(); i++) {
@@ -298,7 +508,14 @@ void DataManager::save(string fileName, bool override) {
         file << utility->getCode() << " " << "utility" << " ";
         if(utility->getOwner() == nullptr) file << "BANK" << " ";
         else file << utility->getOwner()->getUsername() << " ";
-        file << utility->getPropertyStatus() << " " << utility->getFestivalMultiplier() << " " << utility->getFestivalDuration() << " " << 0 << "\n";
+
+        PROPERTY_STATUS status = utility->getPropertyStatus();
+        if(status == BANK) file << "BANK";
+        else if(status == OWNED) file << "OWNED";
+        else if(status == MORTGAGED) file << "MORTGAGED";
+        else throw SaveFailedException();
+        
+        file << " " << utility->getFestivalMultiplier() << " " << utility->getFestivalDuration() << " " << 0 << "\n";
     }
 
     // State Deck
@@ -316,7 +533,7 @@ void DataManager::save(string fileName, bool override) {
 
     for(size_t i = 0; i < logs.size(); i++) {
         const StateLog& log = logs.at(i);
-        file << log.getTurn() << " " << log.getUsername() << " " << log.getAction() << " " << log.getDetail() << "\n";
+        file << log.getTurn() << " " << log.getUsername() << " " << log.actionToString(log.getAction()) << " " << log.getDetail() << "\n";
     }
 
     file.close();

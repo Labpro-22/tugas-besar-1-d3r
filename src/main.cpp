@@ -112,7 +112,7 @@ int main()
             defaultConfigPath + "aksi.txt");
 
         gm.writeLine("[INFO] Loading game data...");
-        dm.load();
+        dm.loadConfig();
         gm.writeLine("[SUCCESS] Game data loaded successfully!");
 
         if (useGui) {

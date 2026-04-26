@@ -30,6 +30,8 @@ class Player {
         bool canUseCard;
     public:
         Player();
+        Player(const string& username, int currency, Tile* currentTile, PLAYER_STATUS status, CardDeck<SkillCard> deck):
+            username(username), currency(currency), currentTile(currentTile), currentStatus(status), deck(std::move(deck)) {}
 
         // getter
 

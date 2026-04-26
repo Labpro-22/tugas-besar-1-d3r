@@ -549,6 +549,7 @@ bool CommandHandler::execute(const std::string& line) {
 
         game.writeLine(card->getCardName() + " used!");
         card->useCard(currentPlayer, game.getPlayers());
+        game.getSkillDeck().addUsedCard(card);
         currentPlayer->setCanUseCard(false);
         delete card;
     } 

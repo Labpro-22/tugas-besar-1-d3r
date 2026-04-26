@@ -30,7 +30,8 @@ public:
     void loadActions(const vector<int>& taxConfig, const vector<int>& specialConfig);
     void loadDefaultTiles();
 
-    void load();
+    void loadConfig();
+    void load(string fileName);
     void save(string fileName, bool override = false);
     bool isFileExists(const string& fileName);
 };

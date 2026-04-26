@@ -124,3 +124,8 @@ class SaveProhibitedException : public NimonspoliException {
     public:
         SaveProhibitedException() : NimonspoliException(15, "SAVE_PROHIBITED") {}
 };
+
+class LoadProhibitedException : public NimonspoliException { 
+    public:
+        LoadProhibitedException() : NimonspoliException(16, "LOAD_PROHIBITED") {}
+};
