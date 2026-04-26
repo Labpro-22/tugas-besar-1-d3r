@@ -155,7 +155,7 @@ void Street::runTile(Player* player) {
         gm.writeLine("Diskon       : " + to_string(player->getDiscount()) + "%");
         if (player->getDiscount() > 0.0f) {
             gm.writeLine("Sewa setelah diskon: M" + to_string(rent - static_cast<int>(rent * player->getDiscount() / 100.0f)));
-            rent = rent - static_cast<int>(rent * player->getDiscount() / 100.0f);
+            //rent = rent - static_cast<int>(rent * player->getDiscount() / 100.0f);
         }
         gm.writeLine("");
 

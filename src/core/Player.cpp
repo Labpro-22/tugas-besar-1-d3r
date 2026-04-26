@@ -4,6 +4,7 @@
 #include "../../include/core/Tile.hpp"
 #include <algorithm>
 #include <map>
+#include <unistd.h>
 
 Player::Player()
     : username(""), currency(0), currentStatus(ACTIVE), currentTile(nullptr),
@@ -59,6 +60,17 @@ void Player::pay(int amount, Player* creditor) {
             game.writeLine("[SHIELD ACTIVE] " + username + " kebal. Tagihan " + std::to_string(amount) + " dibatalkan.");
         }
         return;
+    }
+
+    if (hasDiscount()) {
+        int discountedAmount = static_cast<int>(amount * (1.0f - discountValue / 100.0f));
+        GameManager& game = GameManager::getInstance();
+        if (creditor != nullptr) {
+            game.writeLine("[DISCOUNT ACTIVE] " + username + " mendapatkan diskon " + std::to_string(discountValue) + "%. Pembayaran dikurangi dari " + std::to_string(amount) + " menjadi " + std::to_string(discountedAmount) + ".");
+        } else {
+            game.writeLine("[DISCOUNT ACTIVE] " + username + " mendapatkan diskon " + std::to_string(discountValue) + "%. Tagihan dikurangi dari " + std::to_string(amount) + " menjadi " + std::to_string(discountedAmount) + ".");
+        }
+        amount = discountedAmount;
     }
 
     if (currency < amount) {
