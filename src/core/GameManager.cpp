@@ -346,24 +346,8 @@ void GameManager::pay(Player *debtor, int amount, Player* creditor) {
         return;
     }
 
-    if (debtor->hasShield()) {
-        if (creditor != nullptr) {
-            writeLine("[SHIELD ACTIVE] " + debtor->getUsername() + " kebal. Pembayaran " + std::to_string(amount) + " dibatalkan.");
-        } else {
-            writeLine("[SHIELD ACTIVE] " + debtor->getUsername() + " kebal. Tagihan " + std::to_string(amount) + " dibatalkan.");
-        }
-        return;
-    }
-
     try{
-        if (debtor->getCurrency() < amount) {
-            throw NotEnoughMoneyException("", amount, debtor->getCurrency());
-        }
-
-        *debtor -= amount;
-        if (creditor){
-            *creditor += amount;
-        }
+        debtor->pay(amount, creditor);
     }
     catch(const NotEnoughMoneyException& e) {
         handleBankruptcy(debtor, amount, creditor);

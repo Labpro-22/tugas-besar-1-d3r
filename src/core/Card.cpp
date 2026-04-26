@@ -48,8 +48,7 @@ void BirthDayCard::useCard(Player *currentPlayer, std::vector<Player *> players)
 
         Logger &logger = Logger::getInstance();
         logger.log(currentPlayer->getUsername(), StateLog::FUND_CARD, "Mendarat di " + currentPlayer->getCurrentTile()->getName() + " Dapat M100 dari setiap pemain");
-        *player -= 100;
-        *currentPlayer += 100;
+        GameManager::getInstance().pay(player, 100, currentPlayer);
     }
 }
 

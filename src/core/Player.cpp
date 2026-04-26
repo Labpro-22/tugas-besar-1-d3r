@@ -46,6 +46,31 @@ void Player::endTurnEffects() {
     }
 }
 
+void Player::pay(int amount, Player* creditor) {
+    if (amount <= 0) {
+        return;
+    }
+
+    if (hasShield()) {
+        GameManager& game = GameManager::getInstance();
+        if (creditor != nullptr) {
+            game.writeLine("[SHIELD ACTIVE] " + username + " kebal. Pembayaran " + std::to_string(amount) + " dibatalkan.");
+        } else {
+            game.writeLine("[SHIELD ACTIVE] " + username + " kebal. Tagihan " + std::to_string(amount) + " dibatalkan.");
+        }
+        return;
+    }
+
+    if (currency < amount) {
+        throw NotEnoughMoneyException("", amount, currency);
+    }
+
+    *this -= amount;
+    if (creditor != nullptr) {
+        *creditor += amount;
+    }
+}
+
 bool Player::addSkillCard(SkillCard* card) {
     Logger &logger = Logger::getInstance();
     if (card == nullptr) {
