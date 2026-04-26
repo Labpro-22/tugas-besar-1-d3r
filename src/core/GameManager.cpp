@@ -8,12 +8,13 @@
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Tile.hpp"
 #include "../../include/core/DataManager.hpp"
+#include "../../include/gui/UIOverlay/UIComponent.hpp"
 
 using namespace std;
 
 GameManager::GameManager() 
     : turn(0), maxTurn(0), activePlayerCount(0), playerCount(0), initialCurrency(0),
-            board(45), currentTurnPlayer(nullptr) {
+      board(41), currentTurnPlayer(nullptr), tilePopup(nullptr) {
     // Board initialized with 40 tiles (standard Monopoly)
 }
 
@@ -138,6 +139,7 @@ void GameManager::runGame() {
 
     writeLine("[INFO] Game ready.");
     commandHandler.handleJailTurn(currentTurnPlayer);
+    commandHandler.handleJailTurn(currentTurnPlayer);
 }
 
 void GameManager::auction(Tile* tile) {
@@ -218,6 +220,34 @@ void GameManager::rollDice(int dice1, int dice2) {
         currentTurnPlayer->setDoubleCount(0);
     }
 
+
+    if (currentTurnPlayer->getStatus() == JAILED) {
+        writeLine("Game Error: Pemain JAILED tidak seharusnya memanggil rollDice secara langsung tanpa melalui Command Handler!");
+        return;
+    }
+
+    if (dice.isDouble()) {
+        currentTurnPlayer->setDoubleCount(currentTurnPlayer->getDoubleCount() + 1);
+        if (currentTurnPlayer->getDoubleCount() >= 3) {
+            writeLine("Dadu: " + std::to_string(dice.getFirst()) + " + " + std::to_string(dice.getSecond()) + ". Tiga kali double berturut-turut! Langsung masuk penjara.");
+            currentTurnPlayer->setDoubleCount(0);
+            Tile* jailTile = board.getJailTile();
+            if (jailTile != nullptr) {
+                currentTurnPlayer->moveTo(jailTile, false, FORWARD);
+                Prison* prison = dynamic_cast<Prison*>(jailTile);
+                if (prison != nullptr) {
+                    prison->setJailed(currentTurnPlayer);
+                } else {
+                    currentTurnPlayer->setToJailed();
+                }
+            }
+            nextTurn();
+            return;
+        }
+    } else {
+        currentTurnPlayer->setDoubleCount(0);
+    }
+
     Tile* destination = board.goToTile(*currentTurnPlayer->getCurrentTile(), total);
 
     currentTurnPlayer->setCanUseCard(false);
@@ -229,6 +259,8 @@ void GameManager::rollDice(int dice1, int dice2) {
     }
 
     currentTurnPlayer->moveTo(destination, true, FORWARD);
+    TilePopup popUpcaller;
+    destination->callPopUp(popUpcaller);
     // writeLine("Mendarat di: " + destination->getName() + " (" + destination->getCode() + ")");
 
     if (currentTurnPlayer->getStatus() == BANKRUPT) {
@@ -317,6 +349,7 @@ void GameManager::nextTurn() {
     if (currentTurnPlayer != nullptr) {
         currentTurnPlayer->resetCardUse();
         drawSkillCard(currentTurnPlayer);
+        commandHandler.handleJailTurn(currentTurnPlayer);
     }
 }
 
@@ -368,6 +401,7 @@ void GameManager::initSkillDeck() {
         deckSkill.addCard(new TeleportCard());
         deckSkill.addCard(new LassoCard());
         deckSkill.addCard(new DemolitionCard());
+        deckSkill.addCard(new FreeJailCard());
         deckSkill.addCard(new FreeJailCard());
     }
 

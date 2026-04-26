@@ -2,7 +2,9 @@
 
 #include <string>
 #include <vector>
+#include "../include/gui/UIOverlay/UIComponent.hpp"
 
+class TilePopUpCall;
 class Player;
 class Card;
 class Tile {
@@ -22,6 +24,10 @@ public:
     std::string getColor() const { return color; }
     virtual void runTile(Player*) = 0;
     virtual int getAssetValue() const { return 0; }    
+
+    // untuk panggil GUI
+    virtual void callPopUp(TilePopUpCall& tile) = 0;
+
 };
 
 enum PROPERTY_STATUS {
@@ -61,6 +67,7 @@ public:
 
     // Untuk Memanggil GUI
     virtual void callViewer(PropertyRenderCall& tile) = 0;
+    virtual void callPopUp(TilePopUpCall& tile) override = 0 ;
 
 };
 
@@ -79,6 +86,7 @@ public:
 
     // Untuk inferface GUI
     void callViewer(PropertyRenderCall& tile) override;
+    void callPopUp(TilePopUpCall& tile) override;
 };
 
 class Utility : public Property {
@@ -91,6 +99,7 @@ public:
     int getRentCost() const override;
     // untuk interface GUI
     void callViewer(PropertyRenderCall& tile) override;
+    void callPopUp(TilePopUpCall& tile) override;
 };
 
 class Street : public Property {
@@ -119,12 +128,18 @@ public:
     // Untuk interface GUI
     void callViewer(PropertyRenderCall& other) override;
     int getBuildingValue() const;
+
+    // untuk panggil GUI
+    void callPopUp(TilePopUpCall& tile) override;
 };
 
 class CardTile : public Tile {
 public:
     CardTile(int, const std::string&, const std::string& name, const std::string&);
     void runTile(Player*) override;
+
+    // untuk panggil GUI
+    void callPopUp(TilePopUpCall& tile) override;
 };
 
 class Festival : public Tile {
@@ -132,6 +147,8 @@ public:
     Festival(int index, const std::string& code, const std::string& name, const std::string& color);
     void addMultiplier(const std::string&);
     void runTile(Player*) override;
+
+    void callPopUp(TilePopUpCall& tile) override;
 };
 
 class Tax : public Tile {
@@ -140,6 +157,8 @@ public:
 
     void runTile(Player*) override;
     virtual void payTax(Player* player) = 0;
+    // untuk panggil GUI
+    virtual void callPopUp(TilePopUpCall& tile) override = 0;
 };
 
 enum PPH_OPTION {
@@ -162,6 +181,9 @@ public:
 
     int calculateFlatTax() const;
     int calculatePercentageTax(const Player& player) const;
+
+    // untuk panggil GUI
+    void callPopUp(TilePopUpCall& tile) override;
     
 };
 
@@ -175,6 +197,7 @@ public:
     void setFixedTax(int fixedTax) { this->fixedTax = fixedTax; };
 
     void payTax(Player* player) override;
+    void callPopUp(TilePopUpCall& tile) override;
 };
 
 class Go : public Tile {
@@ -184,6 +207,8 @@ public:
     Go(int, const std::string&, const std::string& name, const std::string&, int payment);
     void givePayments(Player*);
     void runTile(Player*) override;
+    void callPopUp(TilePopUpCall& tile) override;
+    int getPayment() const {return payment;};
 };
 
 class Prison : public Tile {
@@ -199,18 +224,21 @@ public:
     void setJailed(Player*);
     void freeFromJailed(Player*);
     void runTile(Player*) override;
+    void callPopUp(TilePopUpCall& tile) override;
 };
 
 class Trap : public Tile {
 public:
     Trap(int, const std::string&, const std::string& name, const std::string&);
     void runTile(Player* player) override;
+    void callPopUp(TilePopUpCall& tile) override;
 };
 
 class FreeParking : public Tile {
 public:
     FreeParking(int index, const std::string& code, const std::string& name, const std::string& color);
     void runTile(Player* player) override;
+    void callPopUp(TilePopUpCall& tile) override;
 };
 
 

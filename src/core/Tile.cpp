@@ -13,6 +13,41 @@ void Railroad::callViewer(PropertyRenderCall& other) {
     other.render(this);
 }
 
+void Street::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Utility::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Railroad::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void PBM::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void PPH::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void CardTile::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Festival::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Go::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Prison::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void Trap::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+void FreeParking::callPopUp(TilePopUpCall& other){
+    other.renderPopUp(this);
+}
+
+
 // ============== Tile Base Class ==============
 Tile::Tile(int index, const std::string& code, const std::string& name, const std::string& color)
     : index(index), code(code), name(name), color(color) {}
@@ -53,6 +88,7 @@ Tax::Tax(int index, const std::string& code, const std::string& name, const std:
 void Tax::runTile(Player* player) {
     if (player != nullptr) {
         payTax(player);
+        
     }
 }
 
@@ -65,7 +101,6 @@ void CardTile::runTile(Player* player) {
     }
 
     GameManager& game = GameManager::getInstance();
-    Tile* initialTile = player->getCurrentTile();
     AutoUseCard* card = nullptr;
 
     // seems like its save to be hardcoded...
@@ -77,14 +112,6 @@ void CardTile::runTile(Player* player) {
 
     if (card != nullptr) {
         card->useCard(player, game.getPlayers());
-
-        if (player->getStatus() == BANKRUPT || player->getStatus() == JAILED) {
-            return;
-        }
-
-        if (player->getCurrentTile() != initialTile) {
-            return;
-        }
     }
 }
 
@@ -118,7 +145,7 @@ bool Prison::checkJailed(Player* player) const {
 
 void Prison::payFee(Player* player) {
     if (player != nullptr) {
-        GameManager::getInstance().pay(player, fee, nullptr);
+        *player -= fee;
     }
 }
 
@@ -158,8 +185,5 @@ void Trap::runTile(Player* player){
 
 FreeParking::FreeParking(int index, const std::string& code, const std::string& name, const std::string& color)
 : Tile(index, code, name, color){}
-void FreeParking::runTile(Player* player){
-    if (player == nullptr) {
-        return;
-    }
+void FreeParking::runTile(Player*){
 }

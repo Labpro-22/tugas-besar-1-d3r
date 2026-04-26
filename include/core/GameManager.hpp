@@ -16,6 +16,7 @@
 
 class Tile;
 class CardTile;
+class TilePopup;
 
 class GameManager {
 private:
@@ -38,6 +39,7 @@ private:
 	Dice dice;
 	std::function<void(const std::string&)> outputCallback;
 	std::function<std::string(const std::string&)> inputCallback;
+	TilePopup* tilePopup;
 
 public:
 	GameManager();
@@ -65,6 +67,7 @@ public:
 	};
 	void setOutputCallback(std::function<void(const std::string&)> callback) { outputCallback = std::move(callback); }
 	void setInputCallback(std::function<std::string(const std::string&)> callback) { inputCallback = std::move(callback); }
+	void setTilePopup(TilePopup* popup) { tilePopup = popup; }
 	void setAllPlayersCurrency(int currency) {
 		initialCurrency = currency;
 		for (Player* player : players) {
@@ -127,4 +130,5 @@ public:
 	void sellPropertyToBank(Player* player, Property* property);
 	void handleBankruptcy(Player *debtor, int amount, Player* creditor);
 	void assetAcquisition(Player* debtor, Player* creditor);
+
 };

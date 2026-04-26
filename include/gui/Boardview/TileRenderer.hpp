@@ -8,8 +8,8 @@
 #include <string>
 class TileRenderer {
 public:
-    static void DrawIsometricTile(Vector2 centerPos, Color tileColor);
-    static void FillTileTypes(Vector2 tilePos, int index, Color tileColor);
+    static void DrawIsometricTile(Vector2 centerPos, std::pair<Color, Color> tileColors);
+    static void FillTileTypes(Vector2 tilePos, int index, std::pair<Color, Color> tileColors);
     static void DrawTextIsometric(const std::string text, Vector2 originOffset,Vector2 tilePos, float rotation);
     static float GetTextRotation(int index);
     // Melakukan parsing tile dan menghasilkan warna utama dan shadenya

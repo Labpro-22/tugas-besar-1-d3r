@@ -228,6 +228,11 @@ void Player::moveOneStep(const Board& board, bool getPayment, MOVE_DIRECTION dir
         Tile* go = board.getTile("GO");
         if (go != nullptr && go != currentTile) {
             go->runTile(this);
+            // Show popup if using GUI
+            GameManager& gm = GameManager::getInstance();
+            if (gm.isGuiStreamActive() && gm.getTilePopup() != nullptr) {
+                go->callPopUp(*gm.getTilePopup());
+            }
         }
     }
 }
@@ -240,6 +245,11 @@ void Player::moveTo(Tile* destination, bool getPayment, MOVE_DIRECTION direction
     if (currentTile == nullptr) {
         currentTile = destination;
         destination->runTile(this);
+        // Show popup if using GUI
+        GameManager& gm = GameManager::getInstance();
+        if (gm.isGuiStreamActive() && gm.getTilePopup() != nullptr) {
+            destination->callPopUp(*gm.getTilePopup());
+        }
         return;
     }
 
@@ -252,6 +262,11 @@ void Player::moveTo(Tile* destination, bool getPayment, MOVE_DIRECTION direction
         }
     }
 
+    // Show popup if using GUI
+    GameManager& gm = GameManager::getInstance();
+    if (gm.isGuiStreamActive() && gm.getTilePopup() != nullptr) {
+        destination->callPopUp(*gm.getTilePopup());
+    }
     destination->runTile(this);
 }
 

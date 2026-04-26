@@ -2,6 +2,7 @@
 #include "../../include/core/GameManager.hpp"
 #include "../../include/core/Player.hpp"
 #include "../../include/core/Logger.hpp"
+#include "../../include/gui/UIOverlay/UIComponent.hpp"
 
 using namespace std;
 
@@ -79,7 +80,6 @@ void Street::runTile(Player* player) {
     Logger &logger = Logger::getInstance();
     GameManager& gm = GameManager::getInstance();
 
-
     // buy mechanism
     if (propertyStatus == BANK) {
         int price = landCost;
@@ -120,6 +120,8 @@ void Street::runTile(Player* player) {
             gm.writeLine("Properti ini akan masuk ke sistem lelang...");
             gm.auction(this);
         }
+        TilePopup popUpcaller;
+        callPopUp(popUpcaller);
         return;
     }
 

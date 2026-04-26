@@ -32,7 +32,7 @@ void PPH::payPphTax(Player* player, PPH_OPTION option) {
         logger.log(player->getUsername(), StateLog::PAY_TAX, 
                     "Pemain membayar pajak PPH tipe PERSENTASE sebesar " + to_string(taxAmount));
     }
-    GameManager::getInstance().pay(player, taxAmount, nullptr);
+    *player -= taxAmount;
 }
 int PPH::calculateFlatTax() const {
     return flatTax;
@@ -53,6 +53,6 @@ void PBM::payTax(Player* player) {
     if (player != nullptr) {
         logger.log(player->getUsername(), StateLog::PAY_TAX, 
             "Pemain membayar pajak PBM sebesar " + to_string(fixedTax));
-        GameManager::getInstance().pay(player, fixedTax, nullptr);
+        *player -= fixedTax;
     }
 }

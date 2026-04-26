@@ -86,12 +86,14 @@ static void DrawTextBoxedSelectable(Font font, const char *text, Rectangle rec, 
 
                 bool isGlyphSelected = false;
                 if ((selectStart >= 0) && (k >= selectStart) && (k < (selectStart + selectLength))) {
-                    DrawRectangleRec((Rectangle){rec.x + textOffsetX - 1, rec.y + textOffsetY, glyphWidth, (float)font.baseSize * scaleFactor}, selectBackTint);
+                    Rectangle boxSelectable = {rec.x + textOffsetX - 1, rec.y + textOffsetY, glyphWidth, (float)font.baseSize * scaleFactor};
+                    DrawRectangleRec(boxSelectable, selectBackTint);
                     isGlyphSelected = true;
                 }
 
                 if ((codepoint != ' ') && (codepoint != '\t')) {
-                    DrawTextCodepoint(font, codepoint, (Vector2){rec.x + textOffsetX, rec.y + textOffsetY}, fontSize, isGlyphSelected ? selectTint : tint);
+                    Vector2 rectangleOffset = {rec.x + textOffsetX, rec.y + textOffsetY};
+                    DrawTextCodepoint(font, codepoint, rectangleOffset, fontSize, isGlyphSelected ? selectTint : tint);
                 }
             }
 
